@@ -385,7 +385,6 @@ export default function AnalyticChat({
       const userMessageId = uuidv4();
       console.log("currentChatId:", currentChatId);
 
-      // If no chatId, create new chat
       if (!chatId) {
         await createChat(currentChatId, userId);
         window.history.replaceState(
@@ -396,7 +395,6 @@ export default function AnalyticChat({
       }
 
       setSuggestions([]);
-      // Save user message with parts
       await saveMessage({
         id: userMessageId,
         chatId: currentChatId,
@@ -415,7 +413,6 @@ export default function AnalyticChat({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
 
-  // Add a ref to track if update is from message actions
   const isMessageActionUpdate = useRef(false);
 
   const handleMessageUpdate = useCallback(
@@ -440,12 +437,10 @@ export default function AnalyticChat({
         });
       }
     }
-    // Reset the flag after each messages update
     isMessageActionUpdate.current = false;
   }, [messages, isAtBottom, suggestions]);
 
   useEffect(() => {
-    // Set initial suggestions
     setSuggestions(initialSuggestions);
   }, [dbConnectionString]);
 
@@ -464,7 +459,6 @@ export default function AnalyticChat({
 
     const userMessageId = uuidv4();
 
-    // If no chatId, create new chat
     if (!chatId) {
       await createChat(currentChatId, userId);
       window.history.replaceState(
@@ -474,7 +468,6 @@ export default function AnalyticChat({
       );
     }
 
-    // Save user message
     await saveMessage({
       id: userMessageId,
       chatId: currentChatId,
@@ -483,7 +476,6 @@ export default function AnalyticChat({
       userId: userId,
     });
 
-    // Process the message with the AI
     append({
       role: "user",
       content: query,
@@ -511,24 +503,19 @@ export default function AnalyticChat({
       if (targetMessage.role !== "assistant") return;
 
       try {
-        // Get all message IDs that need to be deleted (including and after the target message)
         const messageIdsToDelete = messages
           .slice(messageIndex)
           .map((m) => m.id);
 
-        // Delete messages from database
         await deleteMessagesByIds(messageIdsToDelete);
 
-        // Remove messages from UI
         setMessages(messages.slice(0, messageIndex));
 
-        // Get the last user message before this point
         const lastUserMessage = [...messages.slice(0, messageIndex)]
           .reverse()
           .find((m) => m.role === "user");
 
         if (lastUserMessage) {
-          // Regenerate response
           append({
             role: "user",
             content: lastUserMessage.content,
