@@ -64,6 +64,7 @@ export default function SignIn() {
       toast.error("Failed validating your submission!");
     } else if (state?.status === "success") {
       router.refresh();
+      toast.success("Logged in successfully!");
     }
   }, [state, pending, router]);
 

@@ -24,12 +24,24 @@ import { toast } from "sonner";
 
 const formSchema = z
   .object({
-    first_name: z.string().min(1, { message: "First name is required" }),
-    last_name: z.string().min(1, { message: "Last name is required" }),
+    first_name: z
+      .string()
+      .min(1, { message: "First name is required" })
+      .regex(/^[A-Za-z]+$/, { message: "First name must contain only alphabets" }),
+
+    last_name: z
+      .string()
+      .min(1, { message: "Last name is required" })
+      .regex(/^[A-Za-z]+$/, { message: "Last name must contain only alphabets" }),
+
     user_email: z
       .string()
       .min(1, { message: "Please enter your email" })
-      .email({ message: "Invalid email address" }),
+      .email({ message: "Invalid email address" })
+      .regex(/^[\w.+-]+@gmail\.com$/, {
+        message: "Email must be @gmail.com at end",
+      }),
+
     password: z
       .string()
       .min(1, {
@@ -39,25 +51,27 @@ const formSchema = z
         message: "Password must be at least 7 characters long",
       }),
     confirmPassword: z.string(),
-    user_name: z
-      .string()
-      .min(1, {
-        message: "Please enter your username",
-      })
-      .min(5, {
-        message: "Username must be at least 5 characters long",
-      }),
-    user_mobile: z
-      .string()
-      .min(1, { message: "Mobile number is required" })
-      .regex(/^\+?[0-9]\d{9,14}$/, { message: "Invalid mobile number format" }), // Supports E.164 format (international numbers)
-    for_business_name: z
-      .string()
-      .min(1, { message: "Business name is required" }),
-    for_business_number: z
-      .string()
-      .min(1, { message: "Business number is required" })
-      .regex(/^\d+$/, { message: "Business number must be numeric" }),
+
+   user_mobile: z
+  .string()
+  .min(1, { message: "Mobile number is required" })
+  .regex(/^\d+$/, { message: "Mobile number must contain only digits" }) // only numbers
+  .length(10, { message: "Mobile number must be exactly 10 digits" }), // exactly 10 digits
+
+    // Supports E.164 format (international numbers)
+   business_name: z
+  .string()
+  .nonempty({ message: "Business name is required" }) // first check empty
+  .min(4, { message: "Business name must be at least 4 characters" })
+  .regex(/^[A-Za-z ]+$/, { message: "Business name must contain only alphabets" }),
+
+business_number: z
+  .string()
+  .nonempty({ message: "Business number is required" }) // first check empty
+  .min(4, { message: "Business number must be at least 4 digits" })
+  .regex(/^\d+$/, { message: "Business number must contain only numbers" }),
+
+
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match.",
@@ -81,12 +95,11 @@ export default function SignUp() {
       first_name: "",
       last_name: "",
       user_email: "",
-      user_name: "",
       password: "",
       confirmPassword: "",
       user_mobile: "",
-      for_business_name: "",
-      for_business_number: "",
+      business_name: "",
+      business_number: "",
     },
   });
 
@@ -95,6 +108,8 @@ export default function SignUp() {
 
     if (state?.status === "user_exists") {
       toast.error("Account already exists");
+    }else if (state?.status === "phone_exists") {
+      toast.error("Phone number already registered");
     } else if (state?.status === "failed") {
       if (state?.message) toast.error(state?.message);
       else toast.error("Failed to create account");
@@ -136,7 +151,9 @@ export default function SignUp() {
                 name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel>
+                      First Name <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="John" {...field} />
                     </FormControl>
@@ -144,12 +161,15 @@ export default function SignUp() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel>
+                      Last Name <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="Doe" {...field} />
                     </FormControl>
@@ -157,38 +177,31 @@ export default function SignUp() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="user_email"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>
+                      Email <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="name@example.com" {...field} />
+                      <Input placeholder="name@gmail.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="user_name"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
               <FormField
                 control={form.control}
                 name="user_mobile"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mobile</FormLabel>
+                    <FormLabel>
+                      Mobile <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="+1234567890" {...field} />
                     </FormControl>
@@ -196,12 +209,15 @@ export default function SignUp() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>
+                      Password <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <PasswordInput placeholder="********" {...field} />
                     </FormControl>
@@ -209,12 +225,15 @@ export default function SignUp() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel>
+                      Confirm Password <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <PasswordInput placeholder="********" {...field} />
                     </FormControl>
@@ -222,12 +241,15 @@ export default function SignUp() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="for_business_name"
+                name="business_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Business Name</FormLabel>
+                    <FormLabel>
+                      Business Name <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="Business Inc." {...field} />
                     </FormControl>
@@ -235,12 +257,15 @@ export default function SignUp() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="for_business_number"
+                name="business_number"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Business Number</FormLabel>
+                    <FormLabel>
+                      Business Number <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="1234567890" {...field} />
                     </FormControl>
@@ -248,6 +273,7 @@ export default function SignUp() {
                   </FormItem>
                 )}
               />
+
               <Button className="mt-2" disabled={isLoading}>
                 Create Account
               </Button>
@@ -282,6 +308,7 @@ export default function SignUp() {
                 </Button>
               </div>
             </div>
+
           </form>
         </Form>
       </div>
