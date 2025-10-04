@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
   eslint: {
   },
   typescript: {
-    ignoreBuildErrors: true,
+    // ignoreBuildErrors: true,
   },
 };
 
