@@ -59,11 +59,9 @@ const formSchema = z
   .length(10, { message: "Mobile number must be exactly 10 digits" }), // exactly 10 digits
 
     // Supports E.164 format (international numbers)
-   business_name: z
+  business_name: z
   .string()
-  .nonempty({ message: "Business name is required" }) // first check empty
-  .min(4, { message: "Business name must be at least 4 characters" })
-  .regex(/^[A-Za-z ]+$/, { message: "Business name must contain only alphabets" }),
+  .min(1, { message: "Business name is required" }),
 
 business_number: z
   .string()

@@ -57,7 +57,7 @@ export interface RegisterActionState {
     | "success"
     | "failed"
     | "user_exists"
-    |"phone_exists"
+    | "phone_exists"
     | "invalid_data";
   message?: string;
 }
@@ -109,20 +109,18 @@ export const register = async (
     for_business_number: validatedData.business_number,
     store_name: validatedData.store_name || null,
     user_name: validatedData.user_email,
+    roles_json:["All"]
   })
   
 
 
-    if (insertError) {
-      if (
-        insertError?.message &&
-        insertError?.message.includes("duplicate key") &&
-        insertError?.message.includes("user_mobile")
-      ) {
-        return { status: "failed", message: "Phone number already exists" };
-      }
-      return { status: "failed" };
-    }
+   if (insertError) {
+  if (insertError?.details?.includes("user_mobile")) {
+    return { status: "phone_exists", message: "Mobile number already registered" };
+  }
+  return { status: "failed", message: insertError?.message || "Failed to create user" };
+}
+
 
     // Auto-login after successful registration
     await signIn("credentials", {
