@@ -24,22 +24,28 @@ export function AppSidebar({
     <Sidebar collapsible="icon" variant="floating" {...props}>
       <SidebarHeader>
         <div className="flex w-full justify-between items-center">
+          {/* Use asChild to avoid nested buttons */}
           <SidebarMenuButton
             size="lg"
+            asChild
             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
-            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-              <LayoutDashboard className="size-4" />
-            </div>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">
-                {session?.user?.business_name}
-              </span>
-              <span className="truncate text-xs">
-                {session?.user?.app_name}
-              </span>
+            <div className="flex gap-2 items-center w-full">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <LayoutDashboard className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">
+                  {session?.user?.business_name}
+                </span>
+                <span className="truncate text-xs">
+                  {session?.user?.app_name ?? "My Apps"}
+                </span>
+              </div>
             </div>
           </SidebarMenuButton>
+
+          {/* Only show trigger if sidebar is not collapsed */}
           {state !== "collapsed" && (
             <SidebarTrigger
               variant="outline"
@@ -47,8 +53,10 @@ export function AppSidebar({
             />
           )}
         </div>
+
+        {/* Collapsed state: use asChild to avoid nested button */}
         {state === "collapsed" && (
-          <SidebarMenuButton size="lg" className="data-[state=open]:hidden">
+          <SidebarMenuButton size="lg" asChild className="data-[state=open]:hidden">
             <div className="flex aspect-square size-8 items-center justify-center">
               <SidebarTrigger
                 variant="outline"
@@ -58,14 +66,17 @@ export function AppSidebar({
           </SidebarMenuButton>
         )}
       </SidebarHeader>
+
       <SidebarContent>
         {sidebarData.navGroups.map((props) => (
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser user={session?.user} />
       </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   );

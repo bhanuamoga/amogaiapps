@@ -118,7 +118,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       const isLoggedIn = !!auth?.user;
-      const publicPaths = ["/sign-in", "/sign-up", "/storesignin", "/storesignup"];
+      const publicPaths = ["/sign-in", "/sign-up", "/storesignin", "/storesignup","/auth"];
 
       const isPublic = publicPaths.some((path) =>
         nextUrl.pathname.startsWith(path)

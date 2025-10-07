@@ -67,6 +67,7 @@ export function DataTableToolbar<TData>({
   endContent,
   ...props
 }: DataTableToolbarProps<TData>) {
+  
   const isFiltered = table.getState().columnFilters.length > 0;
 
   // Memoize computation of searchableColumns and filterableColumns
