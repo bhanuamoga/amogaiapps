@@ -6,9 +6,20 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, Mic, Send } from "lucide-react";
+import {
+  Bot,
+  Clock,
+  Menu,
+  Mic,
+  Plus,
+  Send,
+  Star,
+  Settings,
+  Coins,
+} from "lucide-react";
 import ChatMessage from "./chat-message";
 import { cn } from "@/lib/utils";
+import ConnectionSettings from "./connection-settings";
 import {
   executeSql,
   getDatabaseSchema,
@@ -19,57 +30,134 @@ import {
 } from "../actions";
 
 import { v4 as uuidv4 } from "uuid";
+import Link from "next/link";
 import HistoryBar from "./chat-history";
+import { memo } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import ChatHeader from "./chat-header";
+
+// Add TokenUsage component after existing imports
+const TokenUsage = memo(
+  ({
+    usage,
+  }: {
+    usage: {
+      promptTokens: number;
+      completionTokens: number;
+      totalTokens: number;
+    };
+  }) => (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <div className="flex items-center gap-1">
+            <Coins className="w-5 h-5 text-yellow-500" />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <div className="text-sm">
+            <p>Prompt Tokens: {usage.promptTokens}</p>
+            <p>Completion Tokens: {usage.completionTokens}</p>
+            <p>Total Tokens: {usage.totalTokens}</p>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+);
+TokenUsage.displayName = "TokenUsage";
+
+// Update ChatHeader component to include TokenUsage
+const ChatHeader = memo(
+  ({
+    onHistoryClick,
+    onSettingsClick,
+    usage,
+  }: {
+    onHistoryClick: () => void;
+    onSettingsClick: () => void;
+    usage: {
+      promptTokens: number;
+      completionTokens: number;
+      totalTokens: number;
+    };
+  }) => (
+    <header className="flex items-center justify-between px-4 py-3 border-b">
+      <div className="flex items-center gap-2">
+        <Bot className="w-6 h-6 text-gray-500" />
+        <h1 className="text-xl font-semibold">Database Assistant</h1>
+        <TokenUsage usage={usage} />
+      </div>
+      <div className="flex items-center gap-4">
+        <Link href="/analyticchat">
+          <Button variant="ghost" size="icon" aria-label="New chat">
+            <Plus className="w-5 h-5" />
+          </Button>
+        </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="History"
+          onClick={onHistoryClick}
+        >
+          <Clock className="w-5 h-5" />
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="Favorites">
+          <Star className="w-5 h-5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Settings"
+          onClick={onSettingsClick}
+        >
+          <Settings className="w-5 h-5" />
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="Menu">
+          <Menu className="w-5 h-5" />
+        </Button>
+      </div>
+    </header>
+  )
+);
+ChatHeader.displayName = "ChatHeader";
 
 export default function AnalyticChat({
   chatId,
   initialMessages,
   userId,
-  dbConfig,
-  chatData,
-  initialSuggestions = []
 }: {
   chatId: string | undefined;
   initialMessages?: unknown[];
   userId: string;
-  dbConfig?: Record<string, string>;
-  chatData: {
-    id: string;
-    title: string;
-    bookmark?: boolean;
-    status?: string;
-    createdAt?: string;
-  };
-  initialSuggestions?: string[];
 }) {
-  // Update connection string from dbConfig
-  const [dbConnectionString] = useState<string | null>(
-    dbConfig?.connection_string || null
-  );
-
   const [currentChatId, setCurrentChatId] = useState<string | undefined>(
     chatId
   );
-
-  const assistantIdentifier = "storeassi";
-
-  const [chatTitle, setChatTitle] = useState<string | undefined>(
-    chatData?.title
+  const [dbConnectionString, setDbConnectionString] = useState<string>(
+     process.env.NEXT_PUBLIC_DB_CONNECTION_STRING || ""
+    
   );
-  const [chatCreated, setChatCreated] = useState(false);
-  const [allowedTables] = useState<string[]>(
-    Array.isArray(dbConfig?.allowedTables)
-      ? dbConfig?.allowedTables
-      : ["customers", "product", "product_category", "order", "order_product"]
-  );
+  const [allowedTables, setAllowedTables] = useState<string[]>([
+    "task",
+    "task_categroy",
+    "task_group",
+    "user_catalog",
+    "plan",
+    "mydocs",
+    "campaign",
+  ]);
   const [tableSchema, setTableSchema] = useState<unknown>(null);
-  const [suggestions, setSuggestions] = useState<string[]>(initialSuggestions || []);
+  const [showSettings, setShowSettings] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<unknown[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
 
   // Add new state for token usage
   const [tokenUsage, setTokenUsage] = useState({
@@ -82,7 +170,7 @@ export default function AnalyticChat({
     if (!userId || isHistoryLoading) return;
     setIsHistoryLoading(true);
     try {
-      const data = await getChatHistory(assistantIdentifier);
+      const data = await getChatHistory(userId);
       setHistory(data);
     } catch (error) {
       console.error("Error loading history:", error);
@@ -112,7 +200,7 @@ export default function AnalyticChat({
           );
           if (schema.tables) setTableSchema(schema.tables);
 
-          return { ...schema };
+          return { success: true, ...schema };
         } catch (error) {
           return {
             success: false,
@@ -127,7 +215,7 @@ export default function AnalyticChat({
         try {
           console.log("Executing SQL query...", sql);
           const results = await executeSql(dbConnectionString, sql);
-          return { ...results };
+          return { success: true, ...results };
         } catch (error) {
           return {
             success: false,
@@ -200,6 +288,18 @@ export default function AnalyticChat({
     [toolImplementations]
   );
 
+  // Initial suggested queries to help users get started
+  const initialSuggestions = [
+    "the different statuses in the mydocs table?",
+    "Show me all tasks",
+    "Count tasks by category",
+    "List all users",
+    "Show me task completion rates",
+    "Generate a chart of tasks by group",
+    "What's the distribution of tasks by category?",
+    "Show me the most active users",
+    "List all campaigns",
+  ];
 
   const {
     messages,
@@ -211,13 +311,17 @@ export default function AnalyticChat({
     append,
     setMessages,
   } = useChat({
-    api: "/api/storeanalyicsaiassistant/chat",
+    api: "/api/analyticchat/chat",
     id: chatId,
     initialMessages: [],
+    body: {
+      apiKey: process.env.NEXT_PUBLIC_AI_API_KEY,
+    },
     onFinish: async (message, options) => {
+      console.log("options", options);
       const { finishReason, usage } = options;
 
-      if (finishReason !== "stop" && finishReason !== "unknown") {
+      if (finishReason !== "stop") {
         return;
       }
 
@@ -244,13 +348,6 @@ export default function AnalyticChat({
     maxSteps: 15,
     onToolCall,
     generateId: () => uuidv4(),
-    experimental_prepareRequestBody: ({ messages }) => {
-      return {
-        messages,
-        chatId: currentChatId,
-        assistantIdentifier,
-      };
-    },
   });
 
   useEffect(() => {
@@ -283,48 +380,32 @@ export default function AnalyticChat({
   const handleFormSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      if (isLoading || isGenerating) return;
+      if (!input.trim()) return;
 
-      try {
-        setIsGenerating(true);
-        if (!input.trim()) return;
+      const userMessageId = uuidv4();
+      console.log("currentChatId:", currentChatId);
 
-        const userMessageId = uuidv4();
-
-        // If no chatId, create new chat
-        if (!chatId && !chatCreated) {
-          setChatCreated(true);
-          await createChat(
-            currentChatId,
-            userId,
-            assistantIdentifier,
-            `${input.trim().slice(0, 50)}...`
-          );
-          window.history.replaceState(
-            window.history.state,
-            "",
-            `/storeanalyicsaiassistant/${currentChatId}`
-          );
-        }
-
-        setSuggestions([]);
-        // Save user message with parts
-        await saveMessage({
-          id: userMessageId,
-          chatId: currentChatId,
-          content: input,
-          role: "user",
-          userId: userId,
-          parts: [{ type: "text", content: input }],
-        });
-
-        originalHandleSubmit(e);
-      } catch (error) {
-        console.error("Error during form submission:", error);
-        toast.error("Failed to process your request");
-      } finally {
-        setIsGenerating(false);
+      if (!chatId) {
+        await createChat(currentChatId, userId);
+        window.history.replaceState(
+          window.history.state,
+          "",
+          `/analyticchat/${currentChatId}`
+        );
       }
+
+      setSuggestions([]);
+      await saveMessage({
+        id: userMessageId,
+        chatId: currentChatId,
+        content: input,
+        role: "user",
+        userId: userId,
+        parts: [{ type: "text", content: input }],
+      });
+
+      // Process the message with the AI
+      originalHandleSubmit(e);
     },
     [input, chatId, currentChatId, originalHandleSubmit]
   );
@@ -332,7 +413,6 @@ export default function AnalyticChat({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
 
-  // Add a ref to track if update is from message actions
   const isMessageActionUpdate = useRef(false);
 
   const handleMessageUpdate = useCallback(
@@ -357,9 +437,12 @@ export default function AnalyticChat({
         });
       }
     }
-    // Reset the flag after each messages update
     isMessageActionUpdate.current = false;
   }, [messages, isAtBottom, suggestions]);
+
+  useEffect(() => {
+    setSuggestions(initialSuggestions);
+  }, [dbConnectionString]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (scrollAreaRef.current) {
@@ -372,49 +455,37 @@ export default function AnalyticChat({
   };
 
   const handleSuggestedQuery = async (query: string) => {
-    if (isLoading || isGenerating) return;
-    try {
-      if (!query.trim()) return;
+    if (!query.trim()) return;
 
-      const userMessageId = uuidv4();
+    const userMessageId = uuidv4();
 
-      // If no chatId, create new chat
-      if (!chatId && !chatCreated) {
-        setChatCreated(true);
-        await createChat(
-          currentChatId,
-          userId,
-          assistantIdentifier,
-          `${query.trim().slice(0, 50)}...`
-        );
-        setChatTitle(`${query.trim().slice(0, 50)}...`);
-        window.history.replaceState(
-          window.history.state,
-          "",
-          `/storeanalyicsaiassistant/${currentChatId}`
-        );
-      }
-
-      // Save user message
-      await saveMessage({
-        id: userMessageId,
-        chatId: currentChatId,
-        content: query,
-        role: "user",
-        userId: userId,
-      });
-
-      // Process the message with the AI
-      append({
-        role: "user",
-        content: query,
-      });
-    } catch (error) {
-      console.error("Error during suggested query:", error);
-      toast.error("Failed to process your request");
-    } finally {
-      setIsGenerating(false);
+    if (!chatId) {
+      await createChat(currentChatId, userId);
+      window.history.replaceState(
+        window.history.state,
+        "",
+        `/analyticchat/${currentChatId}`
+      );
     }
+
+    await saveMessage({
+      id: userMessageId,
+      chatId: currentChatId,
+      content: query,
+      role: "user",
+      userId: userId,
+    });
+
+    append({
+      role: "user",
+      content: query,
+    });
+  };
+
+  const handleConnectionUpdate = (connection: string, tables: string[]) => {
+    setDbConnectionString(connection);
+    setAllowedTables(tables);
+    setShowSettings(false);
   };
 
   const filteredSuggestions = useMemo(
@@ -432,24 +503,19 @@ export default function AnalyticChat({
       if (targetMessage.role !== "assistant") return;
 
       try {
-        // Get all message IDs that need to be deleted (including and after the target message)
         const messageIdsToDelete = messages
           .slice(messageIndex)
           .map((m) => m.id);
 
-        // Delete messages from database
         await deleteMessagesByIds(messageIdsToDelete);
 
-        // Remove messages from UI
         setMessages(messages.slice(0, messageIndex));
 
-        // Get the last user message before this point
         const lastUserMessage = [...messages.slice(0, messageIndex)]
           .reverse()
           .find((m) => m.role === "user");
 
         if (lastUserMessage) {
-          // Regenerate response
           append({
             role: "user",
             content: lastUserMessage.content,
@@ -463,27 +529,12 @@ export default function AnalyticChat({
     [messages, append, currentChatId]
   );
 
-  const scrollToMessage = useCallback(
-    (messageId: string) => {
-      const element = document.getElementById(`message-${messageId}`);
-      if (element) {
-        element.focus();
-        element.click();
-        element.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    },
-    [messages]
-  );
-
   return (
     <div className="flex flex-col h-full max-h-screen">
       <ChatHeader
         onHistoryClick={handleHistoryClick}
-        scrollToMessage={scrollToMessage}
+        onSettingsClick={() => setShowSettings(true)}
         usage={tokenUsage}
-        chatData={chatData}
-        chatId={currentChatId}
-        chatTitle={chatTitle}
       />
 
       <HistoryBar
@@ -491,8 +542,17 @@ export default function AnalyticChat({
         setOpen={setShowHistory}
         data={history}
         onDelete={loadHistory}
-        isHistoryLoading={isHistoryLoading}
       />
+
+      {/* Connection Settings Modal */}
+      {showSettings && (
+        <ConnectionSettings
+          connectionString={dbConnectionString}
+          allowedTables={allowedTables}
+          onUpdate={handleConnectionUpdate}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
 
       {/* Chat area */}
       <ScrollArea
@@ -513,7 +573,7 @@ export default function AnalyticChat({
           ))}
 
           {/* Show suggested queries if there are only initial messages */}
-          {messages.length <= 1 && filteredSuggestions.length > 0 && (
+          {messages.length <= 1 && (
             <div className="mt-6">
               <h3 className="text-sm font-medium text-gray-500 mb-2">
                 Try asking:
@@ -603,7 +663,8 @@ export default function AnalyticChat({
         </div>
       </ScrollArea>
 
-      <div className="p-2 md-4 border-t">
+      {/* Input area */}
+      <div className="p-4 border-t">
         <form
           onSubmit={handleFormSubmit}
           className="relative max-w-3xl mx-auto"
@@ -635,7 +696,7 @@ export default function AnalyticChat({
             </Button> */}
             <Button
               type="submit"
-              disabled={!input.trim() || isLoading || isGenerating}
+              disabled={!input.trim() || isLoading}
               size="icon"
               className={cn(
                 "rounded-full text-white",

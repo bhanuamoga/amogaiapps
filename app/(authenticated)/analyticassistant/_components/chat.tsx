@@ -21,6 +21,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import HistoryBar from "./chat-history";
 import { toast } from "sonner";
+import AssistantListSheet from "./assistant-list-sheet";
 import ChatHeader from "./chat-header";
 
 export default function AnalyticChat({
@@ -28,13 +29,16 @@ export default function AnalyticChat({
   initialMessages,
   userId,
   dbConfig,
+  assistantName,
+  assistantIdentifier,
   chatData,
-  initialSuggestions = []
 }: {
   chatId: string | undefined;
   initialMessages?: unknown[];
   userId: string;
   dbConfig?: Record<string, string>;
+  assistantName: string;
+  assistantIdentifier: string;
   chatData: {
     id: string;
     title: string;
@@ -42,8 +46,9 @@ export default function AnalyticChat({
     status?: string;
     createdAt?: string;
   };
-  initialSuggestions?: string[];
 }) {
+  const [showAssistantList, setShowAssistantList] = useState(false);
+
   // Update connection string from dbConfig
   const [dbConnectionString] = useState<string | null>(
     dbConfig?.connection_string || null
@@ -52,9 +57,6 @@ export default function AnalyticChat({
   const [currentChatId, setCurrentChatId] = useState<string | undefined>(
     chatId
   );
-
-  const assistantIdentifier = "storeassi";
-
   const [chatTitle, setChatTitle] = useState<string | undefined>(
     chatData?.title
   );
@@ -65,7 +67,7 @@ export default function AnalyticChat({
       : ["customers", "product", "product_category", "order", "order_product"]
   );
   const [tableSchema, setTableSchema] = useState<unknown>(null);
-  const [suggestions, setSuggestions] = useState<string[]>(initialSuggestions || []);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<unknown[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
@@ -200,6 +202,20 @@ export default function AnalyticChat({
     [toolImplementations]
   );
 
+  // Initial suggested queries to help users get started
+  const initialSuggestions = useMemo(() => {
+    return Array.isArray(dbConfig?.initialSuggestions)
+      ? dbConfig.initialSuggestions
+      : [
+          "What tables do I have?",
+          "What analysis charts can I explore?",
+          "Count of products sold by category",
+          "Best sales month",
+          "Best selling product",
+          "Best selling category",
+          "Sales by month",
+        ];
+  }, [dbConfig]);
 
   const {
     messages,
@@ -211,13 +227,13 @@ export default function AnalyticChat({
     append,
     setMessages,
   } = useChat({
-    api: "/api/storeanalyicsaiassistant/chat",
+    api: "/api/analyticchat/chat",
     id: chatId,
     initialMessages: [],
     onFinish: async (message, options) => {
       const { finishReason, usage } = options;
 
-      if (finishReason !== "stop" && finishReason !== "unknown") {
+      if (finishReason !== "stop") {
         return;
       }
 
@@ -244,13 +260,6 @@ export default function AnalyticChat({
     maxSteps: 15,
     onToolCall,
     generateId: () => uuidv4(),
-    experimental_prepareRequestBody: ({ messages }) => {
-      return {
-        messages,
-        chatId: currentChatId,
-        assistantIdentifier,
-      };
-    },
   });
 
   useEffect(() => {
@@ -303,7 +312,7 @@ export default function AnalyticChat({
           window.history.replaceState(
             window.history.state,
             "",
-            `/storeanalyicsaiassistant/${currentChatId}`
+            `/analyticassistant/${assistantIdentifier}/${currentChatId}`
           );
         }
 
@@ -361,6 +370,11 @@ export default function AnalyticChat({
     isMessageActionUpdate.current = false;
   }, [messages, isAtBottom, suggestions]);
 
+  useEffect(() => {
+    // Set initial suggestions
+    setSuggestions(initialSuggestions);
+  }, [dbConnectionString]);
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (scrollAreaRef.current) {
       const scrollContainer = e.currentTarget;
@@ -391,7 +405,7 @@ export default function AnalyticChat({
         window.history.replaceState(
           window.history.state,
           "",
-          `/storeanalyicsaiassistant/${currentChatId}`
+          `/analyticassistant/${assistantIdentifier}/${currentChatId}`
         );
       }
 
@@ -479,11 +493,19 @@ export default function AnalyticChat({
     <div className="flex flex-col h-full max-h-screen">
       <ChatHeader
         onHistoryClick={handleHistoryClick}
+        onAssistantListClick={() => setShowAssistantList(true)}
         scrollToMessage={scrollToMessage}
         usage={tokenUsage}
+        assistantName={assistantName}
+        assistantIdentifier={assistantIdentifier}
         chatData={chatData}
         chatId={currentChatId}
         chatTitle={chatTitle}
+      />
+
+      <AssistantListSheet
+        open={showAssistantList}
+        onClose={() => setShowAssistantList(false)}
       />
 
       <HistoryBar
@@ -513,7 +535,7 @@ export default function AnalyticChat({
           ))}
 
           {/* Show suggested queries if there are only initial messages */}
-          {messages.length <= 1 && filteredSuggestions.length > 0 && (
+          {messages.length <= 1 && (
             <div className="mt-6">
               <h3 className="text-sm font-medium text-gray-500 mb-2">
                 Try asking:
