@@ -12,7 +12,7 @@ import { searchParamsCache } from "./_lib/validations";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Store Users",
+  title: "Store products",
   description: "Manage your users",
 };
 

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function RoleMenu() {
   const session = await auth();
   if (!session) return <div>Not authenticated</div>;
-  const { data: pages_list } = await postgrest.from("page_list").select("*").eq("status", "active");;
+  const { data: pages_list } = await postgrest.from("page_list").select("*").eq("status", "active");
 
   return (
     <>

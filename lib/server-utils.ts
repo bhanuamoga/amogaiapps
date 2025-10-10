@@ -9,7 +9,7 @@ export async function getAllowedPaths(user: User) {
     const { data: pages_list, error } = await postgrest
       .from("page_list")
       .select("role_json,page_link");
-
+ 
     if (error) throw error;
 
     return pages_list

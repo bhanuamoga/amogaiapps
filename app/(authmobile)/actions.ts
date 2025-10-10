@@ -13,19 +13,16 @@ const authFormSchema = z.object({
 const authRegisterFormSchema = z.object({
   user_email: z.string().email(),
   password: z.string().min(6),
-  user_name: z.string().min(4),
   first_name: z.string().min(1),
   last_name: z.string().min(1),
   user_mobile: z.string().optional(),
   business_name: z.string().optional(),
   business_number: z.string().optional(),
-  for_business_name: z.string().optional(),
-  for_business_number: z.string().optional(),
   store_name: z.string().optional(),
 });
 
 export interface LoginActionState {
-  status: "idle" | "in_progress" | "success" | "failed" | "invalid_data";
+  status: "idle" | "in_progress" | "success" | "failed" | "invalid_data"|"Not Authorized";
 }
 
 export const login = async (
@@ -37,13 +34,33 @@ export const login = async (
       email: formData.email,
       password: formData.password,
     });
+    // ✅ Check if user has "Store Manager" role before sign-in
+const { data: user } = await postgrest.asAdmin()
+  .from("user_catalog")
+  .select("roles_json")
+  .eq("user_email", validatedData.email)
+  .maybeSingle();
+
+if (!user) {
+  return { status: "failed",};
+}
+
+const roles = Array.isArray(user.roles_json)
+  ? user.roles_json
+  : JSON.parse(user.roles_json || "[]");
+
+if (!roles.includes("Store Manager")) {
+  return {
+    status: "Not Authorized",
+  };
+}
 
     await signIn("credentials", {
       email: validatedData.email,
       password: validatedData.password,
       redirect: false,
     });
-
+     
     return { status: "success" };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -60,6 +77,7 @@ export interface RegisterActionState {
     | "success"
     | "failed"
     | "user_exists"
+    | "phone_exists"
     | "invalid_data";
   message?: string;
 }
@@ -71,39 +89,66 @@ export const register = async (
   try {
     const validatedData = authRegisterFormSchema.parse(formData);
 
-    const { data: user } = await postgrest
-      .asAdmin()
+    // Check if email already exists
+    const { data: userByEmail } = await postgrest.asAdmin()
       .from("user_catalog")
       .select("*")
       .eq("user_email", validatedData.user_email)
-      .single();
-    if (user) {
-      return { status: "user_exists" } as RegisterActionState;
-    } else {
-      const { error: insertError } = await postgrest
-        .asAdmin()
-        .from("user_catalog")
-        .insert({ ...validatedData, roles_json: ["storemanager"] });
+      .maybeSingle();
 
-      if (insertError) {
-        if (
-          insertError?.message &&
-          insertError?.message.includes("duplicate key") &&
-          insertError?.message.includes("user_mobile")
-        ) {
-          return { status: "failed", message: "Phone number already exists" };
-        }
-        return { status: "failed" };
-      }
-
-      await signIn("credentials", {
-        email: validatedData.user_email,
-        password: validatedData.password,
-        redirect: false,
-      });
-
-      return { status: "success" };
+    if (userByEmail) {
+      return { status: "user_exists", message: "Email already registered" };
     }
+
+    // Check if mobile number exists (if provided)
+    if (validatedData.user_mobile) {
+      const { data: userByMobile } = await postgrest.asAdmin()
+        .from("user_catalog")
+        .select("*")
+        .eq("user_mobile", validatedData.user_mobile)
+        .maybeSingle();
+
+      if (userByMobile) {
+        return { status: "phone_exists", message: "Mobile number already registered" };
+      }
+    }
+
+    // Insert new user
+    const { data, error: insertError } = await (postgrest.asAdmin()
+  .from("user_catalog") as any)
+  .insert({
+    user_email: validatedData.user_email,
+    password: validatedData.password,
+    first_name: validatedData.first_name,
+    last_name: validatedData.last_name,
+    full_name: `${validatedData.last_name} ${validatedData.first_name}`,
+    user_mobile: validatedData.user_mobile ,
+    business_number: validatedData.business_number,
+    business_name: validatedData.business_name ,
+    for_business_name: validatedData.business_name ,
+    for_business_number: validatedData.business_number,
+    store_name: validatedData.store_name || null,
+    user_name: validatedData.user_email,
+    roles_json:["Store Manager"]
+  })
+ 
+
+   if (insertError) {
+  if (insertError?.details?.includes("user_mobile")) {
+    return { status: "phone_exists", message: "Mobile number already registered" };
+  }
+  return { status: "failed", message: insertError?.message || "Failed to create user" };
+}
+
+
+    // Auto-login after successful registration
+    await signIn("credentials", {
+      email: validatedData.user_email,
+      password: validatedData.password,
+      redirect: false,
+    });
+
+    return { status: "success" };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { status: "invalid_data" };

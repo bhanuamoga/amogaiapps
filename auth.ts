@@ -44,6 +44,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         const userSessionDTO = getUserSessionDTO(user);
+        // console.log("userSessionDTO:"+ userSessionDTO)
         const allowedPaths = await getAllowedPaths(userSessionDTO);
         return { ...userSessionDTO, allowedPaths: allowedPaths };
       },
@@ -118,7 +119,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       const isLoggedIn = !!auth?.user;
-      const publicPaths = ["/sign-in", "/sign-up", "/storesignin", "/storesignup","/auth"];
+      const publicPaths = ["/sign-in", "/sign-up", "/storesignin", "/storesignup"];
 
       const isPublic = publicPaths.some((path) =>
         nextUrl.pathname.startsWith(path)
@@ -144,7 +145,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return Response.redirect(new URL("/role-menu", nextUrl.origin));
       }
 
-      const authAllowedPaths = ["/role-menu", "/settings", "/not-authorized","/getstart"];
+      const authAllowedPaths = ["/role-menu", "/settings", "/not-authorized"];
 
       const isAuthAllowedPaths = authAllowedPaths.some((path) =>
         nextUrl.pathname.startsWith(path)

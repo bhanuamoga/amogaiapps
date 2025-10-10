@@ -30,7 +30,7 @@ const RenderDashboard = ({
   data: FormData;
   apiToken?: string;
 }) => {
-  const { name, description, cards, charts } = contentJson[0];
+  const { name, description, cards, charts } = contentJson[0] || {};
   const [cardData, setCardData] = React.useState<{ [key: number]: number }>({});
   const [chartsData, setChartsData] = React.useState<any>({
     pieChart: [],

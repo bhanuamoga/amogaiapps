@@ -62,18 +62,21 @@ export default function SignIn() {
       toast.error("Invalid credentials!");
     } else if (state?.status === "invalid_data") {
       toast.error("Failed validating your submission!");
-    } else if (state?.status === "success") {
+    } else if(state?.status=="Not Authorized"){
+      toast.error("You don't have authorization to access this Store.");
+    }else if (state?.status === "success") {
       router.refresh();
+      toast.success("Logged in successfully!");
     }
   }, [state, pending, router]);
 
   return (
     <Card className="p-6">
       <div className="flex flex-col space-y-2 text-left">
-        <h1 className="text-2xl font-semibold tracking-tight">Login</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Store Login</h1>
         <p className="text-sm text-muted-foreground">
           Enter your email and password below <br />
-          to log into your account
+          to log into your Store account
         </p>
       </div>
       <div className="grid gap-6">
