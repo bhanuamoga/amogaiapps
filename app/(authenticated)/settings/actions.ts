@@ -223,6 +223,9 @@ export async function saveConnectionSettings(
   }
 }
 
+
+
+
 // Save AI settings separately
 export async function saveAISettings(
   provider: string,
@@ -314,7 +317,7 @@ export async function getBusinessSettings() {
       .asAdmin()
       .from("user_catalog")
       .select(
-        "business_name,legal_business_name,business_number,business_registration_no,store_name,store_url,store_email,store_mobile,billing_phone,billing_last_name,billing_company,billing_phone,billing_email,billing_address_1,billing_address_2,billing_country,billing_state,billing_city,billing_postcode,shipping_first_name,shipping_last_name,shipping_company,shipping_phone,shipping_email,shipping_address_1,shipping_address_2,shipping_country,shipping_state,shipping_city,shipping_postcode"
+        "business_name,legal_business_name,business_number,business_registration_no,store_name,store_url,store_email,store_mobile,billing_first_name,billing_last_name,billing_company,billing_phone,billing_email,billing_address_1,billing_address_2,billing_country,billing_state,billing_city,billing_postcode,shipping_first_name,shipping_last_name,shipping_company,shipping_phone,shipping_email,shipping_address_1,shipping_address_2,shipping_country,shipping_state,shipping_city,shipping_postcode"
       )
       .eq("user_catalog_id", session.user.user_catalog_id)
       .limit(1)

@@ -16,7 +16,7 @@ type Settings = {
   store_email: string;
   store_mobile: string;
   billing_first_name:string,
-  billing_Last_name:string ,
+  billing_last_name:string ,
   billing_company: string,
   billing_phone: string
   billing_email: string
@@ -53,7 +53,7 @@ export const BusinessSettingsForm: React.FC = () => {
     store_email: "",
     store_mobile: "",
     billing_first_name:"",
-    billing_Last_name: "",
+    billing_last_name: "",
     billing_company: "",
     billing_phone: "",
     billing_email: "",
@@ -124,7 +124,7 @@ export const BusinessSettingsForm: React.FC = () => {
   const disabled = !editMode || isSaving || isLoading;
 
   return (
-    <div className="border rounded-lg p-4 space-y-4">
+    <div className="border rounded-lg p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">Business Settings</h3>
         {!editMode ? (
@@ -192,7 +192,7 @@ export const BusinessSettingsForm: React.FC = () => {
 
       <div className="space-y-2">
         <Label htmlFor="billing_Last_name">BillingLastName</Label>
-        <Input id="billing_Last_name" name="billing_Last_name" value={settings.billing_Last_name ?? ""} onChange={onChange} disabled={disabled} required />
+        <Input id="billing_Last_name" name="billing_Last_name" value={settings.billing_last_name ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
        
       <div className="space-y-2">

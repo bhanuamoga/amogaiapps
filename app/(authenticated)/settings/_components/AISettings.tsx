@@ -78,7 +78,7 @@ const AISettings = () => {
           <Search className="w-5 h-5 ml-5 text-muted-foreground" />
           <Input type="search" placeholder="Search..." className="border-0" />
         </div>
-        <Link href="/store-settings/ai/new">
+        <Link href="/settings/ai/new">
           <Button size={"icon"}>
             <Plus className="w-5 h-5" />
           </Button>
@@ -136,7 +136,7 @@ const AISettings = () => {
                       onClick={() => handleDelete(item?.id)}
                       className="w-5 cursor-pointer h-5 text-muted-foreground"
                     />
-                    <Link href={`/store-settings/ai/edit/${item?.id}`}>
+                    <Link href={`/settings/ai/edit/${item?.id}`}>
                       <Edit className="w-5 h-5 text-muted-foreground" />
                     </Link>
                   </div>
