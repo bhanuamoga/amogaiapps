@@ -87,7 +87,7 @@ const NewSettings = ({ id }: { id?: string }) => {
         const fetchAISettings = async () => {
           const response = await getAISettingsData();
           if (response?.data) {
-            const aiData = response.data.api_connection_json;
+            const aiData = response.data.aiapi_connection_json;
             const filterJSONData = aiData.filter((data) => data.id === id);
             if (filterJSONData.length > 0) {
               form.reset({

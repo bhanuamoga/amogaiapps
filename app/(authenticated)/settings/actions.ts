@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 
 // Represents configuration for a SINGLE platform
 export interface DataSourceConfig {
-  platform_type: "shopify" | "woocommerce" ;
+  platform_type: "shopify" | "woocommerce";
   status: "active" | "inactive" | "error" | "pending";
   autoConfigured?: boolean;
   error_message?: string;
@@ -41,19 +41,19 @@ interface DataSourceConfigBase {
 
 export type PlatformSettingsPayload =
   | {
-      platform: "shopify";
-      autoConfigured: boolean;
-      settings: NonNullable<DataSourceConfigBase["credentials"]["shopify"]>;
-    }
+    platform: "shopify";
+    autoConfigured: boolean;
+    settings: NonNullable<DataSourceConfigBase["credentials"]["shopify"]>;
+  }
   | {
-      platform: "woocommerce";
-      autoConfigured: boolean;
-      settings: NonNullable<DataSourceConfigBase["credentials"]["woocommerce"]>;
-    }
+    platform: "woocommerce";
+    autoConfigured: boolean;
+    settings: NonNullable<DataSourceConfigBase["credentials"]["woocommerce"]>;
+  }
   | {
-      platform: "ai";
-      settings: { provider: string; apiKey: string };
-    };
+    platform: "ai";
+    settings: { provider: string; apiKey: string };
+  };
 
 // Fetch the array of configurations
 export async function getConnectionSettings(
@@ -176,8 +176,8 @@ export async function saveConnectionSettings(
 
       const updatedConfigs = existingConfig
         ? currentConfigs.map((c) =>
-            c.platform_type === payload.platform ? newConfigData : c
-          )
+          c.platform_type === payload.platform ? newConfigData : c
+        )
         : [...currentConfigs, newConfigData];
 
       console.log("📤 Saving to database...");
@@ -385,7 +385,7 @@ export async function editAIFieldsSettings(
     const { data: userData, error: fetchError } = await postgrest
       .asAdmin()
       .from("user_catalog")
-      .select("api_connection_json")
+      .select("aiapi_connection_json")
       .eq("user_catalog_id", session.user.user_catalog_id)
       .single();
 
@@ -395,10 +395,10 @@ export async function editAIFieldsSettings(
 
     let existingArray: AISettings[] = [];
     if (
-      userData?.api_connection_json &&
-      Array.isArray(userData.api_connection_json)
+      userData?.aiapi_connection_json &&
+      Array.isArray(userData.aiapi_connection_json)
     ) {
-      existingArray = userData.api_connection_json as AISettings[];
+      existingArray = userData.aiapi_connection_json as AISettings[];
     }
 
     let updatedArray;
@@ -441,7 +441,7 @@ export async function deleteAIFieldsSettings(deleteId: string) {
     const { data: userData, error: fetchError } = await postgrest
       .asAdmin()
       .from("user_catalog")
-      .select("api_connection_json")
+      .select("aiapi_connection_json")
       .eq("user_catalog_id", session.user.user_catalog_id)
       .single();
 
@@ -451,10 +451,10 @@ export async function deleteAIFieldsSettings(deleteId: string) {
 
     let existingArray: AISettings[] = [];
     if (
-      userData?.api_connection_json &&
-      Array.isArray(userData.api_connection_json)
+      userData?.aiapi_connection_json &&
+      Array.isArray(userData.aiapi_connection_json)
     ) {
-      existingArray = userData.api_connection_json as AISettings[];
+      existingArray = userData.aiapi_connection_json as AISettings[];
     }
 
     const updatedArray = existingArray.filter((item) => item.id !== deleteId);
@@ -463,7 +463,7 @@ export async function deleteAIFieldsSettings(deleteId: string) {
       .asAdmin()
       .from("user_catalog")
       .update({
-        api_connection_json: updatedArray,
+        aiapi_connection_json: updatedArray,
       })
       .eq("user_catalog_id", session.user.user_catalog_id);
     if (error) {
@@ -481,7 +481,7 @@ export async function getAISettingsData() {
   try {
     const { data, error } = await postgrest
       .from("user_catalog")
-      .select("api_connection_json,user_catalog_id")
+      .select("aiapi_connection_json,user_catalog_id")
       .eq("user_catalog_id", session.user.user_catalog_id)
       .single();
 
@@ -502,7 +502,7 @@ export async function saveAIFieldsSettings(payload: Partial<AISettings>, randomI
     const { data: userData, error: fetchError } = await postgrest
       .asAdmin()
       .from("user_catalog")
-      .select("api_connection_json")
+      .select("aiapi_connection_json")
       .eq("user_catalog_id", session.user.user_catalog_id)
       .single();
 
@@ -512,10 +512,10 @@ export async function saveAIFieldsSettings(payload: Partial<AISettings>, randomI
 
     let existingArray: AISettings[] = [];
     if (
-      userData?.api_connection_json &&
-      Array.isArray(userData.api_connection_json)
+      userData?.aiapi_connection_json &&
+      Array.isArray(userData.aiapi_connection_json)
     ) {
-      existingArray = userData.api_connection_json as AISettings[];
+      existingArray = userData.aiapi_connection_json as AISettings[];
     }
 
     let updatedArray;
@@ -541,12 +541,181 @@ export async function saveAIFieldsSettings(payload: Partial<AISettings>, randomI
       .asAdmin()
       .from("user_catalog")
       .update({
-        api_connection_json: updatedArray,
+        aiapi_connection_json: updatedArray,
       })
       .eq("user_catalog_id", session.user.user_catalog_id);
     if (error) {
       throw error;
     }
+    return { data, success: true };
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+export interface WooSettings {
+  id: string;
+  apiname: string;
+  App_name: string;
+  site_url: string;
+  consumer_key: string;
+  consumer_secret: string;
+  status: "active" | "inactive";
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getWooSettingsData() {
+  const session = await auth();
+  if (!session?.user?.user_catalog_id) return { error: "No user session found" };
+  try {
+    const { data, error } = await postgrest
+      .from("user_catalog")
+      .select("api_connection_json,user_catalog_id")
+      .eq("user_catalog_id", session.user.user_catalog_id)
+      .single();
+
+    if (error) throw error;
+
+    const rows = (Array.isArray(data?.api_connection_json)
+      ? data?.api_connection_json
+      : []) as any[];
+
+    const wooOnly = rows.filter(
+      (r) =>
+        r &&
+        typeof r === "object" &&
+        "site_url" in r &&
+        "consumer_key" in r &&
+        "consumer_secret" in r
+    ) as WooSettings[];
+
+    return {
+      data: {
+        api_connection_json: wooOnly,
+        user_catalog_id: data?.user_catalog_id as string,
+      },
+      success: true,
+    };
+  } catch (error) {
+    return { error };
+  }
+}
+
+export async function saveWooFieldsSettings(payload: Partial<WooSettings>, randomId: string) {
+  const session = await auth();
+  if (!session?.user?.user_catalog_id) throw new Error("No user session found");
+  try {
+    const { data: userData, error: fetchError } = await postgrest
+      .asAdmin()
+      .from("user_catalog")
+      .select("api_connection_json")
+      .eq("user_catalog_id", session.user.user_catalog_id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    let existingArray: any[] = Array.isArray(userData?.api_connection_json)
+      ? (userData!.api_connection_json as any[])
+      : [];
+
+    const now = new Date().toISOString();
+    const newRow: WooSettings = {
+      id: randomId,
+      apiname: payload.apiname ?? "WooCommerce",
+      App_name: payload.App_name ?? "",
+      site_url: payload.site_url ?? "",
+      consumer_key: payload.consumer_key ?? "",
+      consumer_secret: payload.consumer_secret ?? "",
+      status: (payload.status as "active" | "inactive") ?? "inactive",
+      created_at: payload.created_at ?? now,
+      updated_at: now,
+    };
+
+    const updatedArray = [...existingArray, newRow];
+
+    const { data, error } = await postgrest
+      .asAdmin()
+      .from("user_catalog")
+      .update({ api_connection_json: updatedArray })
+      .eq("user_catalog_id", session.user.user_catalog_id);
+
+    if (error) throw error;
+    return { data, success: true };
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function editWooFieldsSettings(editId: string, updatedFields: Partial<WooSettings>) {
+  const session = await auth();
+  if (!session?.user?.user_catalog_id) throw new Error("No user session found");
+  try {
+    const { data: userData, error: fetchError } = await postgrest
+      .asAdmin()
+      .from("user_catalog")
+      .select("api_connection_json")
+      .eq("user_catalog_id", session.user.user_catalog_id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    let existingArray: any[] = Array.isArray(userData?.api_connection_json)
+      ? (userData!.api_connection_json as any[])
+      : [];
+
+    const now = new Date().toISOString();
+
+    const updatedArray = existingArray.map((item: any) =>
+      item?.id === editId
+        ? {
+            ...item,
+            ...updatedFields,
+            updated_at: now,
+          }
+        : item
+    );
+
+    const { data, error } = await postgrest
+      .asAdmin()
+      .from("user_catalog")
+      .update({ api_connection_json: updatedArray })
+      .eq("user_catalog_id", session.user.user_catalog_id);
+
+    if (error) throw error;
+    return { data, success: true };
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function deleteWooFieldsSettings(deleteId: string) {
+  const session = await auth();
+  if (!session?.user?.user_catalog_id) throw new Error("No user session found");
+  try {
+    const { data: userData, error: fetchError } = await postgrest
+      .asAdmin()
+      .from("user_catalog")
+      .select("api_connection_json")
+      .eq("user_catalog_id", session.user.user_catalog_id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    let existingArray: any[] = Array.isArray(userData?.api_connection_json)
+      ? (userData!.api_connection_json as any[])
+      : [];
+
+    const updatedArray = existingArray.filter((item: any) => item?.id !== deleteId);
+
+    const { data, error } = await postgrest
+      .asAdmin()
+      .from("user_catalog")
+      .update({ api_connection_json: updatedArray })
+      .eq("user_catalog_id", session.user.user_catalog_id);
+
+    if (error) throw error;
     return { data, success: true };
   } catch (error) {
     throw error;

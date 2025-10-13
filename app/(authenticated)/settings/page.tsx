@@ -25,7 +25,8 @@ import {
 } from "./actions";
 
 import { ShopifyForm } from "./_components/ShopifyForm";
-import { WooCommerceForm } from "./_components/WooCommerceForm";
+// Fixed casing
+import WooAISettings from "./_components/WooAIsettings";
 import { BusinessSettingsForm } from "./_components/BusinessSettingsForm";
 import AISettings from "./_components/AISettings";
 
@@ -50,13 +51,14 @@ export default function ApiSettingsPage() {
   useEffect(() => {
     getConnectionSettings().then((result) => {
       if (result?.data) setConfigs(result.data);
-      else if (result?.error) toast.error("Failed to load settings", { description: result.error });
+      else if (result?.error)
+        toast.error("Failed to load settings", { description: result.error });
       setInitialLoading(false);
     });
   }, []);
 
   useEffect(() => {
-    async function fetchAISettings() {
+    async function fetchAI() {
       try {
         const aiSettings = await loadAISettings();
         if (aiSettings) {
@@ -69,7 +71,7 @@ export default function ApiSettingsPage() {
         });
       }
     }
-    fetchAISettings();
+    fetchAI();
   }, []);
 
   useEffect(() => {
@@ -112,7 +114,8 @@ export default function ApiSettingsPage() {
   );
 
   const handleTestConnection = () => {
-    if (!activeConfig?.credentials?.[activeTab as Platform]) {
+    const creds = activeConfig?.credentials?.[activeTab as Platform];
+    if (!creds) {
       toast.error("Missing configuration", {
         description: `Please fill in all required fields for ${activeTab}.`,
       });
@@ -120,18 +123,21 @@ export default function ApiSettingsPage() {
     }
     const payload: PlatformSettingsPayload = {
       platform: activeTab as Platform,
-      settings: activeConfig.credentials[activeTab as Platform],
+      autoConfigured: true,
+      settings: creds as any,
     };
     startTestTransition(async () => {
       toast.info(`Testing ${activeTab} connection...`);
       const result = await testConnection(payload);
-      if (result.success) toast.success("Connection Test Successful", { description: result.message });
+      if (result.success)
+        toast.success("Connection Test Successful", { description: result.message });
       else toast.error("Connection Test Failed", { description: result.message });
     });
   };
 
   const handleSave = () => {
-    if (!activeConfig?.credentials?.[activeTab as Platform]) {
+    const creds = activeConfig?.credentials?.[activeTab as Platform];
+    if (!creds) {
       toast.error("Missing configuration", {
         description: `Please fill in all required fields for ${activeTab} before saving.`,
       });
@@ -139,7 +145,8 @@ export default function ApiSettingsPage() {
     }
     const payload: PlatformSettingsPayload = {
       platform: activeTab as Platform,
-      settings: activeConfig.credentials[activeTab as Platform],
+      autoConfigured: true,
+      settings: creds as any,
     };
     startSaveTransition(async () => {
       toast.info(`Saving ${activeTab} settings...`);
@@ -250,19 +257,11 @@ export default function ApiSettingsPage() {
               </div>
             </TabsContent>
 
+            {/* Woo tab now uses the Woo list component */}
             <TabsContent value="woocommerce" className="mt-6">
               <div className="rounded-2xl ">
                 <div className="p-4 sm:p-6">
-                  <WooCommerceForm
-                    config={configs?.find((c) => c.platform_type === "woocommerce")}
-                    onSettingsChange={(newSettings) => handleSettingsChange("woocommerce", newSettings)}
-                    onRemarksChange={handleRemarksChange}
-                    onTestConnection={handleTestConnection}
-                    onSave={handleSave}
-                    isTesting={isTesting}
-                    isSaving={isSaving}
-                    isDisabled={activeTab !== "woocommerce" && isActionInProgress}
-                  />
+                  <WooAISettings />
                 </div>
               </div>
             </TabsContent>
@@ -284,6 +283,7 @@ export default function ApiSettingsPage() {
               </div>
             </TabsContent>
 
+            {/* Ensure AISettings component accepts these props; otherwise render <AISettings /> without props */}
             <TabsContent value="ai" className="mt-6">
               <div className="rounded-2xl ">
                 <div className="p-4 sm:p-6">

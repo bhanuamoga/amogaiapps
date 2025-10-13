@@ -16,26 +16,26 @@ type Settings = {
   store_email: string;
   store_mobile: string;
   billing_first_name:string,
-  billing_last_name:string ,
+  billing_last_name:string,
   billing_company: string,
-  billing_phone: string
-  billing_email: string
-  billing_address_1: string
-  billing_address_2: string
-  billing_country: string
-  billing_state: string
-  billing_city: string
-  billing_postcode: string
-  shipping_first_name: string
-  shipping_last_name: string
-  shipping_company: string
-  shipping_phone: string
-  shipping_email: string
-  shipping_address_1: string
-  shipping_address_2: string
-  shipping_country: string
-  shipping_state: string
-  shipping_city: string
+  billing_phone: string,
+  billing_email: string,
+  billing_address_1: string,
+  billing_address_2: string,
+  billing_country: string,
+  billing_state: string,
+  billing_city: string,
+  billing_postcode: string,
+  shipping_first_name: string,
+  shipping_last_name: string,
+  shipping_company: string,
+  shipping_phone: string,
+  shipping_email: string,
+  shipping_address_1: string,
+  shipping_address_2: string,
+  shipping_country: string,
+  shipping_state: string,
+  shipping_city: string,
   shipping_postcode: string
 };
 
@@ -53,7 +53,7 @@ export const BusinessSettingsForm: React.FC = () => {
     store_email: "",
     store_mobile: "",
     billing_first_name:"",
-    billing_last_name: "",
+    billing_last_name:"",
     billing_company: "",
     billing_phone: "",
     billing_email: "",
@@ -191,8 +191,8 @@ export const BusinessSettingsForm: React.FC = () => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="billing_Last_name">BillingLastName</Label>
-        <Input id="billing_Last_name" name="billing_Last_name" value={settings.billing_last_name ?? ""} onChange={onChange} disabled={disabled} required />
+        <Label htmlFor="billing_last_name">BillingLastName</Label>
+        <Input id="billing_last_name" name="billing_last_name" value={settings.billing_last_name ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
        
       <div className="space-y-2">
@@ -211,13 +211,13 @@ export const BusinessSettingsForm: React.FC = () => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="billing_address1">BillingAddress1</Label>
-        <Input id="billing_address1" name="billing_address1" value={settings.billing_address_1 ?? ""} onChange={onChange} disabled={disabled} required />
+        <Label htmlFor="billing_address_1">BillingAddress1</Label>
+        <Input id="billing_address_1" name="billing_address_1" value={settings.billing_address_1 ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
        <div className="space-y-2">
-        <Label htmlFor="billing_address2">BillingAddress2</Label>
-        <Input id="billing_address2" name="billing_address2" value={settings.billing_address_2 ?? ""} onChange={onChange} disabled={disabled} required />
+        <Label htmlFor="billing_address_2">BillingAddress2</Label>
+        <Input id="billing_address_2" name="billing_address_2" value={settings.billing_address_2 ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
       
       <div className="space-y-2">
@@ -261,13 +261,13 @@ export const BusinessSettingsForm: React.FC = () => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shipping_address1">Shipping Address 1</Label>
-        <Input id="shipping_address1" name="shipping_address1" value={settings.shipping_address_1 ?? ""} onChange={onChange} disabled={disabled} required />
+        <Label htmlFor="shipping_address_1">Shipping Address 1</Label>
+        <Input id="shipping_address_1" name="shipping_address_1" value={settings.shipping_address_1 ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shipping_address2">Shipping Address 2</Label>
-        <Input id="shipping_address2" name="shipping_address2" value={settings.shipping_address_2 ?? ""} onChange={onChange} disabled={disabled} required />
+        <Label htmlFor="shipping_address_2">Shipping Address 2</Label>
+        <Input id="shipping_address_2" name="shipping_address_2" value={settings.shipping_address_2 ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">

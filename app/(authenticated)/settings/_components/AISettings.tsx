@@ -38,7 +38,7 @@ const AISettings = () => {
       setIsLoading(true);
       const response = await getAISettingsData();
       if (response?.data) {
-        setData(response.data.api_connection_json);
+        setData(response.data.aiapi_connection_json);
         setId(response.data.user_catalog_id);
       }
     } catch (error) {
