@@ -12,7 +12,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 import {
   getConnectionSettings,
@@ -23,44 +25,75 @@ import {
   saveAISettings,
   loadAISettings,
 } from "./actions";
-
 import { ShopifyForm } from "./_components/ShopifyForm";
 // Fixed casing
 import WooAISettings from "./_components/WooAIsettings";
 import { BusinessSettingsForm } from "./_components/BusinessSettingsForm";
 import AISettings from "./_components/AISettings";
 
+
 type Platform = "woocommerce" | "shopify";
+type AppTab = Platform | "business-settings" | "ai";
+
+// Credential shapes expected by backend (mirror actions.ts)
+type WooCredentials = {
+  site_url: string;
+  consumer_key: string;
+  consumer_secret: string;
+};
+
+type ShopifyCredentials = {
+  shop_subdomain: string;
+  access_token: string;
+  app_secret_key: string;
+};
+
+// The credentials object shape on DataSourceConfig
+type CredentialsShape = {
+  shopify?: ShopifyCredentials;
+  woocommerce?: WooCredentials;
+};
+
+// Helper type guards
+const isCommerceTab = (tab: AppTab): tab is Platform =>
+  tab === "woocommerce" || tab === "shopify";
 
 export default function ApiSettingsPage() {
-  const [activeTab, setActiveTab] = useState<Platform | "business-settings" | "ai">(
-    "business-settings"
-  );
-  const [configs, setConfigs] = useState<DataSourceConfig[] | null>(null);
+  const [activeTab, setActiveTab] = useState<AppTab>("business-settings");
+  const [configs, setConfigs] = useState<DataSourceConfig[] | null>(null); // State holds the array
   const [initialLoading, setInitialLoading] = useState(true);
+  // Local state for remarks being edited, specific to the active tab
   const [currentRemarks, setCurrentRemarks] = useState("");
 
+  // Separate transitions for each action type
   const [isTesting, startTestTransition] = useTransition();
   const [isSaving, startSaveTransition] = useTransition();
 
+  // AI Settings Handlers
   const [aiProvider, setAIProvider] = useState<string>("");
   const [aiApiKey, setAIApiKey] = useState<string>("");
 
+  // Derived state for the currently active configuration
   const activeConfig = configs?.find((c) => c.platform_type === activeTab);
 
+  // Fetch initial data
   useEffect(() => {
     getConnectionSettings().then((result) => {
-      if (result?.data) setConfigs(result.data);
-      else if (result?.error)
+      if (result?.data) {
+        setConfigs(result.data);
+      } else if (result?.error) {
         toast.error("Failed to load settings", { description: result.error });
+      }
       setInitialLoading(false);
     });
   }, []);
 
+  // Load AI settings on component mount
   useEffect(() => {
-    async function fetchAI() {
+    async function fetchAISettings() {
       try {
         const aiSettings = await loadAISettings();
+        console.log("Loaded AI settings:", aiSettings);
         if (aiSettings) {
           setAIProvider(aiSettings.provider);
           setAIApiKey(aiSettings.apiKey);
@@ -71,61 +104,101 @@ export default function ApiSettingsPage() {
         });
       }
     }
-    fetchAI();
+
+    fetchAISettings();
   }, []);
 
+  // Update remarks state when tab changes
   useEffect(() => {
     setCurrentRemarks(activeConfig?.remarks || "");
   }, [activeTab, activeConfig]);
 
+  // Generic handler to update credentials in state for the active tab
   const handleSettingsChange = useCallback(
-    (platform: Platform, newPlatformSettings: unknown) => {
-      setConfigs((prev) => {
-        const updated = [...(prev || [])];
-        const index = updated.findIndex((c) => c.platform_type === platform);
-        const newCredentials = { [platform]: newPlatformSettings };
-        if (index > -1) updated[index] = { ...updated[index], credentials: newCredentials };
-        else
-          updated.push({
+    (platform: Platform, newPlatformSettings: WooCredentials | ShopifyCredentials) => {
+      setConfigs((prevConfigs) => {
+        const updatedConfigs = [...(prevConfigs || [])];
+        const index = updatedConfigs.findIndex((c) => c.platform_type === platform);
+        const currentConfig = index > -1 ? updatedConfigs[index] : undefined;
+
+        // Build credentials object with correct type
+        const newCredentials: CredentialsShape =
+          platform === "woocommerce"
+            ? { woocommerce: newPlatformSettings as WooCredentials }
+            : { shopify: newPlatformSettings as ShopifyCredentials };
+
+        if (index > -1) {
+          updatedConfigs[index] = {
+            ...currentConfig!,
+            credentials: newCredentials,
+          };
+        } else {
+          updatedConfigs.push({
             platform_type: platform,
-            status: "pending",
+            status: "pending", // Initial status
             credentials: newCredentials,
           } as DataSourceConfig);
-        return updated;
+        }
+        return updatedConfigs;
       });
     },
     []
   );
 
+  // Handler to update remarks in state for the active tab
   const handleRemarksChange = useCallback(
     (remarks: string) => {
       setCurrentRemarks(remarks);
-      setConfigs((prev) => {
-        const updated = [...(prev || [])];
-        const index = updated.findIndex((c) => c.platform_type === activeTab);
+      setConfigs((prevConfigs) => {
+        const updatedConfigs = [...(prevConfigs || [])];
+        const index = updatedConfigs.findIndex((c) => c.platform_type === activeTab);
         if (index > -1) {
-          updated[index] = { ...updated[index], remarks };
-          return updated;
+          updatedConfigs[index] = {
+            ...updatedConfigs[index],
+            remarks: remarks,
+          };
+          return updatedConfigs;
         }
-        return prev;
+        return prevConfigs;
       });
     },
     [activeTab]
   );
 
+  // --- Action Handlers (Specific to Active Tab) ---
+
   const handleTestConnection = () => {
-    const creds = activeConfig?.credentials?.[activeTab as Platform];
+    if (!isCommerceTab(activeTab)) {
+      toast.error("Invalid tab", {
+        description: "Please switch to a platform tab to test connection.",
+      });
+      return;
+    }
+
+    const credsObj = activeConfig?.credentials as CredentialsShape | undefined;
+    const creds =
+      activeTab === "woocommerce" ? credsObj?.woocommerce : credsObj?.shopify;
+
     if (!creds) {
       toast.error("Missing configuration", {
         description: `Please fill in all required fields for ${activeTab}.`,
       });
       return;
     }
-    const payload: PlatformSettingsPayload = {
-      platform: activeTab as Platform,
-      autoConfigured: true,
-      settings: creds as any,
-    };
+
+    const payload: PlatformSettingsPayload =
+      activeTab === "woocommerce"
+        ? {
+            platform: "woocommerce",
+            autoConfigured: true,
+            settings: creds as WooCredentials,
+          }
+        : {
+            platform: "shopify",
+            autoConfigured: true,
+            settings: creds as ShopifyCredentials,
+          };
+
     startTestTransition(async () => {
       toast.info(`Testing ${activeTab} connection...`);
       const result = await testConnection(payload);
@@ -136,18 +209,37 @@ export default function ApiSettingsPage() {
   };
 
   const handleSave = () => {
-    const creds = activeConfig?.credentials?.[activeTab as Platform];
+    if (!isCommerceTab(activeTab)) {
+      toast.error("Invalid tab", {
+        description: "Please switch to a platform tab to save settings.",
+      });
+      return;
+    }
+
+    const credsObj = activeConfig?.credentials as CredentialsShape | undefined;
+    const creds =
+      activeTab === "woocommerce" ? credsObj?.woocommerce : credsObj?.shopify;
+
     if (!creds) {
       toast.error("Missing configuration", {
         description: `Please fill in all required fields for ${activeTab} before saving.`,
       });
       return;
     }
-    const payload: PlatformSettingsPayload = {
-      platform: activeTab as Platform,
-      autoConfigured: true,
-      settings: creds as any,
-    };
+
+    const payload: PlatformSettingsPayload =
+      activeTab === "woocommerce"
+        ? {
+            platform: "woocommerce",
+            autoConfigured: true,
+            settings: creds as WooCredentials,
+          }
+        : {
+            platform: "shopify",
+            autoConfigured: true,
+            settings: creds as ShopifyCredentials,
+          };
+
     startSaveTransition(async () => {
       toast.info(`Saving ${activeTab} settings...`);
       const result = await saveConnectionSettings(payload, currentRemarks);
@@ -175,103 +267,68 @@ export default function ApiSettingsPage() {
     });
   };
 
+  // --- End Action Handlers ---
+
   if (initialLoading) {
     return (
-      <div className="w-full max-w-[800px] mx-auto px-4 sm:px-6 py-8 sm:py-10 flex justify-center items-center h-48 sm:h-64">
+      <div className="container mx-auto py-10 flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
+  // Determine if any action is in progress for the current tab
   const isActionInProgress = isTesting || isSaving;
 
   return (
-    <div className="w-full max-w-[800px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
-      <Card className="shadow-none border-0">
-        <CardHeader className="pb-3 text-center">
-          <CardTitle className="text-2xl sm:text-3xl font-semibold tracking-tight">
-            API Connection Settings
-          </CardTitle>
-          <CardDescription className="mt-1 pb-2">
-            Configure and manage connections to sync data with WooCommerce or Shopify.
+    <div className="container mx-auto py-10">
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl">API Connection Settings</CardTitle>
+          <CardDescription>
+            Configure and manage connections to sync data with WooCommerce or
+            Shopify.
           </CardDescription>
+          {/* Removed global status/sync date display - now shown per tab */}
         </CardHeader>
-
-        <CardContent className="space-y-6 ">
-          <Tabs
-            value={activeTab}
-            onValueChange={(v) => setActiveTab(v as any)}
-            className="w-full"
-          >
-            <div className="w-full flex justify-center">
-              <TabsList
-                className="
-                  flex w-full max-w-[600px] items-center gap-1
-                  bg-transparent p-1
-                  rounded-full
-                   dark:border-neutral-800
-                "
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div>
+              {/* Platform Selection Tabs */}
+              <Tabs
+                value={activeTab}
+                onValueChange={(value) => setActiveTab(value as AppTab)}
+                className="w-full"
               >
-                <TabsTrigger
-                  value="business-settings"
-                  className="
-                    flex-1 h-10 rounded-full
-                    data-[state=active]:bg-black data-[state=active]:text-white
-                    dark:data-[state=active]:bg-white dark:data-[state=active]:text-black
-                  "
-                >
-                  Business
-                </TabsTrigger>
-                <TabsTrigger
-                  value="woocommerce"
-                  disabled={isActionInProgress}
-                  className="
-                    flex-1 h-10 rounded-full
-                    data-[state=active]:bg-black data-[state=active]:text-white
-                    dark:data-[state=active]:bg-white dark:data-[state=active]:text-black
-                  "
-                >
-                  APIs
-                </TabsTrigger>
-                <TabsTrigger
-                  value="ai"
-                  disabled={isActionInProgress}
-                  className="
-                    flex-1 h-10 rounded-full
-                    data-[state=active]:bg-black data-[state=active]:text-white
-                    dark:data-[state=active]:bg-white dark:data-[state=active]:text-black
-                  "
-                >
-                  AI APIs
-                </TabsTrigger>
-              </TabsList>
-            </div>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="business-settings">Business</TabsTrigger>
+                  <TabsTrigger
+                    value="woocommerce"
+                    disabled={isActionInProgress}
+                  >
+                    APIs
+                  </TabsTrigger>
+                  <TabsTrigger value="ai" disabled={isActionInProgress}>
+                    AI APIs
+                  </TabsTrigger>
+                </TabsList>
 
-            <div className="h-0.5 w-full bg-black mt-5" />
-
-            <TabsContent value="business-settings" className="mt-6">
-              <div className="rounded-2xl ">
-                <div className="p-4 sm:p-6">
+                <TabsContent value="business-settings" className="mt-4">
                   <BusinessSettingsForm />
-                </div>
-              </div>
-            </TabsContent>
+                </TabsContent>
 
-            {/* Woo tab now uses the Woo list component */}
-            <TabsContent value="woocommerce" className="mt-6">
-              <div className="rounded-2xl ">
-                <div className="p-4 sm:p-6">
+                {/* Woo tab now uses the Woo list component */}
+                <TabsContent value="woocommerce" className="mt-4">
                   <WooAISettings />
-                </div>
-              </div>
-            </TabsContent>
+                </TabsContent>
 
-            <TabsContent value="shopify" className="mt-6">
-              <div className="rounded-2xl ">
-                <div className="p-4 sm:p-6">
+                {/* Shopify Tab (kept for completeness) */}
+                <TabsContent value="shopify" className="mt-4">
                   <ShopifyForm
                     config={configs?.find((c) => c.platform_type === "shopify")}
-                    onSettingsChange={(newSettings) => handleSettingsChange("shopify", newSettings)}
+                    onSettingsChange={(newSettings) =>
+                      handleSettingsChange("shopify", newSettings as ShopifyCredentials)
+                    }
                     onRemarksChange={handleRemarksChange}
                     onTestConnection={handleTestConnection}
                     onSave={handleSave}
@@ -279,14 +336,12 @@ export default function ApiSettingsPage() {
                     isSaving={isSaving}
                     isDisabled={activeTab !== "shopify" && isActionInProgress}
                   />
-                </div>
-              </div>
-            </TabsContent>
+                </TabsContent>
 
-            {/* Ensure AISettings component accepts these props; otherwise render <AISettings /> without props */}
-            <TabsContent value="ai" className="mt-6">
-              <div className="rounded-2xl ">
-                <div className="p-4 sm:p-6">
+                {/* AI APIs Tab Content */}
+                <TabsContent value="ai" className="mt-4">
+                  {/* If AISettings expects props, ensure it is typed in its own file.
+                      If it does not accept props, replace with <AISettings /> */}
                   <AISettings
                     provider={aiProvider}
                     apiKey={aiApiKey}
@@ -295,17 +350,22 @@ export default function ApiSettingsPage() {
                     onSave={handleAISave}
                     isSaving={isSaving}
                   />
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+                </TabsContent>
+              </Tabs>
+            </div>
+            {/* Removed global remarks section */}
+          </div>
         </CardContent>
-
-        <CardFooter className="pt-4">
+        <CardFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between items-center">
+          {/* Keep general info footer */}
           <div className="flex items-start gap-2 text-sm text-muted-foreground">
             <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <p>Configure connections individually; credentials are stored securely after saving.</p>
+            <p>
+              Configure connections individually. Credentials are stored
+              securely after saving.
+            </p>
           </div>
+          {/* Removed global action buttons */}
         </CardFooter>
       </Card>
     </div>

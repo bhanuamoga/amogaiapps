@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Shopify-Access-Token": process.env.SHOPIFY_ADMIN_API_ACCESS || "",
+        "X-Shopify-Access-Token": process.env.NEXT_PUBLIC_SHOPIFY_ADMIN_API_ACCESS || "",
       },
       body: JSON.stringify({ query }),
     }
