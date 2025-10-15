@@ -404,7 +404,7 @@ export default function StorProductsPage() {
         )}
 
         {/* Delete Confirmation Dialog */}
-        <Card>
+       
           <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <DialogContent className="sm:max-w-md rounded-lg p-4 shadow-md bg-white dark:bg-gray-800">
             <DialogHeader className="flex items-center gap-2">
@@ -441,7 +441,7 @@ export default function StorProductsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-        </Card>
+       
       </div>
     </div>
   );

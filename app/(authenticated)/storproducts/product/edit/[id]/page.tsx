@@ -2,10 +2,12 @@
 /* eslint-disable */
 import EditProducts from "../../../_components/EditProduct";
 
-export default function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
   return (
     <div className="max-w-[800px] mx-auto px-4 py-6">
-      <EditProducts id={params.id} />
+      <EditProducts id={id} />
     </div>
   );
 }
