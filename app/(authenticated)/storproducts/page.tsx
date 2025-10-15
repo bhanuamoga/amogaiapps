@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
   Search as SearchIcon,
   Plus,
@@ -39,8 +39,12 @@ type Product = {
   description?: string;
 };
 
+const PER_PAGE = 15;
+const MAX_PAGES_TO_FETCH = 50; // protect against enormous catalogs
+
 export default function StorProductsPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const sp = useSearchParams();
   const pageFromUrl = Number(sp.get("page") || "1");
   const searchFromUrl = sp.get("q") || "";
@@ -49,60 +53,122 @@ export default function StorProductsPage() {
   const [q, setQ] = React.useState<string>(searchFromUrl);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [allPageData, setAllPageData] = React.useState<{ products: Product[]; pages: number }>({
-    products: [],
-    pages: 1,
-  });
 
-  const [confirmOpen, setConfirmOpen] = React.useState(false);
-  const [deleteTarget, setDeleteTarget] = React.useState<Product | null>(null);
+  // full list from all pages for a given query
+  const [fullProducts, setFullProducts] = React.useState<Product[]>([]);
+  const [totalPagesFromServer, setTotalPagesFromServer] = React.useState(1);
 
-  const load = React.useCallback(
-    async (opts?: { page?: number; q?: string }) => {
+  // derived: filtered products across all pages
+  const visibleProducts = React.useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return fullProducts;
+    return fullProducts.filter((p) => p.name.toLowerCase().includes(term));
+  }, [q, fullProducts]);
+
+  // pagination for filtered list
+  const filteredPages = Math.max(1, Math.ceil(visibleProducts.length / PER_PAGE));
+  const pageClamped = Math.min(Math.max(1, page), filteredPages);
+  const paginatedProducts = React.useMemo(() => {
+    const start = (pageClamped - 1) * PER_PAGE;
+    return visibleProducts.slice(start, start + PER_PAGE);
+  }, [visibleProducts, pageClamped]);
+
+  // replace only the changed params, preserve others; remove defaults
+  const syncUrl = (nextPage: number, nextQ: string) => {
+    const params = new URLSearchParams(sp); // preserve existing
+    if (nextPage > 1) params.set("page", String(nextPage));
+    else params.delete("page");
+    if (nextQ && nextQ.trim()) params.set("q", nextQ.trim());
+    else params.delete("q");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  };
+
+  // fetch all pages for a query, aggregate into fullProducts
+  const loadAllForQuery = React.useCallback(
+    async (queryStr: string) => {
       setLoading(true);
       setError(null);
-      const nextPage = opts?.page ?? page;
-      const nextQ = opts?.q ?? q;
 
       try {
-        const res = await getWooProducts({ page: nextPage, perPage: 15, search: nextQ || undefined });
-        setAllPageData({ products: res.products as Product[], pages: res.pages || 1 });
+        // get page 1 to know total pages
+        const first = await getWooProducts({ page: 1, perPage: PER_PAGE, search: queryStr || undefined });
+        const firstProducts = (first.products as Product[]) ?? [];
+        const totalPages = Math.min(first.pages || 1, MAX_PAGES_TO_FETCH);
+        setTotalPagesFromServer(totalPages);
 
-        const params = new URLSearchParams();
-        if (nextPage > 1) params.set("page", String(nextPage));
-        if (nextQ) params.set("q", nextQ);
-        router.replace(`?${params.toString()}`);
+        if (totalPages <= 1) {
+          setFullProducts(firstProducts);
+          return;
+        }
+
+        // fetch remaining pages in parallel batches
+        const pagesToFetch = [];
+        for (let p = 2; p <= totalPages; p++) {
+          pagesToFetch.push(p);
+        }
+
+        // throttle batches of 5 to avoid hammering API
+        const BATCH = 5;
+        let aggregated = [...firstProducts];
+        for (let i = 0; i < pagesToFetch.length; i += BATCH) {
+          const batch = pagesToFetch.slice(i, i + BATCH);
+          const res = await Promise.all(
+            batch.map((p) =>
+              getWooProducts({ page: p, perPage: PER_PAGE, search: queryStr || undefined })
+            )
+          );
+          for (const r of res) {
+            aggregated = aggregated.concat(((r?.products as Product[]) ?? []));
+          }
+        }
+
+        // de-duplicate by id (in case)
+        const dedup = Array.from(new Map(aggregated.map((p) => [p.id, p])).values());
+        setFullProducts(dedup);
       } catch (e: any) {
         setError(e.message || "Failed to load products");
       } finally {
         setLoading(false);
       }
     },
-    [page, q, router]
+    []
   );
 
+  // prevent double initial fetch
+  const didInit = React.useRef(false);
   React.useEffect(() => {
+    // keep local state in sync with URL
     setPage(Math.max(1, pageFromUrl));
     setQ(searchFromUrl);
   }, [pageFromUrl, searchFromUrl]);
 
   React.useEffect(() => {
-    load({ page: Math.max(1, pageFromUrl), q: searchFromUrl });
+    if (didInit.current) return;
+    didInit.current = true;
+    loadAllForQuery(searchFromUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const visibleProducts = React.useMemo(() => {
-    const term = q.trim().toLowerCase();
-    if (!term) return allPageData.products;
-    return allPageData.products.filter((p) => p.name.toLowerCase().includes(term));
-  }, [q, allPageData.products]);
-
+  // search on Enter
   const onSearchEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key !== "Enter") return;
     const value = (e.currentTarget as HTMLInputElement).value.trim();
     setPage(1);
-    load({ page: 1, q: value });
+    syncUrl(1, value);
+    loadAllForQuery(value);
   };
+
+  // debounce live query aggregation; skip immediately after initial load to avoid double fetch
+  React.useEffect(() => {
+    if (!didInit.current) return;
+    const t = setTimeout(() => {
+      setPage(1);
+      syncUrl(1, q);
+      loadAllForQuery(q);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [q, loadAllForQuery]); // syncUrl is stable enough via sp/pathname
 
   const renderPrice = (p: Product) => {
     const hasRegular = p.regular_price && Number(p.regular_price) > 0;
@@ -117,7 +183,6 @@ export default function StorProductsPage() {
     );
   };
 
-  // Updated: only show qty badge if numeric; always show status
   const qtyStatusRow = (p: Product) => {
     const qty = typeof p.stock_quantity === "number" ? p.stock_quantity : null;
     const statusText = (p.stock_status || "unknown").replace(/_/g, " ");
@@ -134,7 +199,7 @@ export default function StorProductsPage() {
     return (
       <div className="mt-3 flex items-center gap-2">
         {qty !== null ? (
-          <span className="inline-flex min-w-[24px] justify-center items-center rounded-md bg-blue-600 px-2 py-0.5 text-xs font-medium text-white">
+          <span className="inline-flex min-w-[24px] justify-center items-center rounded-md bg-green-600 px-2 py-0.5 text-xs font-medium text-white">
             {qty}
           </span>
         ) : null}
@@ -144,9 +209,9 @@ export default function StorProductsPage() {
   };
 
   const goTo = (p: number) => {
-    const np = Math.min(Math.max(1, p), allPageData.pages || 1);
+    const np = Math.min(Math.max(1, p), filteredPages || 1);
     setPage(np);
-    load({ page: np, q });
+    syncUrl(np, q);
   };
 
   const goCreate = () => router.push("/storproducts/product/new");
@@ -157,30 +222,32 @@ export default function StorProductsPage() {
     setConfirmOpen(true);
   };
 
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [deleteTarget, setDeleteTarget] = React.useState<Product | null>(null);
+
   const confirmDelete = async () => {
     if (!deleteTarget) return;
-    const prev = allPageData.products;
-    setAllPageData((d) => ({ ...d, products: d.products.filter((x) => x.id !== deleteTarget.id) }));
+    const prev = fullProducts;
+    setFullProducts((d) => d.filter((x) => x.id !== deleteTarget.id));
     setConfirmOpen(false);
     try {
       await deleteWooProduct(deleteTarget.id);
       toast.success("Product deleted successfully");
     } catch (e) {
-      setAllPageData((d) => ({ ...d, products: prev }));
+      setFullProducts(prev);
       toast.error("Delete failed");
     }
     setDeleteTarget(null);
   };
 
-  // Sliding window pagination (max 5 buttons)
   const Pagination = () => {
-    const total = allPageData.pages || 1;
+    const total = filteredPages || 1;
     if (total <= 1 || visibleProducts.length === 0) return null;
 
     const maxWindow = 5;
     const half = Math.floor(maxWindow / 2);
 
-    let start = Math.max(1, page - half);
+    let start = Math.max(1, pageClamped - half);
     let end = start + maxWindow - 1;
 
     if (end > total) {
@@ -196,8 +263,8 @@ export default function StorProductsPage() {
           variant="outline"
           size="icon"
           className="h-9 w-9"
-          onClick={() => goTo(page - 1)}
-          disabled={page <= 1}
+          onClick={() => goTo(pageClamped - 1)}
+          disabled={pageClamped <= 1}
           aria-label="Previous"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -206,10 +273,10 @@ export default function StorProductsPage() {
         {pagesArray.map((n) => (
           <Button
             key={n}
-            variant={n === page ? "default" : "outline"}
+            variant={n === pageClamped ? "default" : "outline"}
             className="h-9 px-3"
             onClick={() => goTo(n)}
-            aria-current={n === page ? "page" : undefined}
+            aria-current={n === pageClamped ? "page" : undefined}
           >
             {n}
           </Button>
@@ -219,8 +286,8 @@ export default function StorProductsPage() {
           variant="outline"
           size="icon"
           className="h-9 w-9"
-          onClick={() => goTo(page + 1)}
-          disabled={page >= total}
+          onClick={() => goTo(pageClamped + 1)}
+          disabled={pageClamped >= total}
           aria-label="Next"
         >
           <ChevronRight className="h-4 w-4" />
@@ -273,7 +340,7 @@ export default function StorProductsPage() {
               <p className="text-sm text-muted-foreground">No products found.</p>
             ) : (
               <div className="space-y-4">
-                {visibleProducts.map((p) => {
+                {paginatedProducts.map((p) => {
                   const img = p.images?.[0]?.src ?? "";
                   const alt = p.images?.[0]?.alt ?? p.name;
                   const description = stripHtml(p.short_description || p.description);
@@ -305,14 +372,24 @@ export default function StorProductsPage() {
                           </CardContent>
 
                           <CardFooter className="p-0 mt-3">
-                            <div className="ml-auto flex items-center gap-2">
-                              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => goEdit(p.id)} aria-label="Edit">
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => requestDelete(p)} aria-label="Delete">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+                           <div className="ml-auto flex items-center gap-2">
+                                          <div
+                                            className="h-8 w-8 flex items-center justify-center cursor-pointer"
+                                            onClick={() => goEdit(p.id)}
+                                            aria-label="Edit"
+                                          >
+                                            <Pencil className="h-4 w-4" />
+                                          </div>
+
+                                          <div
+                                            className="h-8 w-8 flex items-center justify-center cursor-pointer"
+                                            onClick={() => requestDelete(p)}
+                                            aria-label="Delete"
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </div>
+                                        </div>
+
                           </CardFooter>
                         </div>
                       </div>
@@ -327,7 +404,8 @@ export default function StorProductsPage() {
         )}
 
         {/* Delete Confirmation Dialog */}
-        <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <Card>
+          <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <DialogContent className="sm:max-w-md rounded-lg p-4 shadow-md bg-white dark:bg-gray-800">
             <DialogHeader className="flex items-center gap-2">
               <AlertCircle className="h-6 w-6 text-red-500" />
@@ -355,7 +433,7 @@ export default function StorProductsPage() {
               </Button>
               <Button
                 variant="destructive"
-                className="bg-red-600 hover:bg-red-700 text-white transition px-3 py-1.5 text-sm"
+                className=" hover:bg-red-700 text-white transition px-3 py-1.5 text-sm"
                 onClick={confirmDelete}
               >
                 Delete
@@ -363,6 +441,7 @@ export default function StorProductsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </Card>
       </div>
     </div>
   );

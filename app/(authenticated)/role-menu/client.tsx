@@ -80,7 +80,7 @@ export default function ClientRoleMenu({
           <Link href={page.page_link || ""}  key={page.pagelist_id}>
             <li
               key={page.page_name}
-              className="rounded-lg border p-4 hover:shadow-md"
+              className="rounded-lg border p-4 "
             >
               <div className="mb-6 flex items-center justify-between">
                 <div
