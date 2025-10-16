@@ -18,7 +18,7 @@ export default async function RoleMenu() {
     <>
       <Main fixed>
         <div>
-          <p className="text-muted-foreground">Access your work</p>
+          <p className="text-muted-foreground pl-1">Access your work</p>
         </div>
         <ClientRoleMenu
           pages_list={

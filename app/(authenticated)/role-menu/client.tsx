@@ -42,7 +42,7 @@ export default function ClientRoleMenu({
 
   return (
     <>
-      <div className="my-4 flex items-end justify-between sm:my-0 sm:items-center">
+      <div className="my-4 flex items-end justify-between md:my-0 sm:items-center pl-1">
         <div className="flex flex-col gap-4 sm:my-4 sm:flex-row">
           <Input
             placeholder="Filter pages..."
@@ -75,6 +75,7 @@ export default function ClientRoleMenu({
         </Select>
       </div>
       <Separator className="shadow" />
+      
       <ul className="faded-bottom no-scrollbar grid gap-4 overflow-auto pb-16 pt-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredApps.map((page) => (
           <Link href={page.page_link || ""}  key={page.pagelist_id}>
@@ -84,7 +85,7 @@ export default function ClientRoleMenu({
             >
               <div className="mb-6 flex items-center justify-between">
                 <div
-                  className={`flex size-8 items-center justify-center rounded-lg bg-muted p-2`}
+                  className={`flex size-8 items-center justify-center rounded-lg bg-popover p-2`}
                 >
                   <SquareMenu />
                 </div>

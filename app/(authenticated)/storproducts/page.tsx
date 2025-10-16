@@ -371,7 +371,7 @@ export default function StorProductsPage() {
                             </p>
                           </CardContent>
 
-                          <CardFooter className="p-0 mt-3">
+                          <CardFooter className="p-2 mt-2">
                            <div className="ml-auto flex items-center gap-2">
                                           <div
                                             className="h-8 w-8 flex items-center justify-center cursor-pointer"
@@ -409,7 +409,7 @@ export default function StorProductsPage() {
           <DialogContent className="sm:max-w-md rounded-lg p-4 shadow-md bg-white dark:bg-gray-800">
             <DialogHeader className="flex items-center gap-2">
               <AlertCircle className="h-6 w-6 text-red-500" />
-              <DialogTitle className="text-md font-semibold text-gray-900 dark:text-gray-100">
+              <DialogTitle className="text-md font-bold text-gray-900 dark:text-gray-100">
                 Confirm Deletion
               </DialogTitle>
             </DialogHeader>
