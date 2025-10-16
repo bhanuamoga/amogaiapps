@@ -13,27 +13,57 @@
     --sidebar-border: 0, 0%, 92.2%;
     --sidebar-ring: 0, 0%, 70.8%;
   }
+  .dark-root {
+  --sidebar-background: 0 0% 5%;          /* dark sidebar background */
+  --sidebar-foreground: 0 0% 95%;         /* light text for contrast */
+  --sidebar-primary: 0 0% 12%;            /* dark primary highlight */
+  --sidebar-primary-foreground: 0 0% 98.5%; /* white/light text */
+  --sidebar-accent: 0 0% 15%;             /* dark accent background */
+  --sidebar-accent-foreground: 0 0% 85%;  /* light accent text */
+  --sidebar-border: 0 0% 25%;             /* darker border */
+  --sidebar-ring: 0 0% 50%;               /* ring slightly lighter */
+}
 
-  .dark {
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+.vercel{
+    --sidebar-background: 0, 0%, 98.5%;
+    --sidebar-foreground: 0, 0%, 14.5%;
+    --sidebar-primary: 0, 0%, 20.5%;
+    --sidebar-primary-foreground: 0, 0%, 98.5%;
+    --sidebar-accent: 0, 0%, 97%;
+    --sidebar-accent-foreground: 0, 0%, 20.5%;
+    --sidebar-border: 0, 0%, 92.2%;
+    --sidebar-ring: 0, 0%, 70.8%;
   }
+ .dark-vercel {
+  --sidebar-background: 0 0% 5%;          /* dark sidebar background */
+  --sidebar-foreground: 0 0% 95%;         /* light text for contrast */
+  --sidebar-primary: 0 0% 12%;            /* dark primary highlight */
+  --sidebar-primary-foreground: 0 0% 98.5%; /* white/light text */
+  --sidebar-accent: 0 0% 15%;             /* dark accent background */
+  --sidebar-accent-foreground: 0 0% 85%;  /* light accent text */
+  --sidebar-border: 0 0% 25%;             /* darker border */
+  --sidebar-ring: 0 0% 50%;               /* ring slightly lighter */
+}
 
-  .blue {
-    --sidebar-background: 230 99.2% 98.24%;
-    --sidebar-foreground: 230 8.4% 0.48%;
-    --sidebar-primary: 230 84% 12%;
-    --sidebar-primary-foreground: 230 1.68% 91.2%;
-    --sidebar-accent: 230 4.2% 95.6%;
-    --sidebar-accent-foreground: 230 6.04% 11.2%;
-    --sidebar-border: 230 13.4% 89.48%;
-    --sidebar-ring: 230 84% 12%;
+  .twitter {
+    --sidebar-background: 210 20% 98%;
+    --sidebar-foreground: 240 10% 3.9000%;
+    --sidebar-primary: 214 89% 52%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 210 30% 90%;
+    --sidebar-accent-foreground: 240 10% 3.9000%;
+    --sidebar-border: 210 10% 80%;
+    --sidebar-ring: 214 89% 52%;
+  }
+   .dark-twitter{
+   --sidebar-background: 210 12% 12%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 204 88% 60%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 210 14% 18%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 210 12% 22%;
+    --sidebar-ring: 204 88% 60%;
   }
 
   .green {
@@ -46,39 +76,18 @@
     --sidebar-border: 33.9130 27.0588% 83.3333%;
     --sidebar-ring: 123.0380 46.1988% 33.5294%;
   }
+   .dark-green {
+  --sidebar-background: 122 20% 10%;         /* very dark green */
+  --sidebar-foreground: 122 10% 90%;         /* light text for contrast */
+  --sidebar-primary: 123 45% 40%;            /* dark primary accent */
+  --sidebar-primary-foreground: 0 0% 100%;   /* white text */
+  --sidebar-accent: 122 30% 25%;             /* dark accent background */
+  --sidebar-accent-foreground: 124 45% 80%;  /* light text */
+  --sidebar-border: 122 20% 30%;             /* darker border */
+  --sidebar-ring: 123 45% 40%;               /* matches primary for focus/ring */
+}
 
-  .violet {
-    --sidebar-background: 255 99% 98.48%;
-    --sidebar-foreground: 255 8% 0.96%;
-    --sidebar-primary: 255 80% 24%;
-    --sidebar-primary-foreground: 255 1.6% 92.4%;
-    --sidebar-accent: 255 4% 96.2%;
-    --sidebar-accent-foreground: 255 5.8% 12.4%;
-    --sidebar-border: 255 13% 89.96%;
-    --sidebar-ring: 255 80% 24%;
-  }
 
-  .dark.violet {
-    --sidebar-background: 243 46% 12%;
-    --sidebar-foreground: 243 5% 90%;
-    --sidebar-primary: 243 59% 57%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 205 30% 25%;
-    --sidebar-accent-foreground: 243 5% 90%;
-    --sidebar-border: 243 30% 42%;
-    --sidebar-ring: 243 59% 57%;
-  }
-
-  .zinc {
-    --sidebar-background: 53 7.8% 5.12%;
-    --sidebar-foreground: 53 1.2% 98.2%;
-    --sidebar-primary: 53 12% 64%;
-    --sidebar-primary-foreground: 53 1.2% 6.4%;
-    --sidebar-accent: 53 6% 19.2%;
-    --sidebar-accent-foreground: 53 1.2% 98.2%;
-    --sidebar-border: 53 6% 19.2%;
-    --sidebar-ring: 53 12% 64%;
-  }
 }
 
 @layer base {
@@ -109,87 +118,94 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
   }
+  .dark-root {
+  --background: 0 0% 5%;           /* dark background */
+  --foreground: 0 0% 95%;          /* light text */
+  --card: 0 0% 8%;                 /* slightly lighter than background */
+  --card-foreground: 0 0% 95%;
+  --popover: 0 0% 12%;             /* dark popover */
+  --popover-foreground: 0 0% 95%;
+  --primary: 0 0% 85%;             /* darkened primary background */
+  --primary-foreground: 0 0% 98.5%;
+  --secondary: 0 0% 12%;           /* secondary dark */
+  --secondary-foreground: 0 0% 95%;
+  --muted: 0 0% 15%;               /* muted dark areas */
+  --muted-foreground: 0 0% 60%;
+  --accent: 0 0% 12%;              /* dark accent */
+  --accent-foreground: 0 0% 95%;
+  --destructive: 27 24% 40%;       /* darker red/orange */
+  --destructive-foreground: 0 0% 98.5%;
+  --border: 0 0% 25%;              /* dark border */
+  --input: 0 0% 25%;
+  --ring: 0 0% 50%;                /* ring slightly lighter */
+  --radius: 0.5rem;
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 40%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+  /* charts: darkened for visibility */
+  --chart-1: 221 83% 30%;
+  --chart-2: 173 58% 25%;
+  --chart-3: 197 37% 15%;
+  --chart-4: 43 74% 35%;
+  --chart-5: 27 87% 35%;
+}
+
+.vercel {
+    --background: 0 0% 100%;
+    --foreground: 0, 0%, 14.5%;
+    --card: 0 0% 100%;
+    --card-foreground: 0, 0%, 14.5%;
+    --popover: 0 0% 97%;
+    --popover-foreground:0, 0%, 14.5%;
+    --primary: 0, 0%, 14.5%;
+    --primary-foreground: 0, 0%, 98.5%;
+    --secondary: 0, 0%, 97%;
+    --secondary-foreground: 0, 0%, 14.5%;
+    --muted: 0, 0%, 97%;
+    --muted-foreground: 0, 0%, 45.5%;
+    --accent: 0, 0%, 97%;
+    --accent-foreground: 0, 0%, 14.5%;
+    --destructive: 27°, 24%, 58%;
+    --destructive-foreground: 0, 0%, 98.5%;
+    --border: 0, 0%, 92.2%;
+    --input: 0, 0%, 92.2%;
+    --ring: 0, 0%, 70.8%;
     --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
+    --chart-1: 221.2 83.2% 53.3%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
   }
+  .dark-vercel {
+  --background: 0 0% 5%;           /* dark background */
+  --foreground: 0 0% 95%;          /* light text */
+  --card: 0 0% 8%;                 /* slightly lighter than background */
+  --card-foreground: 0 0% 95%;
+  --popover: 0 0% 12%;             /* dark popover */
+  --popover-foreground: 0 0% 95%;
+  --primary: 0 0% 85%;             /* darkened primary background */
+  --primary-foreground: 0 0% 98.5%;
+  --secondary: 0 0% 12%;           /* secondary dark */
+  --secondary-foreground: 0 0% 95%;
+  --muted: 0 0% 15%;               /* muted dark areas */
+  --muted-foreground: 0 0% 60%;
+  --accent: 0 0% 12%;              /* dark accent */
+  --accent-foreground: 0 0% 95%;
+  --destructive: 27 24% 40%;       /* darker red/orange */
+  --destructive-foreground: 0 0% 98.5%;
+  --border: 0 0% 25%;              /* dark border */
+  --input: 0 0% 25%;
+  --ring: 0 0% 50%;                /* ring slightly lighter */
+  --radius: 0.5rem;
 
-  .palette {
+  /* charts: darkened for visibility */
+  --chart-1: 221 83% 30%;
+  --chart-2: 173 58% 25%;
+  --chart-3: 197 37% 15%;
+  --chart-4: 43 74% 35%;
+  --chart-5: 27 87% 35%;
+}
 
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-  }
-
-  .blue {
-    /* Name: custom color palette
-       Author: Ilias Ism
-       URL: https://gradient.page */
-
-    /* CSS: .bg-gradient { background: var(--gradient) } */
-    --gradient: #051937;
-    --background: 230 99.2% 98.24%;
-    --foreground: 230 8.4% 0.48%;
-    --muted: 120 10% 95%;
-    --muted-foreground: 120 10% 45%;
-    
-
-    --popover: 230 22.799999999999997% 91.2%;
-    --popover-foreground: 230 8.4% 0.6%;
-
-    --card: 230 22.799999999999997% 91.2%;
-    --card-foreground: 230 8.4% 0.6%;
-
-    --border: 120 10% 80%;
-    --input: 120 10% 85%;
-
-    --primary: 230 84% 12%;
-    --primary-foreground: 230 1.68% 91.2%;
-
-    --secondary: 120 20% 90%;
-    --secondary-foreground: 120 10% 30%;
-
-    --accent: 230 4.2% 95.6%;
-    --accent-foreground: 230 6.04% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --ring: 230 84% 12%;
-
-    --radius: 0.5rem;
-
-    
-  }
-
-
-  .green {
+.green {
     /* Name: custom color palette
        Author: Ilias Ism
        URL: https://gradient.page */
@@ -228,108 +244,100 @@
     --radius: 0.5rem;
   }
 
+  .dark-green {
 
-  .violet {
-    /* Name: custom color palette
-       Author: Ilias Ism
-       URL: https://gradient.page */
+  --background: 122 20% 10%;         /* very dark green background */
+  --foreground: 122 10% 90%;         /* text light for contrast */
+  --card: 122 22% 12%;               /* slightly lighter than background */
+  --card-foreground: 122 10% 90%;
 
-    /* CSS: .bg-gradient { background: var(--gradient) } */
-    --gradient: linear-gradient(to top left, #0c0c6d, #de512b, #98d0c1, #5bb226, #023c0d);
-    --background: 255 99% 98.48%;
-    --foreground: 255 8% 0.96%;
+  --muted: 122 15% 20%;              /* subtle muted areas */
+  --muted-foreground: 122 10% 60%;
 
-    --muted: 255 8% 92.4%;
-    --muted-foreground: 255 4% 42.4%;
+  --popover: 122 30% 25%;            /* darker green popover */
+  --popover-foreground: 122 10% 90%;
 
-    --popover: 255 26% 92.4%;
-    --popover-foreground: 255 8% 1.2%;
+  --border: 122 20% 30%;             /* dark border for contrast */
+  --input: 122 20% 30%;
 
-    --card: 255 26% 92.4%;
-    --card-foreground: 255 8% 1.2%;
+  --primary: 123 45% 40%;            /* main accent */
+  --primary-foreground: 0 0% 100%;
 
-    --border: 255 13% 89.96%;
-    --input: 255 13% 89.96%;
+  --secondary: 124 25% 35%;          /* secondary background */
+  --secondary-foreground: 124 45% 80%;
 
-    --primary: 255 80% 24%;
-    --primary-foreground: 255 1.6% 92.4%;
+  --accent: 122 30% 25%;
+  --accent-foreground: 124 45% 80%;
 
-    --secondary: 255 4% 96.2%;
-    --secondary-foreground: 255 5.800000000000001% 12.4%;
+  --destructive: 0 66% 46%;          /* keep same for destructive actions */
+  --destructive-foreground: 0 0% 100%;
 
-    --accent: 255 4% 96.2%;
-    --accent-foreground: 255 5.800000000000001% 12.4%;
+  --ring: 123 45% 40%;
 
-    --destructive: 0 84.2% 60.2%;
+  --radius: 0.5rem;
+}
+
+ 
+.twitter {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9000%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9000%;
+    --popover: 210 60% 95%;
+    --popover-foreground: 240 10% 3.9000%;
+    --primary: 214 89% 52%;          
+    --primary-foreground: 0 0% 98%;
+    --secondary: 210 40% 96.1000%;
+    --secondary-foreground: 214 89% 52%;
+    --accent: 210 40% 96.1000%;
+    --accent-foreground: 214 89% 52%;
+    --muted:210 40% 96.1000%;
+    --muted-foreground: 215.4000 16.3000% 46.9000%;
+    --destructive: 0 84.2000% 60.2000%;
     --destructive-foreground: 0 0% 98%;
-
-    --ring: 255 80% 24%;
-
+    --border: 214 32% 91.2000%;
+    --input:214 32% 91.2000%;
+    --ring: 214 89% 52%;
     --radius: 0.5rem;
+    --chart-1: 214 89% 52%;
+    --chart-2: 200 60% 70%;
+    --chart-3: 220 50% 60%;
+    --chart-4: 230 40% 50%;
+    --chart-5: 240 30% 40%;
   }
+  .dark-twitter {
+  --background: 210 10% 10%;
+  --foreground: 0 0% 96%;
+  --card: 210 10% 10%;
+  --card-foreground: 0 0% 96%;
+  --popover: 210 15% 18%;
+  --popover-foreground: 0 0% 96%;
+  --primary: 204 88% 60%;
+  --primary-foreground: 0 0% 96%; /* White text on blue buttons */
+  --secondary: 210 12% 18%;      /* Slightly lighter than card */
+  --secondary-foreground: 0 0% 96%;
+  --accent: 210 14% 18%;         /* Keep subtle, slightly lighter */
+  --accent-foreground: 0 0% 96%;
+  --muted: 210 12% 22%;
+  --muted-foreground: 210 10% 65%; /* Less bright for muted text */
+  --border: 210 12% 22%;
+  --input: 210 12% 22%;
+  --ring: 204 88% 60%;
+  --radius: 0.5rem;
+  --chart-1: 214 89% 52%;
+  --chart-2: 200 60% 70%;
+  --chart-3: 220 50% 60%;
+  --chart-4: 230 40% 50%;
+  --chart-5: 240 30% 40%;
+}
+ .palette {
 
-
-  .dark.violet {
-    --background: 243 46% 10%;
-    --foreground: 243 5% 90%;
-    --card: 243 46% 10%;
-    --card-foreground: 243 5% 90%;
-    --popover: 243 46% 5%;
-    --popover-foreground: 243 5% 90%;
-    --primary: 243 59% 57%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 243 30% 20%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 205 30% 25%;
-    --muted-foreground: 243 5% 60%;
-    --accent: 205 30% 25%;
-    --accent-foreground: 243 5% 90%;
-    --destructive: 0 50% 42%;
-    --destructive-foreground: 243 5% 90%;
-    --border: 243 30% 42%;
-    --input: 243 30% 42%;
-    --ring: 243 59% 57%;
-    --radius: 0.3rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
-
-  .zinc {
-    /* Name: custom color palette
-       Author: Ilias Ism
-       URL: https://gradient.page */
-
-    /* CSS: .bg-gradient { background: var(--gradient) } */
-    --gradient: linear-gradient(to top left, #ADA996, #F2F2F2, #DBDBDB, #EAEAEA);
-
-    --background: 53 7.8% 5.12%;
-    --foreground: 53 1.2% 98.2%;
-
-    --muted: 53 6% 19.2%;
-    --muted-foreground: 53 1.2% 56.4%;
-
-    --popover: 53 62.6% 8.32%;
-    --popover-foreground: 53 1.2% 98.2%;
-
-    --card: 53 62.6% 8.32%;
-    --card-foreground: 53 1.2% 98.2%;
-
-    --border: 53 6% 19.2%;
-    --input: 53 6% 19.2%;
-
-    --primary: 53 12% 64%;
-    --primary-foreground: 53 1.2% 6.4%;
-
-    --secondary: 53 6% 19.2%;
-    --secondary-foreground: 53 1.2% 98.2%;
-
-    --accent: 53 6% 19.2%;
-    --accent-foreground: 53 1.2% 98.2%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 53 1.2% 98.2%;
-
-    --ring: 53 12% 64%;
-  }
-
 }
 
 @layer base {

@@ -346,7 +346,7 @@ export default function StorProductsPage() {
                   const description = stripHtml(p.short_description || p.description);
 
                   return (
-                    <Card key={p.id} className="overflow-hidden">
+                    <Card key={p.id} className="overflow-hidden hover:bg-popover">
                       <div className="flex gap-4 p-4">
                         <div className="w-28 shrink-0 flex flex-col">
                           <div className="relative h-28 w-28 rounded-md overflow-hidden">
@@ -432,8 +432,9 @@ export default function StorProductsPage() {
                 Cancel
               </Button>
               <Button
-                variant="destructive"
-                className=" hover:bg-red-700 text-white transition px-3 py-1.5 text-sm"
+                variant="outline"
+                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition px-3 py-1.5 text-sm"
+
                 onClick={confirmDelete}
               >
                 Delete

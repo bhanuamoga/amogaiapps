@@ -48,7 +48,7 @@ export default async function RootLayout({
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
-            themes={["light", "dark", "zinc", "blue", "green", "violet"]}
+            themes={["light", "twitter", "green","vercel", "dark-twitter", "dark-green", "dark-root","dark-vercel"]}
           >
             <SearchProvider>
               <SessionProvider>

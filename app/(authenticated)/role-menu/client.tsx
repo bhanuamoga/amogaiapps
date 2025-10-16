@@ -85,7 +85,7 @@ export default function ClientRoleMenu({
             >
               <div className="mb-6 flex items-center justify-between">
                 <div
-                  className={`flex size-8 items-center justify-center rounded-lg bg-popover p-2`}
+                  className={`flex size-8 items-center justify-center rounded-lg  p-2`}
                 >
                   <SquareMenu />
                 </div>
