@@ -86,6 +86,28 @@
   --sidebar-border: 122 20% 30%;             /* darker border */
   --sidebar-ring: 123 45% 40%;               /* matches primary for focus/ring */
 }
+.neo{
+   --sidebar-background:0 0% 94.1176%;
+    --sidebar-foreground:0 0% 0%;
+    --sidebar-primary:0 100% 60%;
+    --sidebar-primary-foreground:0 0% 100%;
+    --sidebar-accent:216 100% 50%;
+    --sidebar-accent-foreground:0 0% 100%;
+    --sidebar-border:0 0% 0%;
+    --sidebar-ring: 0 100% 60%;
+}
+.dark-neo{
+  
+   --sidebar-background:0 0% 0%;
+    --sidebar-foreground:0 0% 100%;
+    --sidebar-primary:0 100.0000% 70%;
+    --sidebar-primary-foreground:0 0% 0%;
+    --sidebar-accent:210 100% 60%;
+    --sidebar-accent-foreground:0 0% 0%;
+    --sidebar-border:0 0% 100%;
+    --sidebar-ring:0 100.0000% 70%;
+
+}
 
 
 }
@@ -329,6 +351,60 @@
   --chart-3: 220 50% 60%;
   --chart-4: 230 40% 50%;
   --chart-5: 240 30% 40%;
+}
+.neo{
+   --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground:0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground:0 0% 0%;
+    --primary:0 100% 60%;
+    --primary-foreground:0 0% 100%;
+    --secondary:60 100% 50%;
+    --secondary-foreground:0 0% 0%;
+    --muted:0 0% 94.1176%;
+    --muted-foreground:0 0% 20%;
+    --accent:216 100% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 0% 100%;
+    --destructive-foreground:0 0% 100%;
+    --border:0 0% 0%;
+    --input: 0 0% 0%;
+    --ring: 0 100% 60%;
+    --radius: 0.5rem;
+    --chart-1: 0 100% 60%;
+    --chart-2: 60 100% 50%;
+    --chart-3: 216 100% 50%;
+    --chart-4: 120 100% 40%;
+    --chart-5: 300 100% 40%;
+}
+.dark-neo{
+   --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 20%;
+    --card-foreground:0 0% 100%;
+    --popover: 0 0% 20%;
+    --popover-foreground:0 0% 100%;
+    --primary:0 100.0000% 70%;
+    --primary-foreground:0 0% 0%;
+    --secondary:60 100% 60%;
+    --secondary-foreground:0 0% 0%;
+    --muted:0 0% 10.1961%;
+    --muted-foreground:0 0% 80%;
+    --accent:210 100% 60%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 0% 100%;
+    --destructive-foreground:0 0% 0%;
+    --border:0 0% 100%;
+    --input:0 0% 100%;
+    --ring:0 100.0000% 70%;
+    --radius: 0.5rem;
+    --chart-1: 0 100.0000% 70%;
+    --chart-2: 60 100% 60%;
+    --chart-3: 210 100% 60%;
+    --chart-4: 120 60.0000% 50%;
+    --chart-5: 300 60.0000% 50%;
 }
  .palette {
 

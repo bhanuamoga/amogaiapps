@@ -16,7 +16,7 @@ import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 
 const APPEARANCE = ["system", "dark"];
-const COLORS = ["default", "green", "twitter", "vercel"];
+const COLORS = ["default", "green", "twitter", "vercel","neo"];
 
 // Map color state to theme string
 const COLOR_TO_THEME: Record<string, string> = {
@@ -24,6 +24,7 @@ const COLOR_TO_THEME: Record<string, string> = {
   vercel: "vercel",
   green: "green",
   twitter: "twitter",
+  neo:"neo"
 };
 
 // Reverse map theme string to color state
@@ -32,6 +33,7 @@ const THEME_TO_COLOR: Record<string, string> = {
   vercel: "vercel",
   green: "green",
   twitter: "twitter",
+  neo:"neo"
 };
 
 export function ThemeSwitch() {
