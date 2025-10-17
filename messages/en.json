@@ -1,14 +1,23 @@
 {
-  "HomePage": {
-    "title": "Hello world!"
+  "RoleMenu": {
+    "title": "Role Menu",
+    "description": "Access your work",
+    "placeholder": "Filter pages...",
+    "ascending": "Ascending",
+    "descending": "Descending",
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "settings": "Settings",
+    "reports": "Reports"
   },
+  "Search": {
+    "placeholder": "Search"
+  },
+
   "LocaleSwitcher": {
+    "label": "Language",
     "en": "English",
-    "de": "German",
-    "fr": "French",
-    "me": "Melayu",
-    "te": "Telugu",
-    "hi": "Hindi",
-    "label": "Language"
+    "fr": "Français",
+    "te": "తెలుగు"
   }
 }

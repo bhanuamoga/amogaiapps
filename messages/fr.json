@@ -1,14 +1,23 @@
 {
-  "HomePage": {
-    "title": "bonjour!"
+  "RoleMenu": {
+    "title": "Menu des rôles",
+    "description": "Accédez à votre travail",
+    "placeholder": "Filtrer les pages...",
+    "ascending": "Croissant",
+    "descending": "Décroissant",
+    "dashboard": "Tableau de bord",
+    "users": "Utilisateurs",
+    "settings": "Paramètres",
+    "reports": "Rapports"
   },
+  "Search": {
+  "placeholder": "Rechercher"
+},
+
   "LocaleSwitcher": {
+    "label": "Language",
     "en": "English",
-    "de": "German",
-    "fr": "French",
-    "me": "Melayu",
-    "te": "Telugu",
-    "hi": "Hindi",
-    "label": "Language"
+    "fr": "Français",
+    "te": "తెలుగు"
   }
 }

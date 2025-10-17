@@ -19,6 +19,7 @@ import {
 import React from "react";
 import Link from "next/link";
 import { Tables } from "@/types/database";
+import { useTranslations } from "next-intl";
 
 export default function ClientRoleMenu({
   pages_list,
@@ -27,7 +28,7 @@ export default function ClientRoleMenu({
 }) {
   const [sort, setSort] = useState("ascending");
   const [searchTerm, setSearchTerm] = useState("");
-
+  const t = useTranslations("RoleMenu");
   const filteredApps = pages_list
     .sort((a, b) => {
       const aName = a?.page_name ?? "";
@@ -45,7 +46,7 @@ export default function ClientRoleMenu({
       <div className="my-4 flex items-end justify-between md:my-0 sm:items-center pl-1">
         <div className="flex flex-col gap-4 sm:my-4 sm:flex-row">
           <Input
-            placeholder="Filter pages..."
+            placeholder={t("placeholder")}
             className="h-9 w-40 lg:w-[250px]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -62,13 +63,13 @@ export default function ClientRoleMenu({
             <SelectItem value="ascending">
               <div className="flex items-center gap-4">
                 <ArrowUpAZ size={16} />
-                <span>Ascending</span>
+                <span>{t("ascending")}</span>
               </div>
             </SelectItem>
             <SelectItem value="descending">
               <div className="flex items-center gap-4">
                 <ArrowDownZA size={16} />
-                <span>Descending</span>
+                <span>{t("descending")}</span>
               </div>
             </SelectItem>
           </SelectContent>

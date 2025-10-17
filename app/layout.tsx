@@ -45,9 +45,10 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme="light"
             enableSystem
             disableTransitionOnChange
+            storageKey={undefined}
             themes={["light", "twitter", "green","vercel","neo", "dark-twitter", "dark-green", "dark-root","dark-vercel","dark-neo"]}
           >
             <SearchProvider>

@@ -24,7 +24,7 @@ const COLOR_TO_THEME: Record<string, string> = {
   vercel: "vercel",
   green: "green",
   twitter: "twitter",
-  neo:"neo"
+  neo: "neo",
 };
 
 // Reverse map theme string to color state

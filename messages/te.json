@@ -1,0 +1,22 @@
+{
+  "RoleMenu": {
+    "title": "రోల్ మెను",
+    "description": "మీ పనిని యాక్సెస్ చేయండి",
+    "placeholder": "పేజీలను ఫిల్టర్ చేయండి...",
+    "ascending": "ఆరోహణ",
+    "descending": "అవరోహణ",
+    "dashboard": "డ్యాష్‌బోర్డ్",
+    "users": "వినియోగదారులు",
+    "settings": "సెట్టింగ్స్",
+    "reports": "రిపోర్ట్లు"
+  },"Search": {
+  "placeholder": "వెతకండి"
+},
+
+  "LocaleSwitcher": {
+    "label": "language",
+    "en": "English",
+    "fr": "Français",
+    "te": "తెలుగు"
+  }
+}
