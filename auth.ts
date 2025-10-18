@@ -7,7 +7,7 @@ import { getAllowedPaths } from "./lib/server-utils";
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" },
   pages: {
-    signIn: "/sign-in",
+    signIn: "/storesignin",
   },
   providers: [
     Credentials({
@@ -127,7 +127,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       if (!isLoggedIn) {
         if (!isPublic) {
-          const redirectUrl = new URL("/sign-in", nextUrl.origin);
+          const redirectUrl = new URL("/storesignin", nextUrl.origin);
           redirectUrl.searchParams.append("callbackUrl", nextUrl.href);
           return Response.redirect(redirectUrl);
         } else {

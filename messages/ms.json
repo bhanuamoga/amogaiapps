@@ -1,0 +1,69 @@
+{
+  "storesignin": {
+    "title": "Log Masuk Kedai",
+    "description": "Masukkan e-mel dan kata laluan anda di bawah untuk log masuk ke akaun kedai anda.",
+    "email": "E-mel",
+    "password": "Kata Laluan",
+    "forgotPassword": "Lupa Kata Laluan?",
+    "submit": "Log Masuk",
+    "newaccount": "Ingin mencipta akaun baharu?",
+    "signupLink": "Daftar",
+    "or": "ATAU TERUSKAN DENGAN",
+    "github": "GitHub",
+    "facebook": "Facebook",
+    "agreeTerms": "Dengan mengklik log masuk, anda bersetuju dengan",
+    "termsOfService": "Terma Perkhidmatan",
+    "and": "dan",
+    "privacyPolicy": "Dasar Privasi"
+  },
+
+  "storesignup": {
+    "title": "Cipta Akaun Kedai",
+    "description1": "Masukkan e-mel dan kata laluan anda di bawah untuk mencipta akaun kedai.",
+    "description2": "Sudah mempunyai akaun?",
+    "signinLink": "Log Masuk",
+    "firstName": "Nama Pertama",
+    "lastName": "Nama Akhir",
+    "email": "E-mel",
+    "mobile": "Telefon Bimbit",
+    "password": "Kata Laluan",
+    "confirmPassword": "Sahkan Kata Laluan",
+    "businessname": "Nama Perniagaan",
+    "businessnumber": "Nombor Perniagaan",
+    "submit": "Cipta Akaun",
+    "or": "ATAU TERUSKAN DENGAN",
+    "github": "GitHub",
+    "facebook": "Facebook",
+    "agreeTerms": "Dengan mencipta akaun, anda bersetuju dengan",
+    "termsOfService": "Terma Perkhidmatan",
+    "and": "dan",
+    "privacyPolicy": "Dasar Privasi"
+  },
+
+  "RoleMenu": {
+    "title": "Menu Peranan",
+    "description": "Akses kerja anda",
+    "placeholder": "Tapis halaman...",
+    "ascending": "Menaik",
+    "descending": "Menurun",
+    "dashboard": "Papan Pemuka",
+    "users": "Pengguna",
+    "settings": "Tetapan",
+    "reports": "Laporan"
+  },
+
+  "Search": {
+    "placeholder": "Cari"
+  },
+
+  "LocaleSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "fr": "Français",
+    "ar": "العربية",
+    "ms": "Bahasa Melayu",
+    "vi": "Tiếng Việt",
+    "hi": "हिन्दी",
+    "te": "తెలుగు"
+  }
+}

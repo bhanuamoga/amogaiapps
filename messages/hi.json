@@ -1,0 +1,71 @@
+{
+  "storesignin": {
+    "title": "स्टोर लॉगिन",
+    "description": "अपने ईमेल और पासवर्ड नीचे दर्ज करें ताकि आप अपने स्टोर खाते में लॉग इन कर सकें।",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "submit": "लॉगिन",
+    "newaccount": "क्या आप नया खाता बनाना चाहते हैं?",
+    "signupLink": "साइन अप",
+    "or": "या जारी रखें",
+    "github": "गिटहब",
+    "facebook": "फेसबुक",
+    "agreeTerms": "लॉगिन पर क्लिक करके, आप हमारी",
+    "termsOfService": "सेवा की शर्तों",
+    "and": "और",
+    "privacyPolicy": "गोपनीयता नीति",
+    "agreeTermsEnd": "से सहमत हैं।"
+  },
+
+  "storesignup": {
+    "title": "स्टोर खाता बनाएँ",
+    "description1": "स्टोर खाता बनाने के लिए नीचे अपना ईमेल और पासवर्ड दर्ज करें।",
+    "description2": "क्या पहले से खाता है?",
+    "signinLink": "साइन इन करें",
+    "firstName": "पहला नाम",
+    "lastName": "अंतिम नाम",
+    "email": "ईमेल",
+    "mobile": "मोबाइल",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "businessname": "व्यवसाय का नाम",
+    "businessnumber": "व्यवसाय संख्या",
+    "submit": "खाता बनाएँ",
+    "or": "या जारी रखें",
+    "github": "गिटहब",
+    "facebook": "फेसबुक",
+    "agreeTerms": "खाता बनाकर, आप हमारी",
+    "termsOfService": "सेवा की शर्तों",
+    "and": "और",
+    "privacyPolicy": "गोपनीयता नीति",
+    "agreeTermsEnd": "से सहमत हैं।"
+  },
+
+  "RoleMenu": {
+    "title": "भूमिका मेनू",
+    "description": "अपने कार्य तक पहुँचें",
+    "placeholder": "पृष्ठ फ़िल्टर करें...",
+    "ascending": "आरोही",
+    "descending": "अवरोही",
+    "dashboard": "डैशबोर्ड",
+    "users": "उपयोगकर्ता",
+    "settings": "सेटिंग्स",
+    "reports": "रिपोर्ट"
+  },
+
+  "Search": {
+    "placeholder": "खोजें"
+  },
+
+  "LocaleSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "fr": "Français",
+    "ar": "العربية",
+    "ms": "Bahasa Melayu",
+    "vi": "Tiếng Việt",
+    "hi": "हिन्दी",
+    "te": "తెలుగు"
+  }
+}

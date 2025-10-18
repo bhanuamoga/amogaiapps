@@ -17,7 +17,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import { SignOutButton } from "@/app/(auth)/signout-button";
+import { SignOutButton } from "@/app/(authmobile)/storesignout";
 import { Session } from "next-auth";
 
 export function NavUser({

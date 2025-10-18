@@ -1,23 +1,69 @@
 {
+  "storesignin": {
+    "title": "Connexion au magasin",
+    "description": "Entrez votre email et mot de passe ci-dessous pour vous connecter à votre compte magasin.",
+    "email": "Email",
+    "password": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "submit": "Se connecter",
+    "newaccount": "Vous voulez créer un nouveau compte ?",
+    "signupLink": "S'inscrire",
+    "or": "OU CONTINUER AVEC",
+    "github": "GitHub",
+    "facebook": "Facebook",
+    "agreeTerms": "En cliquant sur se connecter, vous acceptez nos",
+    "termsOfService": "Conditions d'utilisation",
+    "and": "et",
+    "privacyPolicy": "Politique de confidentialité"
+  },
+
+  "storesignup": {
+    "title": "Créer un compte magasin",
+    "description1": "Entrez votre email et mot de passe ci-dessous pour créer un compte magasin.",
+    "description2": "Vous avez déjà un compte ?",
+    "signinLink": "Se connecter",
+    "firstName": "Prénom",
+    "lastName": "Nom de famille",
+    "email": "Email",
+    "mobile": "Mobile",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "businessname": "Nom de l'entreprise",
+    "businessnumber": "Numéro de l'entreprise",
+    "submit": "Créer un compte",
+    "or": "OU CONTINUER AVEC",
+    "github": "GitHub",
+    "facebook": "Facebook",
+    "agreeTerms": "En créant un compte, vous acceptez nos",
+    "termsOfService": "Conditions d'utilisation",
+    "and": "et",
+    "privacyPolicy": "Politique de confidentialité"
+  },
+
   "RoleMenu": {
-    "title": "Menu des rôles",
+    "title": "Menu de rôle",
     "description": "Accédez à votre travail",
     "placeholder": "Filtrer les pages...",
-    "ascending": "Croissant",
-    "descending": "Décroissant",
+    "ascending": "Ascendant",
+    "descending": "Descendant",
     "dashboard": "Tableau de bord",
     "users": "Utilisateurs",
     "settings": "Paramètres",
     "reports": "Rapports"
   },
+
   "Search": {
-  "placeholder": "Rechercher"
-},
+    "placeholder": "Rechercher"
+  },
 
   "LocaleSwitcher": {
-    "label": "Language",
+   "label": "Language",
     "en": "English",
     "fr": "Français",
+    "ar": "العربية",
+    "ms": "Bahasa Melayu",
+    "vi": "Tiếng Việt",
+    "hi": "हिन्दी",
     "te": "తెలుగు"
   }
 }

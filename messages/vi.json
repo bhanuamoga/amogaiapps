@@ -1,0 +1,69 @@
+{
+  "storesignin": {
+    "title": "Đăng nhập cửa hàng",
+    "description": "Nhập email và mật khẩu của bạn bên dưới để đăng nhập vào tài khoản cửa hàng của bạn.",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "forgotPassword": "Quên mật khẩu?",
+    "submit": "Đăng nhập",
+    "newaccount": "Bạn muốn tạo tài khoản mới?",
+    "signupLink": "Đăng ký",
+    "or": "HOẶC TIẾP TỤC VỚI",
+    "github": "GitHub",
+    "facebook": "Facebook",
+    "agreeTerms": "Bằng cách nhấn đăng nhập, bạn đồng ý với",
+    "termsOfService": "Điều khoản dịch vụ",
+    "and": "và",
+    "privacyPolicy": "Chính sách bảo mật"
+  },
+
+  "storesignup": {
+    "title": "Tạo tài khoản cửa hàng",
+    "description1": "Nhập email và mật khẩu của bạn bên dưới để tạo tài khoản cửa hàng.",
+    "description2": "Đã có tài khoản?",
+    "signinLink": "Đăng nhập",
+    "firstName": "Tên",
+    "lastName": "Họ",
+    "email": "Email",
+    "mobile": "Số điện thoại",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "businessname": "Tên doanh nghiệp",
+    "businessnumber": "Mã số doanh nghiệp",
+    "submit": "Tạo tài khoản",
+    "or": "HOẶC TIẾP TỤC VỚI",
+    "github": "GitHub",
+    "facebook": "Facebook",
+    "agreeTerms": "Bằng cách tạo tài khoản, bạn đồng ý với",
+    "termsOfService": "Điều khoản dịch vụ",
+    "and": "và",
+    "privacyPolicy": "Chính sách bảo mật"
+  },
+
+  "RoleMenu": {
+    "title": "Menu vai trò",
+    "description": "Truy cập công việc của bạn",
+    "placeholder": "Lọc trang...",
+    "ascending": "Tăng dần",
+    "descending": "Giảm dần",
+    "dashboard": "Bảng điều khiển",
+    "users": "Người dùng",
+    "settings": "Cài đặt",
+    "reports": "Báo cáo"
+  },
+
+  "Search": {
+    "placeholder": "Tìm kiếm"
+  },
+
+  "LocaleSwitcher": {
+ "label": "Language",
+    "en": "English",
+    "fr": "Français",
+    "ar": "العربية",
+    "ms": "Bahasa Melayu",
+    "vi": "Tiếng Việt",
+    "hi": "हिन्दी",
+    "te": "తెలుగు"
+  }
+}

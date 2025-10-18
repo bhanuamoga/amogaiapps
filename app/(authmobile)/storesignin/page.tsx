@@ -21,7 +21,7 @@ import { Github, Facebook, Loader2 } from "lucide-react";
 import { login, LoginActionState } from "../actions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
+import { useTranslations } from "next-intl";
 const formSchema = z.object({
   email: z
     .string()
@@ -40,7 +40,7 @@ const formSchema = z.object({
 export default function SignIn() {
   const [isLoading] = useState(false);
   const router = useRouter();
-
+  const t = useTranslations("storesignin");
   const [state, formAction, pending] = useActionState<
     LoginActionState,
     { email: string; password: string }
@@ -73,10 +73,9 @@ export default function SignIn() {
   return (
     <Card className="p-6">
       <div className="flex flex-col space-y-2 text-left">
-        <h1 className="text-2xl font-semibold tracking-tight">Store Login</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="text-sm text-muted-foreground">
-          Enter your email and password below <br />
-          to log into your Store account
+          {t("description")}
         </p>
       </div>
       <div className="grid gap-6">
@@ -92,7 +91,7 @@ export default function SignIn() {
                 name="email"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t("email")}</FormLabel>
                     <FormControl>
                       <Input placeholder="name@example.com" {...field} />
                     </FormControl>
@@ -106,12 +105,12 @@ export default function SignIn() {
                 render={({ field }) => (
                   <FormItem className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t("password")}</FormLabel>
                       <Link
                         href="#"
                         className="text-sm font-medium text-muted-foreground hover:opacity-75"
                       >
-                        Forgot password?
+                        {t("forgotPassword")}
                       </Link>
                     </div>
                     <FormControl>
@@ -122,16 +121,16 @@ export default function SignIn() {
                 )}
               />
               <Button className="mt-2" disabled={isLoading || pending}>
-                Login
+                {t("submit")}
                 {pending && <Loader2 className="animate-spin" />}
               </Button>
               <p className="text-sm text-muted-foreground">
-                You want create new account?{" "}
+                {t("newaccount")}{" "}
                 <Link
                   href="/storesignup"
                   className="underline underline-offset-4 hover:text-primary"
                 >
-                  Sign Up
+                  {t("signupLink")}
                 </Link>
               </p>
               <div className="relative my-2">
@@ -140,7 +139,7 @@ export default function SignIn() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with
+                    {t("or")}
                   </span>
                 </div>
               </div>
@@ -152,7 +151,7 @@ export default function SignIn() {
                   type="button"
                   disabled={isLoading}
                 >
-                  <Github className="h-4 w-4" /> GitHub
+                  <Github className="h-4 w-4" /> {t("github")}
                 </Button>
                 <Button
                   variant="outline"
@@ -160,7 +159,7 @@ export default function SignIn() {
                   type="button"
                   disabled={isLoading}
                 >
-                  <Facebook className="h-4 w-4" /> Facebook
+                  <Facebook className="h-4 w-4" /> {t("facebook")}
                 </Button>
               </div>
             </div>
@@ -168,13 +167,13 @@ export default function SignIn() {
         </Form>
       </div>
       <p className="mt-4 px-8 text-center text-sm text-muted-foreground">
-        By clicking login, you agree to our{" "}
+        {t("agreeTerms")}{" "}
         <a href="#" className="underline underline-offset-4 hover:text-primary">
-          Terms of Service
+          {t("termsOfService")}
         </a>{" "}
-        and{" "}
+        {t("and")}{" "}
         <a href="#" className="underline underline-offset-4 hover:text-primary">
-          Privacy Policy
+          {t("privacyPolicy")}
         </a>
         .
       </p>

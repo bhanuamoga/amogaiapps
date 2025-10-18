@@ -1,0 +1,69 @@
+{
+  "storesignin": {
+    "title": "تسجيل دخول المتجر",
+    "description": "أدخل بريدك الإلكتروني وكلمة المرور أدناه لتسجيل الدخول إلى حساب المتجر الخاص بك.",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "submit": "تسجيل الدخول",
+    "newaccount": "هل ترغب في إنشاء حساب جديد؟",
+    "signupLink": "إنشاء حساب",
+    "or": "أو المتابعة باستخدام",
+    "github": "جيت هاب",
+    "facebook": "فيسبوك",
+    "agreeTerms": "بالنقر على تسجيل الدخول، فإنك توافق على",
+    "termsOfService": "شروط الخدمة",
+    "and": "و",
+    "privacyPolicy": "سياسة الخصوصية"
+  },
+
+  "storesignup": {
+    "title": "إنشاء حساب متجر",
+    "description1": "أدخل بريدك الإلكتروني وكلمة المرور أدناه لإنشاء حساب متجر.",
+    "description2": "هل لديك حساب بالفعل؟",
+    "signinLink": "تسجيل الدخول",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "email": "البريد الإلكتروني",
+    "mobile": "رقم الجوال",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "businessname": "اسم النشاط التجاري",
+    "businessnumber": "رقم النشاط التجاري",
+    "submit": "إنشاء الحساب",
+    "or": "أو المتابعة باستخدام",
+    "github": "جيت هاب",
+    "facebook": "فيسبوك",
+    "agreeTerms": "بإنشائك حسابًا، فإنك توافق على",
+    "termsOfService": "شروط الخدمة",
+    "and": "و",
+    "privacyPolicy": "سياسة الخصوصية"
+  },
+
+  "RoleMenu": {
+    "title": "قائمة الأدوار",
+    "description": "الوصول إلى عملك",
+    "placeholder": "تصفية الصفحات...",
+    "ascending": "تصاعدي",
+    "descending": "تنازلي",
+    "dashboard": "لوحة التحكم",
+    "users": "المستخدمون",
+    "settings": "الإعدادات",
+    "reports": "التقارير"
+  },
+
+  "Search": {
+    "placeholder": "بحث"
+  },
+
+  "LocaleSwitcher": {
+     "label": "Language",
+    "en": "English",
+    "fr": "Français",
+    "ar": "العربية",
+    "ms": "Bahasa Melayu",
+    "vi": "Tiếng Việt",
+    "hi": "हिन्दी",
+    "te": "తెలుగు"
+  }
+}

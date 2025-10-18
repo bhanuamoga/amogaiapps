@@ -1,4 +1,47 @@
 {
+  "storesignin": {
+    "title": "Store Login",
+    "description": "Enter your email and password below to log in to your store account.",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "submit": "Login",
+    "newaccount": "You want to create a new account?",
+    "signupLink": "Sign Up",
+    "or": "OR CONTINUE WITH",
+    "github": "GitHub",
+    "facebook": "Facebook",
+    "agreeTerms": "By clicking login, you agree to our",
+    "termsOfService": "Terms of Service",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy"
+  },
+
+  "storesignup": {
+    "title": "Create an Store account",
+    "description1": "Enter your email and password below to create a store account.",
+    "description2": "Already have an account?",
+    "signinLink": "Sign In",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "mobile": "Mobile",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "businessname": "Business Name",
+    "businessnumber": "Business Number",
+    "submit": "Create Account",
+    "or": "OR CONTINUE WITH",
+    "github": "GitHub",
+    "facebook": "Facebook",
+    "agreeTerms": "By creating an account, you agree to our",
+    "termsOfService": "Terms of Service",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy"
+
+  },
+
+
   "RoleMenu": {
     "title": "Role Menu",
     "description": "Access your work",
@@ -18,6 +61,11 @@
     "label": "Language",
     "en": "English",
     "fr": "Français",
+    "ar": "العربية",
+    "ms": "Bahasa Melayu",
+    "vi": "Tiếng Việt",
+    "hi": "हिन्दी",
     "te": "తెలుగు"
+    
   }
 }

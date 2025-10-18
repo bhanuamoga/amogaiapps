@@ -21,6 +21,7 @@ import { Github, Facebook } from "lucide-react";
 import { register, RegisterActionState } from "../actions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 const formSchema = z
   .object({
@@ -79,7 +80,7 @@ business_number: z
 export default function SignUp() {
   const [isLoading] = useState(false);
   const router = useRouter();
-
+  const t = useTranslations("storesignup");
   const [state, formAction, pending] = useActionState<
     RegisterActionState,
     z.infer<typeof formSchema>
@@ -123,16 +124,16 @@ export default function SignUp() {
     <Card className="p-6">
       <div className="mb-2 flex flex-col space-y-2 text-left">
         <h1 className="text-lg font-semibold tracking-tight">
-          Create an Store account
+          {t("title")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Enter your email and password to create an account. <br />
-          Already have an account?{" "}
+          {t("description1")} <br />
+          {t("description2")}{" "}
           <Link
             href="/storesignin"
             className="underline underline-offset-4 hover:text-primary"
           >
-            Sign In
+            {t("signinLink")}
           </Link>
         </p>
       </div>
@@ -150,7 +151,7 @@ export default function SignUp() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      First Name <span className="text-red-500">*</span>
+                      {t("firstName")} <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="John" {...field} />
@@ -166,7 +167,7 @@ export default function SignUp() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Last Name <span className="text-red-500">*</span>
+                      {t("lastName")} <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="Doe" {...field} />
@@ -182,7 +183,7 @@ export default function SignUp() {
                 render={({ field }) => (
                   <FormItem className="space-y-1">
                     <FormLabel>
-                      Email <span className="text-red-500">*</span>
+                      {t("email")} <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="name@gmail.com" {...field} />
@@ -198,7 +199,7 @@ export default function SignUp() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Mobile <span className="text-red-500">*</span>
+                      {t("mobile")} <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="+1234567890" {...field} />
@@ -214,7 +215,7 @@ export default function SignUp() {
                 render={({ field }) => (
                   <FormItem className="space-y-1">
                     <FormLabel>
-                      Password <span className="text-red-500">*</span>
+                      {t("password")} <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <PasswordInput placeholder="********" {...field} />
@@ -230,7 +231,7 @@ export default function SignUp() {
                 render={({ field }) => (
                   <FormItem className="space-y-1">
                     <FormLabel>
-                      Confirm Password <span className="text-red-500">*</span>
+                      {t("confirmPassword")} <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <PasswordInput placeholder="********" {...field} />
@@ -246,7 +247,7 @@ export default function SignUp() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Business Name <span className="text-red-500">*</span>
+                      {t("businessname")} <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="Business Inc." {...field} />
@@ -262,7 +263,7 @@ export default function SignUp() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Business Number <span className="text-red-500">*</span>
+                      {t("businessnumber")} <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="1234567890" {...field} />
@@ -273,7 +274,7 @@ export default function SignUp() {
               />
 
               <Button className="mt-2" disabled={isLoading}>
-                Create Account
+                {t("submit")}
               </Button>
 
               <div className="relative my-2">
@@ -282,7 +283,7 @@ export default function SignUp() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with
+                    {t("or")}
                   </span>
                 </div>
               </div>
@@ -294,7 +295,7 @@ export default function SignUp() {
                   type="button"
                   disabled={isLoading}
                 >
-                  <Github className="h-4 w-4" /> GitHub
+                  <Github className="h-4 w-4" /> {t("github")}
                 </Button>
                 <Button
                   variant="outline"
@@ -302,7 +303,7 @@ export default function SignUp() {
                   type="button"
                   disabled={isLoading}
                 >
-                  <Facebook className="h-4 w-4" /> Facebook
+                  <Facebook className="h-4 w-4" /> {t("facebook")}
                 </Button>
               </div>
             </div>
@@ -311,13 +312,13 @@ export default function SignUp() {
         </Form>
       </div>
       <p className="mt-4 px-8 text-center text-sm text-muted-foreground">
-        By creating an account, you agree to our{" "}
+        {t("agreeTerms")}{" "}
         <a href="#" className="underline underline-offset-4 hover:text-primary">
-          Terms of Service
+          {t("termsOfService")}
         </a>{" "}
-        and{" "}
+        {t("and")}{" "}
         <a href="#" className="underline underline-offset-4 hover:text-primary">
-          Privacy Policy
+          {t("privacyPolicy")}
         </a>
         .
       </p>
