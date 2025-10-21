@@ -70,6 +70,97 @@
     "postcode": "Poskod / ZIP",
     "country": "Negara"
   },
+  "Settings": {
+    "title": "Tetapan Sambungan API",
+    "description": "Konfigurasikan dan urus sambungan untuk menyegerakkan data dengan WooCommerce atau Shopify.",
+    "footer": "Konfigurasikan sambungan secara individu. Kelayakan disimpan dengan selamat selepas disimpan.",
+    "businessSettings": "Tetapan Perniagaan",
+    "businessName": "Nama Perniagaan",
+    "legalBusinessName": "Nama Perniagaan Sah",
+    "businessNumber": "Nombor Perniagaan",
+    "registrationNo": "Nombor Pendaftaran",
+    "storeName": "Nama Kedai",
+    "storeUrl": "URL Kedai",
+    "storeEmail": "E-mel Kedai",
+    "storeMobile": "Telefon Kedai",
+    "billingFirstName": "Nama Pertama Penagihan",
+    "billingLastName": "Nama Akhir Penagihan",
+    "billingCompany": "Syarikat Penagihan",
+    "billingPhone": "Telefon Penagihan",
+    "billingEmail": "E-mel Penagihan",
+    "billingAddress1": "Alamat Penagihan 1",
+    "billingAddress2": "Alamat Penagihan 2",
+    "billingCountry": "Negara Penagihan",
+    "billingState": "Negeri Penagihan",
+    "billingCity": "Bandar Penagihan",
+    "billingPostcode": "Poskod Penagihan",
+    "shippingFirstName": "Nama Pertama Penghantaran",
+    "shippingLastName": "Nama Akhir Penghantaran",
+    "shippingCompany": "Syarikat Penghantaran",
+    "shippingPhone": "Telefon Penghantaran",
+    "shippingEmail": "E-mel Penghantaran",
+    "shippingAddress1": "Alamat Penghantaran 1",
+    "shippingAddress2": "Alamat Penghantaran 2",
+    "shippingCountry": "Negara Penghantaran",
+    "shippingState": "Negeri Penghantaran",
+    "shippingCity": "Bandar Penghantaran",
+    "shippingPostcode": "Poskod Penghantaran",
+    "newWooConnection": {
+  "title": "WooCommerce Baharu",
+  "description": "Konfigurasikan kelayakan API WooCommerce.",
+  "backButton": "Kembali",
+  "apiName": "Nama API",
+  "appName": "Nama Aplikasi",
+  "apiUrl": "URL API",
+  "consumerKey": "Kunci Pengguna",
+  "consumerSecret": "Rahsia Pengguna",
+  "submit": "Cipta Sambungan WooCommerce"
+},"newAiapiConnection": {
+  "title": "Tetapan Baharu",
+  "description": "Konfigurasikan tetapan baharu anda di sini.",
+  "backButton": "Kembali",
+  "aiProvider": "Penyedia AI",
+  "model": "Model",
+  "apiKey": "Kunci API",
+  "tokenLimit": "Had Token",
+  "startDate": "Tarikh Mula",
+  "endDate": "Tarikh Tamat"
+}
+
+
+  },
+  "StoreProducts": {
+  "title": "Produk Kedai",
+  "placeholder": "Cari produk mengikut nama...",
+  "noProducts": "Tiada produk dijumpai.",
+  "newProduct": {
+    "title": "Buat produk",
+    "backButton": "Kembali",
+    "name": "Nama",
+    "regularPrice": "Harga Biasa",
+    "salePrice": "Harga Jualan",
+    "stockQuantity": "Kuantiti Stok",
+    "category": "Kategori",
+    "selectCategory": "Pilih kategori",
+    "productImage": "Imej Produk",
+    "imagePlaceholder": "Klik untuk memilih atau seret imej",
+    "description": "Penerangan"
+  },"editProduct": {
+  "title": "Sunting produk",
+  "backButton": "Kembali",
+  "name": "Nama",
+  "regularPrice": "Harga Biasa",
+  "salePrice": "Harga Jualan",
+  "stockQuantity": "Kuantiti Stok",
+  "category": "Kategori",
+  "selectCategory": "Pilih kategori",
+  "productImage": "Imej Produk",
+  "imagePlaceholder": "Klik untuk memilih atau seret imej",
+  "description": "Penerangan"
+}
+
+}
+,
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

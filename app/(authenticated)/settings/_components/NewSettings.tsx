@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useTranslations } from "next-intl";
 
 const aiSchema = z.object({
   provider: z.string().min(1, "Provider is required"),
@@ -69,7 +70,7 @@ const NewSettings = ({ id }: { id?: string }) => {
   });
 
   const randomId = uuidv4();
-
+  const t = useTranslations("Settings.newAiapiConnection");
   const providers = Object.keys(PROVIDER_MODELS);
   const provider = form.watch("provider");
   const modelOptions = Object.entries(PROVIDER_MODELS[provider]?.models || {});
@@ -143,16 +144,15 @@ const NewSettings = ({ id }: { id?: string }) => {
         <CardHeader>
           <div className="flex justify-between">
             <div className="flex flex-col">
-              <h2 className="text-lg font-semibold">New Settings</h2>
+              <h2 className="text-lg font-semibold">{t("title")}</h2>
               <p className="text-sm text-muted-foreground">
-                Configure your new settings here.
+                {t("description")}
               </p>
             </div>
             <div>
               <Link href="/settings">
                 <Button variant="outline">
-                  <ArrowLeft className="w-5 h-5 text-muted-foreground" /> Go
-                  Back
+                  <ArrowLeft className="w-5 h-5 text-muted-foreground" /> {t("backButton")}
                 </Button>
               </Link>
             </div>
@@ -165,7 +165,7 @@ const NewSettings = ({ id }: { id?: string }) => {
               name="provider"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>AI Provider</FormLabel>
+                  <FormLabel>{t("aiProvider")}</FormLabel>
 
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger>
@@ -189,7 +189,7 @@ const NewSettings = ({ id }: { id?: string }) => {
               name="model"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Model</FormLabel>
+                  <FormLabel>{t("model")}</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a model" />
@@ -212,7 +212,7 @@ const NewSettings = ({ id }: { id?: string }) => {
               name="key"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>API KEY</FormLabel>
+                  <FormLabel>{t("apiKey")}</FormLabel>
                   <Input type="text" {...field} />
                   <FormMessage />
                 </FormItem>
@@ -224,7 +224,7 @@ const NewSettings = ({ id }: { id?: string }) => {
               name="tokens_limit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tokens Limit</FormLabel>
+                  <FormLabel>{t("tokenLimit")}</FormLabel>
                   <Input type="number" {...field} />
                   <FormMessage />
                 </FormItem>
@@ -238,7 +238,7 @@ const NewSettings = ({ id }: { id?: string }) => {
               name="start_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Start Date</FormLabel>
+                  <FormLabel>{t("startDate")}</FormLabel>
                   <Input type="date" {...field} />
                   <FormMessage />
                 </FormItem>
@@ -249,7 +249,7 @@ const NewSettings = ({ id }: { id?: string }) => {
               name="end_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>End Date</FormLabel>
+                  <FormLabel>{t("endDate")}</FormLabel>
                   <Input type="date" {...field} />
                   <FormMessage />
                 </FormItem>

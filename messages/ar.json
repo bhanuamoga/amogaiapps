@@ -70,6 +70,97 @@
     "postcode": "الرمز البريدي",
     "country": "البلد"
   },
+  "Settings": {
+    "title": "إعدادات اتصال API",
+    "description": "قم بتكوين وإدارة الاتصالات لمزامنة البيانات مع WooCommerce أو Shopify.",
+    "footer": "قم بتكوين كل اتصال بشكل فردي. يتم تخزين بيانات الاعتماد بأمان بعد الحفظ.",
+    "businessSettings": "إعدادات العمل",
+    "businessName": "اسم العمل",
+    "legalBusinessName": "الاسم التجاري القانوني",
+    "businessNumber": "رقم العمل",
+    "registrationNo": "رقم التسجيل",
+    "storeName": "اسم المتجر",
+    "storeUrl": "رابط المتجر",
+    "storeEmail": "بريد المتجر الإلكتروني",
+    "storeMobile": "هاتف المتجر",
+    "billingFirstName": "الاسم الأول للفواتير",
+    "billingLastName": "الاسم الأخير للفواتير",
+    "billingCompany": "شركة الفواتير",
+    "billingPhone": "هاتف الفواتير",
+    "billingEmail": "بريد الفواتير الإلكتروني",
+    "billingAddress1": "عنوان الفواتير 1",
+    "billingAddress2": "عنوان الفواتير 2",
+    "billingCountry": "بلد الفواتير",
+    "billingState": "الولاية / المقاطعة للفواتير",
+    "billingCity": "مدينة الفواتير",
+    "billingPostcode": "الرمز البريدي للفواتير",
+    "shippingFirstName": "الاسم الأول للشحن",
+    "shippingLastName": "الاسم الأخير للشحن",
+    "shippingCompany": "شركة الشحن",
+    "shippingPhone": "هاتف الشحن",
+    "shippingEmail": "بريد الشحن الإلكتروني",
+    "shippingAddress1": "عنوان الشحن 1",
+    "shippingAddress2": "عنوان الشحن 2",
+    "shippingCountry": "بلد الشحن",
+    "shippingState": "الولاية / المقاطعة للشحن",
+    "shippingCity": "مدينة الشحن",
+    "shippingPostcode": "الرمز البريدي للشحن",
+    "newWooConnection": {
+  "title": "اتصال WooCommerce جديد",
+  "description": "قم بتكوين بيانات اعتماد واجهة برمجة تطبيقات WooCommerce.",
+  "backButton": "العودة",
+  "apiName": "اسم واجهة برمجة التطبيقات",
+  "appName": "اسم التطبيق",
+  "apiUrl": "رابط واجهة برمجة التطبيقات",
+  "consumerKey": "مفتاح المستهلك",
+  "consumerSecret": "السر الخاص بالمستهلك",
+  "submit": "إنشاء اتصال WooCommerce"
+}
+,"newAiapiConnection": {
+  "title": "إعدادات جديدة",
+  "description": "قم بتكوين إعداداتك الجديدة هنا.",
+  "backButton": "العودة",
+  "aiProvider": "مزود الذكاء الاصطناعي",
+  "model": "النموذج",
+  "apiKey": "مفتاح API",
+  "tokenLimit": "حد الرموز",
+  "startDate": "تاريخ البدء",
+  "endDate": "تاريخ الانتهاء"
+}
+
+  },
+  "StoreProducts": {
+  "title": "منتجات المتجر",
+  "placeholder": "ابحث عن المنتجات بالاسم...",
+  "noProducts": "لم يتم العثور على منتجات.",
+  "newProduct": {
+    "title": "إنشاء منتج",
+    "backButton": "العودة",
+    "name": "الاسم",
+    "regularPrice": "السعر العادي",
+    "salePrice": "سعر الخصم",
+    "stockQuantity": "كمية المخزون",
+    "category": "الفئة",
+    "selectCategory": "اختر الفئة",
+    "productImage": "صورة المنتج",
+    "imagePlaceholder": "انقر للاختيار أو اسحب صورة",
+    "description": "الوصف"
+  },"editProduct": {
+  "title": "تعديل المنتج",
+  "backButton": "العودة",
+  "name": "الاسم",
+  "regularPrice": "السعر العادي",
+  "salePrice": "سعر الخصم",
+  "stockQuantity": "كمية المخزون",
+  "category": "الفئة",
+  "selectCategory": "اختر الفئة",
+  "productImage": "صورة المنتج",
+  "imagePlaceholder": "انقر للاختيار أو اسحب صورة",
+  "description": "الوصف"
+}
+
+}
+,
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

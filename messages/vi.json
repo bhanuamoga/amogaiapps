@@ -70,6 +70,96 @@
     "postcode": "Mã bưu điện / ZIP",
     "country": "Quốc gia"
   },
+  "Settings": {
+    "title": "Cài đặt kết nối API",
+    "description": "Cấu hình và quản lý kết nối để đồng bộ dữ liệu với WooCommerce hoặc Shopify.",
+    "footer": "Cấu hình từng kết nối riêng biệt. Thông tin đăng nhập được lưu trữ an toàn sau khi lưu.",
+    "businessSettings": "Cài đặt doanh nghiệp",
+    "businessName": "Tên doanh nghiệp",
+    "legalBusinessName": "Tên pháp lý doanh nghiệp",
+    "businessNumber": "Số doanh nghiệp",
+    "registrationNo": "Số đăng ký",
+    "storeName": "Tên cửa hàng",
+    "storeUrl": "URL cửa hàng",
+    "storeEmail": "Email cửa hàng",
+    "storeMobile": "Điện thoại cửa hàng",
+    "billingFirstName": "Tên người thanh toán",
+    "billingLastName": "Họ người thanh toán",
+    "billingCompany": "Công ty thanh toán",
+    "billingPhone": "Điện thoại thanh toán",
+    "billingEmail": "Email thanh toán",
+    "billingAddress1": "Địa chỉ thanh toán 1",
+    "billingAddress2": "Địa chỉ thanh toán 2",
+    "billingCountry": "Quốc gia thanh toán",
+    "billingState": "Tỉnh / Bang thanh toán",
+    "billingCity": "Thành phố thanh toán",
+    "billingPostcode": "Mã bưu điện thanh toán",
+    "shippingFirstName": "Tên người nhận hàng",
+    "shippingLastName": "Họ người nhận hàng",
+    "shippingCompany": "Công ty giao hàng",
+    "shippingPhone": "Điện thoại giao hàng",
+    "shippingEmail": "Email giao hàng",
+    "shippingAddress1": "Địa chỉ giao hàng 1",
+    "shippingAddress2": "Địa chỉ giao hàng 2",
+    "shippingCountry": "Quốc gia giao hàng",
+    "shippingState": "Tỉnh / Bang giao hàng",
+    "shippingCity": "Thành phố giao hàng",
+    "shippingPostcode": "Mã bưu điện giao hàng",
+    "newWooConnection": {
+  "title": "WooCommerce Mới",
+  "description": "Cấu hình thông tin xác thực API của WooCommerce.",
+  "backButton": "Quay lại",
+  "apiName": "Tên API",
+  "appName": "Tên ứng dụng",
+  "apiUrl": "URL API",
+  "consumerKey": "Khóa người dùng",
+  "consumerSecret": "Mã bí mật người dùng",
+  "submit": "Tạo kết nối WooCommerce"
+}
+,"newAiapiConnection": {
+  "title": "Cài đặt mới",
+  "description": "Cấu hình cài đặt mới của bạn tại đây.",
+  "backButton": "Quay lại",
+  "aiProvider": "Nhà cung cấp AI",
+  "model": "Mô hình",
+  "apiKey": "Khóa API",
+  "tokenLimit": "Giới hạn token",
+  "startDate": "Ngày bắt đầu",
+  "endDate": "Ngày kết thúc"
+}
+
+  },"StoreProducts": {
+  "title": "Sản phẩm cửa hàng",
+  "placeholder": "Tìm kiếm sản phẩm theo tên...",
+  "noProducts": "Không tìm thấy sản phẩm nào.",
+  "newProduct": {
+    "title": "Tạo sản phẩm",
+    "backButton": "Quay lại",
+    "name": "Tên",
+    "regularPrice": "Giá thường",
+    "salePrice": "Giá giảm",
+    "stockQuantity": "Số lượng tồn kho",
+    "category": "Danh mục",
+    "selectCategory": "Chọn danh mục",
+    "productImage": "Hình ảnh sản phẩm",
+    "imagePlaceholder": "Nhấp để chọn hoặc kéo hình ảnh",
+    "description": "Mô tả"
+  },"editProduct": {
+  "title": "Chỉnh sửa sản phẩm",
+  "backButton": "Quay lại",
+  "name": "Tên",
+  "regularPrice": "Giá thường",
+  "salePrice": "Giá giảm",
+  "stockQuantity": "Số lượng tồn kho",
+  "category": "Danh mục",
+  "selectCategory": "Chọn danh mục",
+  "productImage": "Hình ảnh sản phẩm",
+  "imagePlaceholder": "Nhấp để chọn hoặc kéo hình ảnh",
+  "description": "Mô tả"
+}
+
+}
+,
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

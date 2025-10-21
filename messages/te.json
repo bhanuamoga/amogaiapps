@@ -70,6 +70,96 @@
     "postcode": "పోస్ట్‌కోడ్ / ZIP",
     "country": "దేశం"
   },
+  "Settings": {
+    "title": "API కనెక్షన్ సెట్టింగ్‌లు",
+    "description": "WooCommerce లేదా Shopifyతో డేటాను సమకాలీకరించడానికి కనెక్షన్‌లను ఆకృతీకరించండి మరియు నిర్వహించండి.",
+    "footer": "ప్రతి కనెక్షన్‌ను విడిగా ఆకృతీకరించండి. సేవ్ చేసిన తర్వాత క్రెడెన్షియల్స్ సురక్షితంగా నిల్వ చేయబడతాయి.",
+    "businessSettings": "వ్యాపార సెట్టింగ్‌లు",
+    "businessName": "వ్యాపార పేరు",
+    "legalBusinessName": "చట్టపరమైన వ్యాపార పేరు",
+    "businessNumber": "వ్యాపార సంఖ్య",
+    "registrationNo": "నమోదు సంఖ్య",
+    "storeName": "దుకాణం పేరు",
+    "storeUrl": "దుకాణం URL",
+    "storeEmail": "దుకాణం ఇమెయిల్",
+    "storeMobile": "దుకాణం మొబైల్",
+    "billingFirstName": "బిల్లింగ్ మొదటి పేరు",
+    "billingLastName": "బిల్లింగ్ చివరి పేరు",
+    "billingCompany": "బిల్లింగ్ కంపెనీ",
+    "billingPhone": "బిల్లింగ్ ఫోన్",
+    "billingEmail": "బిల్లింగ్ ఇమెయిల్",
+    "billingAddress1": "బిల్లింగ్ చిరునామా 1",
+    "billingAddress2": "బిల్లింగ్ చిరునామా 2",
+    "billingCountry": "బిల్లింగ్ దేశం",
+    "billingState": "బిల్లింగ్ రాష్ట్రం",
+    "billingCity": "బిల్లింగ్ నగరం",
+    "billingPostcode": "బిల్లింగ్ పోస్ట్కోడ్",
+    "shippingFirstName": "షిప్పింగ్ మొదటి పేరు",
+    "shippingLastName": "షిప్పింగ్ చివరి పేరు",
+    "shippingCompany": "షిప్పింగ్ కంపెనీ",
+    "shippingPhone": "షిప్పింగ్ ఫోన్",
+    "shippingEmail": "షిప్పింగ్ ఇమెయిల్",
+    "shippingAddress1": "షిప్పింగ్ చిరునామా 1",
+    "shippingAddress2": "షిప్పింగ్ చిరునామా 2",
+    "shippingCountry": "షిప్పింగ్ దేశం",
+    "shippingState": "షిప్పింగ్ రాష్ట్రం",
+    "shippingCity": "షిప్పింగ్ నగరం",
+    "shippingPostcode": "షిప్పింగ్ పోస్ట్కోడ్",
+    "newWooConnection": {
+  "title": "కొత్త WooCommerce",
+  "description": "WooCommerce API క్రెడెన్షియల్స్‌ని ఆకృతీకరించండి.",
+  "backButton": "తిరిగి వెళ్ళు",
+  "apiName": "API పేరు",
+  "appName": "యాప్ పేరు",
+  "apiUrl": "API URL",
+  "consumerKey": "కన్స్యూమర్ కీ",
+  "consumerSecret": "కన్స్యూమర్ సీక్రెట్",
+  "submit": "WooCommerce కనెక్షన్ సృష్టించండి"
+}
+,"newAiapiConnection": {
+  "title": "కొత్త సెట్టింగులు",
+  "description": "ఇక్కడ మీ కొత్త సెట్టింగులను కాన్ఫిగర్ చేయండి.",
+  "backButton": "తిరిగి వెళ్ళు",
+  "aiProvider": "AI ప్రొవైడర్",
+  "model": "మోడల్",
+  "apiKey": "API కీ",
+  "tokenLimit": "టోకెన్ పరిమితి",
+  "startDate": "ప్రారంభ తేదీ",
+  "endDate": "ముగింపు తేదీ"
+}
+
+  },"StoreProducts": {
+  "title": "స్టోర్ ఉత్పత్తులు",
+  "placeholder": "పేరు ద్వారా ఉత్పత్తులను శోధించండి...",
+  "noProducts": "ఏ ఉత్పత్తులు కనుగొనబడలేదు.",
+  "newProduct": {
+    "title": "ఉత్పత్తి సృష్టించండి",
+    "backButton": "తిరిగి వెళ్ళు",
+    "name": "పేరు",
+    "regularPrice": "నియమిత ధర",
+    "salePrice": "సేల్ ధర",
+    "stockQuantity": "స్టాక్ పరిమాణం",
+    "category": "వర్గం",
+    "selectCategory": "వర్గాన్ని ఎంచుకోండి",
+    "productImage": "ఉత్పత్తి చిత్రం",
+    "imagePlaceholder": "ఎంచుకోవడానికి క్లిక్ చేయండి లేదా చిత్రాన్ని డ్రాగ్ చేయండి",
+    "description": "వివరణ"
+  },"editProduct": {
+  "title": "ఉత్పత్తిని సవరించండి",
+  "backButton": "తిరిగి వెళ్ళు",
+  "name": "పేరు",
+  "regularPrice": "నియమిత ధర",
+  "salePrice": "సేల్ ధర",
+  "stockQuantity": "స్టాక్ పరిమాణం",
+  "category": "వర్గం",
+  "selectCategory": "వర్గాన్ని ఎంచుకోండి",
+  "productImage": "ఉత్పత్తి చిత్రం",
+  "imagePlaceholder": "ఎంచుకోవడానికి క్లిక్ చేయండి లేదా చిత్రాన్ని డ్రాగ్ చేయండి",
+  "description": "వివరణ"
+}
+
+}
+,
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft, Image as ImageIcon, X } from "lucide-react";
-
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -87,7 +87,8 @@ export default function NewProducts() {
   const [error, setError] = React.useState<string | null>(null);
   const [uploading, setUploading] = React.useState(false);
   const [localPreview, setLocalPreview] = React.useState<string | null>(null);
-
+  const t = useTranslations("StoreProducts.newProduct");
+  
   React.useEffect(() => {
     (async () => {
       try {
@@ -169,10 +170,10 @@ export default function NewProducts() {
   return (
     <Card className="max-w-3xl">
       <CardHeader className="flex flex-row items-center justify-between gap-3">
-        <CardTitle className="text-xl">Create product</CardTitle>
-        <Button type="button" variant="ghost" className="gap-2" onClick={goBack}>
+        <CardTitle className="text-xl">{t("title")}</CardTitle>
+        <Button type="button" variant="default" className="gap-2" onClick={goBack}>
           <ArrowLeft className="h-4 w-4" />
-          Go back
+          {t("backButton")}
         </Button>
       </CardHeader>
 
@@ -185,21 +186,21 @@ export default function NewProducts() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid gap-2">
-            <Label>Name</Label>
+            <Label>{t("name")}</Label>
             <Input {...register("name")} aria-invalid={!!errors.name} />
             {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Regular Price</Label>
+              <Label>{t("regularPrice")}</Label>
               <Input type="number" inputMode="decimal" {...register("regular_price")} aria-invalid={!!errors.regular_price} />
               {errors.regular_price && (
                 <p className="text-xs text-destructive">{errors.regular_price.message}</p>
               )}
             </div>
             <div className="grid gap-2">
-              <Label>Sale Price</Label>
+              <Label>{t("salePrice")}</Label>
               <Input type="number" inputMode="decimal" {...register("sale_price")} aria-invalid={!!errors.sale_price} />
               {errors.sale_price && <p className="text-xs text-destructive">{errors.sale_price.message}</p>}
             </div>
@@ -207,7 +208,7 @@ export default function NewProducts() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Stock Quantity</Label>
+              <Label>{t("stockQuantity")}</Label>
               <Input type="number" inputMode="numeric" {...register("stock_quantity")} aria-invalid={!!errors.stock_quantity} />
               {errors.stock_quantity && (
                 <p className="text-xs text-destructive">{errors.stock_quantity.message}</p>
@@ -232,7 +233,7 @@ export default function NewProducts() {
           </div>
 
           <div className="grid gap-2">
-            <Label>Category</Label>
+            <Label>{t("category")}</Label>
             <select
               className="h-10 rounded-md border bg-background px-3 text-sm"
               value={selectedCat === "" ? "" : String(selectedCat)}
@@ -242,7 +243,7 @@ export default function NewProducts() {
                 setValue("categoryId", v as any, { shouldValidate: false });
               }}
             >
-              <option value="">Select category</option>
+              <option value="">{t("selectCategory")}</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -253,7 +254,7 @@ export default function NewProducts() {
 
           {/* Image with inline error messaging */}
           <div className="grid gap-2">
-            <Label>Product Image</Label>
+            <Label>{t("productImage")}</Label>
 
             <label
               className={`border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer ${
@@ -263,7 +264,7 @@ export default function NewProducts() {
               <div className="flex items-center gap-2">
                 <ImageIcon className="h-6 w-6 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  {localPreview || getValues("image") ? "Change image" : "Click to select or drag an image"}
+                  {localPreview || getValues("image") ? "Change image" : t("imagePlaceholder")}
                 </span>
               </div>
 
@@ -305,7 +306,7 @@ export default function NewProducts() {
           </div>
 
           <div className="grid gap-2">
-            <Label>Description</Label>
+            <Label>{t("description")}</Label>
             <Textarea rows={5} {...register("description")} aria-invalid={!!errors.description} />
             {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
           </div>

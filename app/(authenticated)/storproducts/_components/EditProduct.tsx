@@ -19,6 +19,7 @@ import { ArrowLeft, Image as ImageIcon, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 
 type Category = { id: number; name: string };
 
@@ -93,7 +94,8 @@ export default function EditProducts({ id }: { id: string }) {
   const [error, setError] = React.useState<string | null>(null);
   const [uploading, setUploading] = React.useState(false);
   const [localPreview, setLocalPreview] = React.useState<string | null>(null);
-
+  const t = useTranslations("StoreProducts.editProduct");
+  
   React.useEffect(() => {
     let on = true;
     (async () => {
@@ -211,10 +213,10 @@ export default function EditProducts({ id }: { id: string }) {
     <Card className="max-w-3xl">
       {/* Top-right back button */}
       <CardHeader className="flex flex-row items-center justify-between gap-3">
-        <CardTitle className="text-xl">Edit product</CardTitle>
+        <CardTitle className="text-xl">{t("title")}</CardTitle>
         <Button type="button" variant="ghost" className="gap-2" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
-          Go back
+          {t("backButton")}
         </Button>
       </CardHeader>
 
@@ -230,12 +232,12 @@ export default function EditProducts({ id }: { id: string }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Regular Price</Label>
+              <Label>{t("regularPrice")}</Label>
               <Input type="number" inputMode="decimal" {...register("regular_price")} aria-invalid={!!errors.regular_price} />
               {errors.regular_price && <p className="text-xs text-destructive">{errors.regular_price.message}</p>}
             </div>
             <div className="grid gap-2">
-              <Label>Sale Price</Label>
+              <Label>{t("salePrice")}</Label>
               <Input type="number" inputMode="decimal" {...register("sale_price")} aria-invalid={!!errors.sale_price} />
               {errors.sale_price && <p className="text-xs text-destructive">{errors.sale_price.message}</p>}
             </div>
@@ -243,7 +245,7 @@ export default function EditProducts({ id }: { id: string }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Stock Quantity</Label>
+              <Label>{t("stockQuantity")}</Label>
               <Input type="number" inputMode="numeric" {...register("stock_quantity")} aria-invalid={!!errors.stock_quantity} />
               {errors.stock_quantity && <p className="text-xs text-destructive">{errors.stock_quantity.message}</p>}
             </div>
@@ -266,7 +268,7 @@ export default function EditProducts({ id }: { id: string }) {
           </div>
 
           <div className="grid gap-2">
-            <Label>Category</Label>
+            <Label>{t("category")}</Label>
             <select
               className="h-10 rounded-md border bg-background px-3 text-sm"
               value={selectedCat === "" ? "" : String(selectedCat)}
@@ -276,7 +278,7 @@ export default function EditProducts({ id }: { id: string }) {
                 setValue("categoryId", v as any, { shouldValidate: false });
               }}
             >
-              <option value="">Select category</option>
+              <option value="">{t("selectCategory")}</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -287,7 +289,7 @@ export default function EditProducts({ id }: { id: string }) {
 
           {/* Image section identical to create */}
           <div className="grid gap-2">
-            <Label>Product Image</Label>
+            <Label>{t("productImage")}</Label>
 
             <label
               className={`border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer ${
@@ -297,7 +299,7 @@ export default function EditProducts({ id }: { id: string }) {
               <div className="flex items-center gap-2">
                 <ImageIcon className="h-6 w-6 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  {localPreview || getValues("image") ? "Change image" : "Click to select or drag an image"}
+                  {localPreview || getValues("image") ? "Change image" : t("imagePlaceholder")}
                 </span>
               </div>
 
@@ -340,7 +342,7 @@ export default function EditProducts({ id }: { id: string }) {
 
           {/* Restored required Description field */}
           <div className="grid gap-2">
-            <Label>Description</Label>
+            <Label>{t("description")}</Label>
             <Textarea rows={5} {...register("description")} aria-invalid={!!errors.description} />
             {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
           </div>

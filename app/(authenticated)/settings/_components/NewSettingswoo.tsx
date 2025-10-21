@@ -37,6 +37,7 @@ import {
   saveWooFieldsSettings,
   editWooFieldsSettings,
 } from "../actions";
+import { useTranslations } from "next-intl";
 
 const wooSchema = z.object({
   apiname: z.string().min(1, "API Name is required"),
@@ -96,7 +97,7 @@ const NewSettingswoo = ({ id }: { id?: string }) => {
     };
     load();
   }, [form, id]);
-
+    const t = useTranslations("Settings.newWooConnection");
   const reset = () => form.reset();
 
   const handleFormSubmit = async (values: WooSchemaType) => {
@@ -132,16 +133,16 @@ const NewSettingswoo = ({ id }: { id?: string }) => {
           <div className="flex justify-between">
             <div className="flex flex-col">
               <h2 className="text-lg font-semibold">
-                {id ? "Edit WooCommerce" : "New WooCommerce"}
+                {id ? "Edit WooCommerce" : t("title")}
               </h2>
               <p className="text-sm text-muted-foreground">
-                Configure WooCommerce API credentials.
+                {t("description")}
               </p>
             </div>
             <div>
               <Link href="/settings">
                 <Button variant="outline">
-                  <ArrowLeft className="w-5 h-5 text-muted-foreground" /> Go Back
+                  <ArrowLeft className="w-5 h-5 text-muted-foreground" /> {t("backButton")}
                 </Button>
               </Link>
             </div>
@@ -155,7 +156,7 @@ const NewSettingswoo = ({ id }: { id?: string }) => {
               name="apiname"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>API Name</FormLabel>
+                  <FormLabel>{t("apiName")}</FormLabel>
                   <Input type="text" {...field} />
                   <FormMessage />
                 </FormItem>
@@ -167,7 +168,7 @@ const NewSettingswoo = ({ id }: { id?: string }) => {
               name="App_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>App Name</FormLabel>
+                  <FormLabel>{t("appName")}</FormLabel>
                   <Input type="text" {...field} />
                   <FormMessage />
                 </FormItem>
@@ -179,7 +180,7 @@ const NewSettingswoo = ({ id }: { id?: string }) => {
               name="site_url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>API URL</FormLabel>
+                  <FormLabel>{t("apiUrl")}</FormLabel>
                   <Input type="url" placeholder="https://store.example.com" {...field} />
                   <FormMessage />
                 </FormItem>
@@ -191,7 +192,7 @@ const NewSettingswoo = ({ id }: { id?: string }) => {
               name="consumer_key"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Consumer Key</FormLabel>
+                  <FormLabel>{t("consumerKey")}</FormLabel>
                   <Input type="text" {...field} />
                   <FormMessage />
                 </FormItem>
@@ -203,7 +204,7 @@ const NewSettingswoo = ({ id }: { id?: string }) => {
               name="consumer_secret"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Consumer Secret</FormLabel>
+                  <FormLabel>{t("consumerSecret")}</FormLabel>
                   <Input type="text" {...field} />
                   <FormMessage />
                 </FormItem>

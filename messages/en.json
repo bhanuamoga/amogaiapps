@@ -70,6 +70,103 @@
     "postcode": "Postcode / ZIP",
     "country": "Country"
   },
+  "Settings": {
+    "title": "API Connection Settings",
+    "description": "Configure and manage connections to sync data with WooCommerce or Shopify.",
+    "footer": "Configure connections individually. Credentials are stored securely after saving.",
+    "businessSettings": "Business Settings",
+    "businessName": "Business Name",
+    "legalBusinessName": "Legal Business Name",
+    "businessNumber": "Business Number",
+    "registrationNo": "Registration Number",
+    "storeName": "Store Name",
+    "storeUrl": "Store URL",
+    "storeEmail": "Store Email",
+    "storeMobile": "Store Mobile",
+    "billingFirstName": "Billing First Name",
+    "billingLastName": "Billing Last Name",
+    "billingCompany": "Billing Company",
+    "billingPhone": "Billing Phone",
+    "billingEmail": "Billing Email",
+    "billingAddress1": "Billing Address1",
+    "billingAddress2": "Billing Address2",
+    "billingCountry": "Billing Country",
+    "billingState": "Billing State",
+    "billingCity": "Billing City",
+    "billingPostcode": "Billing Postcode",
+    "shippingFirstName": "Shipping First Name",
+    "shippingLastName": "Shipping Last Name",
+    "shippingCompany": "Shipping Company",
+    "shippingPhone": "Shipping Phone",
+    "shippingEmail": "Shipping Email",
+    "shippingAddress1": "Shipping Address1",
+    "shippingAddress2": "Shipping Address2",
+    "shippingCountry": "Shipping Country",
+    "shippingState": "Shipping State",
+    "shippingCity": "Shipping City",
+    "shippingPostcode": "Shipping Postcode",
+
+    "newWooConnection": {
+
+      "title": "New WooCommerce",
+      "description": "Configure Woocommerce API Credentials.",
+      "backButton": "Go Back",
+      "apiName": "API Name",
+      "appName": "App Name",
+      "apiUrl": "API URL",
+      "consumerKey": "Consumer Key",
+      "consumerSecret": "Consumer Secret",
+      "submit": "Create WooCommerce Connection"
+    },
+    "newAiapiConnection": {
+      "title": "New Settings",
+      "description": "Configure your new settings here.",
+      "backButton": "Go Back",
+      "aiProvider": "AI Provider",
+      "model": "Model",
+      "apiKey":" API KEY",
+      "tokenLimit": "Token Limit",
+      "startDate": "Start Date",
+      "endDate": "End Date"
+    }
+
+  },
+
+  "StoreProducts": {
+    "title": "Store Products",
+    "placeholder": "Search products by name...",
+    "noProducts": "No products found.",
+    "newProduct":{
+      "title":"Create product",
+      "backButton":"Go back",
+      "name":"Name",
+      "regularPrice":"Regular Price",
+      "salePrice":"Sale Price",
+      "stockQuantity":"Stock Quantity",
+      "category":"Category",
+      "selectCategory":"Select category",
+      "productImage":"Product Image",
+      "imagePlaceholder":"Click to select or drag an image",
+      "description":"Description"
+
+    },
+     "editProduct":{
+      "title":"Edit product",
+      "backButton":"Go back",
+      "name":"Name",
+      "regularPrice":"Regular Price",
+      "salePrice":"Sale Price",
+      "stockQuantity":"Stock Quantity",
+      "category":"Category",
+      "selectCategory":"Select category",
+      "productImage":"Product Image",
+      "imagePlaceholder":"Click to select or drag an image",
+      "description":"Description"
+
+    }
+
+  },
+
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

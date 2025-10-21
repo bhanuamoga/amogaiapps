@@ -14,8 +14,7 @@
     "agreeTerms": "लॉगिन पर क्लिक करके, आप हमारी",
     "termsOfService": "सेवा की शर्तों",
     "and": "और",
-    "privacyPolicy": "गोपनीयता नीति",
-    "agreeTermsEnd": "से सहमत हैं।"
+    "privacyPolicy": "गोपनीयता नीति"
   },
   "storesignup": {
     "title": "स्टोर खाता बनाएँ",
@@ -37,8 +36,7 @@
     "agreeTerms": "खाता बनाकर, आप हमारी",
     "termsOfService": "सेवा की शर्तों",
     "and": "और",
-    "privacyPolicy": "गोपनीयता नीति",
-    "agreeTermsEnd": "से सहमत हैं।"
+    "privacyPolicy": "गोपनीयता नीति"
   },
   "RoleMenu": {
     "title": "भूमिका मेनू",
@@ -72,6 +70,96 @@
     "postcode": "पिन कोड / ज़िप",
     "country": "देश"
   },
+  "Settings": {
+    "title": "API कनेक्शन सेटिंग्स",
+    "description": "WooCommerce या Shopify के साथ डेटा सिंक करने के लिए कनेक्शन कॉन्फ़िगर और प्रबंधित करें।",
+    "footer": "प्रत्येक कनेक्शन को अलग-अलग कॉन्फ़िगर करें। सहेजने के बाद क्रेडेंशियल सुरक्षित रूप से संग्रहीत किए जाते हैं।",
+    "businessSettings": "व्यवसाय सेटिंग्स",
+    "businessName": "व्यवसाय का नाम",
+    "legalBusinessName": "कानूनी व्यवसाय नाम",
+    "businessNumber": "व्यवसाय संख्या",
+    "registrationNo": "पंजीकरण संख्या",
+    "storeName": "स्टोर का नाम",
+    "storeUrl": "स्टोर URL",
+    "storeEmail": "स्टोर ईमेल",
+    "storeMobile": "स्टोर मोबाइल",
+    "billingFirstName": "बिलिंग पहला नाम",
+    "billingLastName": "बिलिंग अंतिम नाम",
+    "billingCompany": "बिलिंग कंपनी",
+    "billingPhone": "बिलिंग फोन",
+    "billingEmail": "बिलिंग ईमेल",
+    "billingAddress1": "बिलिंग पता 1",
+    "billingAddress2": "बिलिंग पता 2",
+    "billingCountry": "बिलिंग देश",
+    "billingState": "बिलिंग राज्य",
+    "billingCity": "बिलिंग शहर",
+    "billingPostcode": "बिलिंग पिन कोड",
+    "shippingFirstName": "शिपिंग पहला नाम",
+    "shippingLastName": "शिपिंग अंतिम नाम",
+    "shippingCompany": "शिपिंग कंपनी",
+    "shippingPhone": "शिपिंग फोन",
+    "shippingEmail": "शिपिंग ईमेल",
+    "shippingAddress1": "शिपिंग पता 1",
+    "shippingAddress2": "शिपिंग पता 2",
+    "shippingCountry": "शिपिंग देश",
+    "shippingState": "शिपिंग राज्य",
+    "shippingCity": "शिपिंग शहर",
+    "shippingPostcode": "शिपिंग पिन कोड",
+    "newWooConnection": {
+  "title": "नया WooCommerce",
+  "description": "WooCommerce API क्रेडेंशियल्स कॉन्फ़िगर करें।",
+  "backButton": "वापस जाएँ",
+  "apiName": "API नाम",
+  "appName": "ऐप नाम",
+  "apiUrl": "API यूआरएल",
+  "consumerKey": "उपभोक्ता कुंजी",
+  "consumerSecret": "उपभोक्ता गुप्त",
+  "submit": "WooCommerce कनेक्शन बनाएं"
+},"newAiapiConnection": {
+  "title": "नई सेटिंग्स",
+  "description": "यहां अपनी नई सेटिंग्स कॉन्फ़िगर करें।",
+  "backButton": "वापस जाएँ",
+  "aiProvider": "एआई प्रदाता",
+  "model": "मॉडल",
+  "apiKey": "एपीआई कुंजी",
+  "tokenLimit": "टोकन सीमा",
+  "startDate": "प्रारंभ तिथि",
+  "endDate": "समाप्ति तिथि"
+}
+
+
+  },"StoreProducts": {
+  "title": "स्टोर उत्पाद",
+  "placeholder": "उत्पाद का नाम दर्ज करें...",
+  "noProducts": "कोई उत्पाद नहीं मिला।",
+  "newProduct": {
+    "title": "उत्पाद बनाएं",
+    "backButton": "वापस जाएँ",
+    "name": "नाम",
+    "regularPrice": "सामान्य मूल्य",
+    "salePrice": "बिक्री मूल्य",
+    "stockQuantity": "स्टॉक मात्रा",
+    "category": "श्रेणी",
+    "selectCategory": "श्रेणी चुनें",
+    "productImage": "उत्पाद छवि",
+    "imagePlaceholder": "चुनने के लिए क्लिक करें या छवि खींचें",
+    "description": "विवरण"
+  },"editProduct": {
+  "title": "उत्पाद संपादित करें",
+  "backButton": "वापस जाएँ",
+  "name": "नाम",
+  "regularPrice": "सामान्य मूल्य",
+  "salePrice": "बिक्री मूल्य",
+  "stockQuantity": "स्टॉक मात्रा",
+  "category": "श्रेणी",
+  "selectCategory": "श्रेणी चुनें",
+  "productImage": "उत्पाद छवि",
+  "imagePlaceholder": "चुनने के लिए क्लिक करें या छवि खींचें",
+  "description": "विवरण"
+}
+
+}
+,
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

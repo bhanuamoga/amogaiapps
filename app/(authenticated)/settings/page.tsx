@@ -30,6 +30,7 @@ import { ShopifyForm } from "./_components/ShopifyForm";
 import WooAISettings from "./_components/WooAIsettings";
 import { BusinessSettingsForm } from "./_components/BusinessSettingsForm";
 import AISettings from "./_components/AISettings";
+import { useTranslations } from "next-intl";
 
 
 type Platform = "woocommerce" | "shopify";
@@ -75,7 +76,7 @@ export default function ApiSettingsPage() {
 
   // Derived state for the currently active configuration
   const activeConfig = configs?.find((c) => c.platform_type === activeTab);
-
+  const t = useTranslations("Settings");
   // Fetch initial data
   useEffect(() => {
     getConnectionSettings().then((result) => {
@@ -284,10 +285,9 @@ export default function ApiSettingsPage() {
     <div className="container mx-auto py-10">
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle className="text-2xl">API Connection Settings</CardTitle>
+          <CardTitle className="text-2xl">{t("title")}</CardTitle>
           <CardDescription>
-            Configure and manage connections to sync data with WooCommerce or
-            Shopify.
+            {t("description")}
           </CardDescription>
           {/* Removed global status/sync date display - now shown per tab */}
         </CardHeader>
@@ -361,8 +361,7 @@ export default function ApiSettingsPage() {
           <div className="flex items-start gap-2 text-sm text-muted-foreground">
             <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
             <p>
-              Configure connections individually. Credentials are stored
-              securely after saving.
+              {t("footer")}
             </p>
           </div>
           {/* Removed global action buttons */}

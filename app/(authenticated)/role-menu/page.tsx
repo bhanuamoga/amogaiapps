@@ -4,6 +4,7 @@ import ClientRoleMenu from "./client";
 import { auth } from "@/auth";
 import { Metadata } from "next";
 import { getTranslations } from "next-intl/server"; 
+
 export const metadata = async () => {
   const t = await getTranslations("RoleMenu"); 
   return {

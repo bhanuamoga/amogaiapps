@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Pencil, Save, X, Loader2 } from "lucide-react";
 import { getBusinessSettings, updateBusinessSettings } from "../actions";
+import { useTranslations } from "next-intl";
 
 type Settings = {
   business_name: string;
@@ -122,11 +123,11 @@ export const BusinessSettingsForm: React.FC = () => {
   };
 
   const disabled = !editMode || isSaving || isLoading;
-
+  const t = useTranslations("Settings");
   return (
     <div className="border rounded-lg p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">Business Settings</h3>
+        <h3 className="text-lg font-medium">{t("businessSettings")}</h3>
         {!editMode ? (
           <Button size="icon" variant="ghost" onClick={startEdit} aria-label="Edit">
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Pencil className="h-4 w-4" />}
@@ -146,147 +147,147 @@ export const BusinessSettingsForm: React.FC = () => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="business_name">Business Name</Label>
+        <Label htmlFor="business_name">{t("businessName")}</Label>
         <Input id="business_name" name="business_name" value={settings.business_name ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="legal_business_name">Legal Business Name</Label>
+        <Label htmlFor="legal_business_name">{t("legalBusinessName")}</Label>
         <Input id="legal_business_name" name="legal_business_name" value={settings.legal_business_name ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="business_number">Business Number</Label>
+        <Label htmlFor="business_number">{t("businessNumber")}</Label>
         <Input id="business_number" name="business_number" value={settings.business_number ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="registration_no">Registration No</Label>
+        <Label htmlFor="registration_no">{t("registrationNo")}</Label>
         <Input id="registration_no" name="business_registration_no" value={settings.business_registration_no ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="store_name">Store Name</Label>
+        <Label htmlFor="store_name">{t("storeName")}</Label>
         <Input id="store_name" name="store_name" value={settings.store_name ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="store_url">Store URL</Label>
+        <Label htmlFor="store_url">{t("storeUrl")}</Label>
         <Input id="store_url" name="store_url" value={settings.store_url ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="store_email">Store Email</Label>
+        <Label htmlFor="store_email">{t("storeEmail")}</Label>
         <Input id="store_email" name="store_email" value={settings.store_email ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="store_mobile">Store Mobile</Label>
+        <Label htmlFor="store_mobile">{t("storeMobile")}</Label>
         <Input id="store_mobile" name="store_mobile" value={settings.store_mobile ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="billing_first_name">BillingFirstName</Label>
+        <Label htmlFor="billing_first_name">{t("billingFirstName")}</Label>
         <Input id="billing_first_name" name="billing_first_name" value={settings.billing_first_name ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="billing_last_name">BillingLastName</Label>
+        <Label htmlFor="billing_last_name">{t("billingLastName")}</Label>
         <Input id="billing_last_name" name="billing_last_name" value={settings.billing_last_name ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
        
       <div className="space-y-2">
-        <Label htmlFor="billing_company">BillingCompany</Label>
+        <Label htmlFor="billing_company">{t("billingCompany")}</Label>
         <Input id="billing_company" name="billing_company" value={settings.billing_company ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="billing_phone">BillingPhone</Label>
+        <Label htmlFor="billing_phone">{t("billingPhone")}</Label>
         <Input id="billing_phone" name="billing_phone" value={settings.billing_phone ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="billing_email">BillingEmail</Label>
+        <Label htmlFor="billing_email">{t("billingEmail")}</Label>
         <Input id="billing_email" name="billing_email" value={settings.billing_email ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="billing_address_1">BillingAddress1</Label>
+        <Label htmlFor="billing_address_1">{t("billingAddress1")}</Label>
         <Input id="billing_address_1" name="billing_address_1" value={settings.billing_address_1 ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
        <div className="space-y-2">
-        <Label htmlFor="billing_address_2">BillingAddress2</Label>
+        <Label htmlFor="billing_address_2">{t("billingAddress2")}</Label>
         <Input id="billing_address_2" name="billing_address_2" value={settings.billing_address_2 ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="billing_country">BillingCountry</Label>
+        <Label htmlFor="billing_country">{t("billingCountry")}</Label>
         <Input id="billing_country" name="billing_country" value={settings.billing_country ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="billing_state">BillingState</Label>
+        <Label htmlFor="billing_state">{t("billingState")}</Label>
         <Input id="billing_state" name="billing_state" value={settings.billing_state ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="billing_city">BillingCity</Label>
+        <Label htmlFor="billing_city">{t("billingCity")}</Label>
         <Input id="billing_city" name="billing_city" value={settings.billing_city ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="billing_postcode">Billing Postcode</Label>
+        <Label htmlFor="billing_postcode">{t("billingPostcode")}</Label>
         <Input id="billing_postcode" name="billing_postcode" value={settings.billing_postcode ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shipping_first_name">ShippingFirsttName</Label>
+        <Label htmlFor="shipping_first_name">{t("shippingFirstName")}</Label>
         <Input id="shipping_first_name" name="shipping_first_name" value={settings.shipping_first_name ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="shipping_last_name">ShippingLastName</Label>
-        <Input id="shipping_last_name" name="shipping_last_name" value={settings.shipping_last_name?? ""} onChange={onChange} disabled={disabled} required />
+        <Label htmlFor="shipping_last_name">{t("shippingLastName")}</Label>
+        <Input id="shipping_last_name" name="shipping_last_name" value={settings.shipping_last_name ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shipping_company">ShippingCompany</Label>
+        <Label htmlFor="shipping_company">{t("shippingCompany")}</Label>
         <Input id="shipping_company" name="shipping_company" value={settings.shipping_company ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shipping_phone">ShippingPhone</Label>
+        <Label htmlFor="shipping_phone">{t("shippingPhone")}</Label>
         <Input id="shipping_phone" name="shipping_phone" value={settings.shipping_phone ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="shipping_email">ShippingEmail</Label>
+        <Label htmlFor="shipping_email">{t("shippingEmail")}</Label>
         <Input id="shipping_email" name="shipping_email" value={settings.shipping_email ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shipping_address_1">Shipping Address 1</Label>
+        <Label htmlFor="shipping_address_1">{t("shippingAddress1")}</Label>
         <Input id="shipping_address_1" name="shipping_address_1" value={settings.shipping_address_1 ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shipping_address_2">Shipping Address 2</Label>
+        <Label htmlFor="shipping_address_2">{t("shippingAddress2")}</Label>
         <Input id="shipping_address_2" name="shipping_address_2" value={settings.shipping_address_2 ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shipping_country">Shipping Country</Label>
+        <Label htmlFor="shipping_country">{t("shippingCountry")}</Label>
         <Input id="shipping_country" name="shipping_country" value={settings.shipping_country ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shipping_state">Shipping State</Label>
+        <Label htmlFor="shipping_state">{t("shippingState")}</Label>
         <Input id="shipping_state" name="shipping_state" value={settings.shipping_state ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shipping_city">Shipping City</Label>
+        <Label htmlFor="shipping_city">{t("shippingCity")}</Label>
         <Input id="shipping_city" name="shipping_city" value={settings.shipping_city ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shipping_postcode">Shipping Postcode</Label>
+        <Label htmlFor="shipping_postcode">{t("shippingPostcode")}</Label>
         <Input id="shipping_postcode" name="shipping_postcode" value={settings.shipping_postcode ?? ""} onChange={onChange} disabled={disabled} required />
       </div>
 

@@ -70,6 +70,97 @@
     "postcode": "Code postal / ZIP",
     "country": "Pays"
   },
+  "Settings": {
+    "title": "Paramètres de connexion API",
+    "description": "Configurer et gérer les connexions pour synchroniser les données avec WooCommerce ou Shopify.",
+    "footer": "Configurez les connexions individuellement. Les identifiants sont stockés en toute sécurité après l'enregistrement.",
+    "businessSettings": "Paramètres de l'entreprise",
+    "businessName": "Nom de l'entreprise",
+    "legalBusinessName": "Nom commercial légal",
+    "businessNumber": "Numéro d'entreprise",
+    "registrationNo": "Numéro d'enregistrement",
+    "storeName": "Nom du magasin",
+    "storeUrl": "URL du magasin",
+    "storeEmail": "E-mail du magasin",
+    "storeMobile": "Téléphone du magasin",
+    "billingFirstName": "Prénom de facturation",
+    "billingLastName": "Nom de facturation",
+    "billingCompany": "Entreprise de facturation",
+    "billingPhone": "Téléphone de facturation",
+    "billingEmail": "E-mail de facturation",
+    "billingAddress1": "Adresse de facturation 1",
+    "billingAddress2": "Adresse de facturation 2",
+    "billingCountry": "Pays de facturation",
+    "billingState": "État de facturation",
+    "billingCity": "Ville de facturation",
+    "billingPostcode": "Code postal de facturation",
+    "shippingFirstName": "Prénom d'expédition",
+    "shippingLastName": "Nom d'expédition",
+    "shippingCompany": "Entreprise d'expédition",
+    "shippingPhone": "Téléphone d'expédition",
+    "shippingEmail": "E-mail d'expédition",
+    "shippingAddress1": "Adresse d'expédition 1",
+    "shippingAddress2": "Adresse d'expédition 2",
+    "shippingCountry": "Pays d'expédition",
+    "shippingState": "État d'expédition",
+    "shippingCity": "Ville d'expédition",
+    "shippingPostcode": "Code postal d'expédition",
+    "newWooConnection": {
+  "title": "Nouveau WooCommerce",
+  "description": "Configurer les identifiants API de WooCommerce.",
+  "backButton": "Retourner",
+  "apiName": "Nom de l'API",
+  "appName": "Nom de l'application",
+  "apiUrl": "URL de l'API",
+  "consumerKey": "Clé du consommateur",
+  "consumerSecret": "Secret du consommateur",
+  "submit": "Créer une connexion WooCommerce"
+}
+,"newAiapiConnection": {
+  "title": "Nouveaux paramètres",
+  "description": "Configurez vos nouveaux paramètres ici.",
+  "backButton": "Retourner",
+  "aiProvider": "Fournisseur d'IA",
+  "model": "Modèle",
+  "apiKey": "Clé API",
+  "tokenLimit": "Limite de jetons",
+  "startDate": "Date de début",
+  "endDate": "Date de fin"
+}
+},"StoreProducts": {
+  "title": "Produits du magasin",
+  "placeholder": "Rechercher des produits par nom...",
+  "noProducts": "Aucun produit trouvé.",
+  "newProduct": {
+    "title": "Créer un produit",
+    "backButton": "Retour",
+    "name": "Nom",
+    "regularPrice": "Prix normal",
+    "salePrice": "Prix en promotion",
+    "stockQuantity": "Quantité en stock",
+    "category": "Catégorie",
+    "selectCategory": "Sélectionner la catégorie",
+    "productImage": "Image du produit",
+    "imagePlaceholder": "Cliquez pour sélectionner ou glisser une image",
+    "description": "Description"
+  },"editProduct": {
+  "title": "Modifier le produit",
+  "backButton": "Retour",
+  "name": "Nom",
+  "regularPrice": "Prix normal",
+  "salePrice": "Prix en promotion",
+  "stockQuantity": "Quantité en stock",
+  "category": "Catégorie",
+  "selectCategory": "Sélectionner la catégorie",
+  "productImage": "Image du produit",
+  "imagePlaceholder": "Cliquez pour sélectionner ou glisser une image",
+  "description": "Description"
+}
+
+
+
+
+  },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

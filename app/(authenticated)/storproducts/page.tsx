@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 const stripHtml = (html?: string) =>
   html ? html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim() : "";
@@ -48,7 +49,7 @@ export default function StorProductsPage() {
   const sp = useSearchParams();
   const pageFromUrl = Number(sp.get("page") || "1");
   const searchFromUrl = sp.get("q") || "";
-
+   const t = useTranslations("StoreProducts");
   const [page, setPage] = React.useState<number>(Math.max(1, pageFromUrl));
   const [q, setQ] = React.useState<string>(searchFromUrl);
   const [loading, setLoading] = React.useState(true);
@@ -259,6 +260,7 @@ export default function StorProductsPage() {
 
     return (
       <nav className="mt-6 flex items-center justify-center gap-1" aria-label="Pagination">
+
         <Button
           variant="outline"
           size="icon"
@@ -295,10 +297,13 @@ export default function StorProductsPage() {
       </nav>
     );
   };
-
   return (
     <div className="w-full">
       <div className="mx-auto max-w-[800px] px-4 py-6">
+        <div className="mb-4 flex items-center justify-between">
+                  <h1 className="text-2xl font-bold">{t("title")}</h1>
+
+        </div>
         {/* Search + create */}
         <div className="mb-6 flex items-center gap-2">
           <div className="relative flex-1">
@@ -307,7 +312,7 @@ export default function StorProductsPage() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={onSearchEnter}
-              placeholder="Search products by name"
+              placeholder={t("placeholder")}
               className="pl-9"
               aria-label="Search products"
             />
@@ -337,7 +342,7 @@ export default function StorProductsPage() {
         ) : (
           <>
             {visibleProducts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No products found.</p>
+              <p className="text-sm text-muted-foreground">{t("noProducts")}</p>
             ) : (
               <div className="space-y-4">
                 {paginatedProducts.map((p) => {
