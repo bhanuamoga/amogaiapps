@@ -406,7 +406,7 @@ export default function StorProductsPage() {
         {/* Delete Confirmation Dialog */}
        
           <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-          <DialogContent className="sm:max-w-md rounded-lg p-4 shadow-md bg-white dark:bg-gray-800">
+          <DialogContent className="sm:max-w-md rounded-lg p-4 shadow-md ">
             <DialogHeader className="flex items-center gap-2">
               <AlertCircle className="h-6 w-6 text-red-500" />
               <DialogTitle className="text-md font-bold text-gray-900 dark:text-gray-100">
@@ -426,14 +426,14 @@ export default function StorProductsPage() {
             <DialogFooter className="mt-4 flex justify-end gap-2">
               <Button
                 variant="outline"
-                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition px-3 py-1.5 text-sm"
+                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200  transition px-3 py-1.5 text-sm"
                 onClick={() => setConfirmOpen(false)}
               >
                 Cancel
               </Button>
               <Button
                 variant="outline"
-                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition px-3 py-1.5 text-sm"
+                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 transition px-3 py-1.5 text-sm"
 
                 onClick={confirmDelete}
               >

@@ -16,7 +16,6 @@
     "and": "మరియు",
     "privacyPolicy": "గోప్యతా విధానం కు అంగీకరిస్తున్నారు"
   },
-
   "storesignup": {
     "title": "స్టోర్ ఖాతా సృష్టించండి",
     "description1": "స్టోర్ ఖాతా సృష్టించడానికి దిగువలో మీ ఇమెయిల్ మరియు పాస్వర్డ్ ని నమోదు చేయండి.",
@@ -39,7 +38,6 @@
     "and": "మరియు",
     "privacyPolicy": "గోప్యతా విధానం కు అంగీకరిస్తున్నారు"
   },
-
   "RoleMenu": {
     "title": "రోల్ మెనూ",
     "description": "మీ పనికి ప్రాప్తి పొందండి",
@@ -51,11 +49,27 @@
     "settings": "సెట్టింగ్స్",
     "reports": "రిపోర్ట్లు"
   },
-
   "Search": {
     "placeholder": "శోధించండి"
   },
-
+  "ProfileSettings": {
+    "title": "వ్యక్తిగత సమాచారం",
+    "description": "ఖాతా ద్వారా నిర్వహించబడే ఫీల్డ్‌లు.",
+    "fullName": "పూర్తి పేరు",
+    "email": "ఇమెయిల్",
+    "Roles": "పాత్రలు",
+    "status": "స్థితి",
+    "businessInformation": "వ్యాపార సమాచారం",
+    "businessDescription": "వ్యాపార మరియు చిరునామా వివరాలను నవీకరించండి.",
+    "businessnumber": "వ్యాపార సంఖ్య",
+    "businessname": "వ్యాపార పేరు",
+    "address1": "చిరునామా పంక్తి 1",
+    "address2": "చిరునామా పంక్తి 2",
+    "city": "నగరం",
+    "state": "రాష్ట్రం / ప్రావిన్స్",
+    "postcode": "పోస్ట్‌కోడ్ / ZIP",
+    "country": "దేశం"
+  },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

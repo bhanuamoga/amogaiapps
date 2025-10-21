@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getProfile, updateBusiness, updateAvatarUrl } from "./_lib/action";
+import { getProfile, updateBusiness, handleAvatarUpload } from "./_lib/action";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 type Profile = {
   first_name: string | null;
@@ -19,12 +20,10 @@ type Profile = {
   status: string | null;
   roles_json?: string[] | string | null;
   avatar_url?: string | null;
-
   business_name?: string | null;
   business_number?: string | null;
   for_business_name?: string | null;
   for_business_number?: string | null;
-
   business_address_1?: string | null;
   business_address_2?: string | null;
   business_city?: string | null;
@@ -44,13 +43,10 @@ type BusinessState = {
   business_country: string;
 };
 
-type ActionResult<T> =
-  | { data: T; error: null }
-  | { data: null; error: string };
+type ActionResult<T> = { data: T | null; error: string | null };
 
 function isProfile(x: unknown): x is Profile {
-  if (!x || typeof x !== "object") return false;
-  return "user_email" in (x as any);
+  return !!x && typeof x === "object" && "user_email" in (x as any);
 }
 
 function isBusinessSubset(x: unknown): x is Partial<BusinessState> {
@@ -74,8 +70,12 @@ export default function ProfileSettingsPage() {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
 
-  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const t=useTranslations("ProfileSettings");
+  // Fetch profile on mount
   useEffect(() => {
     (async () => {
       const res = (await getProfile()) as ActionResult<Profile>;
@@ -101,9 +101,8 @@ export default function ProfileSettingsPage() {
   }, []);
 
   const fullName =
-    profile?.full_name && profile.full_name.trim().length > 0
-      ? profile.full_name
-      : `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim();
+    profile?.full_name?.trim() ||
+    `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim();
 
   const initials =
     (profile?.first_name?.[0] ?? "").toUpperCase() +
@@ -113,73 +112,81 @@ export default function ProfileSettingsPage() {
     setSaving(true);
     setErrMsg(null);
 
+    let avatarResult: ActionResult<{ avatar_url: string | null }> | null = null;
+
+    // Upload avatar only if a new file is selected
+    if (selectedFile) {
+      setAvatarUploading(true);
+      const reader = new FileReader();
+      avatarResult = await new Promise((resolve) => {
+        reader.readAsDataURL(selectedFile);
+        reader.onloadend = async () => {
+          const base64 = (reader.result as string).split(",")[1];
+          const result = await handleAvatarUpload({
+            fileName: selectedFile.name,
+            type: selectedFile.type,
+            base64,
+          });
+          resolve(result);
+        };
+      });
+      setAvatarUploading(false);
+    }
+
     const res = (await updateBusiness(biz)) as ActionResult<
-      Partial<BusinessState> & {
-        for_business_name?: string | null;
-        for_business_number?: string | null;
-      }
+      Partial<BusinessState> & { for_business_name?: string | null; for_business_number?: string | null }
     >;
 
-    if (res.error) {
-      setErrMsg(res.error);
-      toast.error(res.error);
-    } else if (res.data && isBusinessSubset(res.data)) {
-      setProfile((prev) => (prev ? { ...prev, ...res.data } : prev));
-      setBiz((prev) => ({
-        ...prev,
-        business_name:
-          (res.data as any).business_name ?? prev.business_name,
-        business_number:
-          (res.data as any).business_number ?? prev.business_number,
-      }));
-      toast.success("Business details updated.");
+    if (res.error || avatarResult?.error) {
+      const errorMsg = res.error || avatarResult?.error;
+      setErrMsg(errorMsg ?? "Failed to save");
+      toast.error(errorMsg ?? "Failed to save");
     } else {
-      toast.message("No changes to save.");
+      // Update local state
+      if (res.data && isBusinessSubset(res.data)) {
+        setProfile((prev) => (prev ? { ...prev, ...res.data } : prev));
+        setBiz((prev) => ({
+          ...prev,
+          business_name: (res.data as any).business_name ?? prev.business_name,
+          business_number: (res.data as any).business_number ?? prev.business_number,
+        }));
+      }
+
+      if (avatarResult?.data?.avatar_url) {
+        setProfile((prev) =>
+          prev ? { ...prev, avatar_url: avatarResult.data!.avatar_url } : prev
+        );
+        setLocalAvatarUrl(null);
+        setSelectedFile(null);
+      }
+
+      toast.success("Changes saved successfully.");
     }
 
     setSaving(false);
   }
 
-  // Replace with real upload; must return a public URL string
-  async function uploadFileAndGetUrl(file: File): Promise<string | null> {
-    // Example:
-    // const fd = new FormData(); fd.set("file", file);
-    // const r = await fetch("/api/upload-avatar", { method: "POST", body: fd });
-    // if (!r.ok) return null; const j = await r.json(); return j.url ?? null;
-    return null;
-  }
-
-  async function handleChangePhoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const inputEl = fileRef.current;
+  function handleChangePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setAvatarUploading(true);
+    setSelectedFile(file);
     setErrMsg(null);
 
-    const url = await uploadFileAndGetUrl(file);
-    if (url) {
-      const res = (await updateAvatarUrl({ avatar_url: url })) as ActionResult<{
-        avatar_url: string | null;
-      }>;
-      if (res.error) {
-        setErrMsg(res.error);
-        toast.error(res.error);
-      } else if (res.data) {
-        setProfile((prev) =>
-          prev ? { ...prev, avatar_url: res.data.avatar_url } : prev
-        );
-        toast.success("Profile photo updated.");
-      }
-    } else {
-      toast.info("Upload not implemented.");
-    }
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      setLocalAvatarUrl(reader.result as string);
+      toast.success("Image fetched successfully. Click 'Save Changes' to update.");
+    };
 
-    queueMicrotask(() => {
-      if (inputEl) inputEl.value = "";
-    });
+    if (fileRef.current) fileRef.current.value = "";
+  }
 
-    setAvatarUploading(false);
+  function handleCancelAvatar() {
+    setSelectedFile(null);
+    setLocalAvatarUrl(null);
+    toast.success("Avatar change has been canceled.");
   }
 
   if (loading) {
@@ -190,23 +197,16 @@ export default function ProfileSettingsPage() {
           <Skeleton className="h-5 w-40" />
         </div>
         <div className="mt-10 space-y-6">
-          <Card className="shadow-sm border border-border/60">
-            <CardContent className="py-8 space-y-4">
-              <Skeleton className="h-5 w-44" />
-              <Skeleton className="h-10" />
-              <Skeleton className="h-10" />
-              <Skeleton className="h-10" />
-              <Skeleton className="h-10" />
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border border-border/60">
-            <CardContent className="py-8 space-y-4">
-              <Skeleton className="h-5 w-48" />
-              <Skeleton className="h-10" />
-              <Skeleton className="h-10" />
-              <Skeleton className="h-10" />
-            </CardContent>
-          </Card>
+          {[...Array(3)].map((_, idx) => (
+            <Card key={idx} className="shadow-sm border border-border/60">
+              <CardContent className="py-8 space-y-4">
+                <Skeleton className="h-5 w-44" />
+                {[...Array(5)].map((__, i) => (
+                  <Skeleton key={i} className="h-10" />
+                ))}
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
@@ -233,7 +233,7 @@ export default function ProfileSettingsPage() {
       <header className="flex flex-col items-center mt-10">
         <Avatar className="h-24 w-24 ring-2 ring-black/5 shadow-sm">
           <AvatarImage
-            src={profile.avatar_url ?? undefined}
+            src={localAvatarUrl || profile.avatar_url || undefined}
             alt={fullName || "User"}
             onError={(ev) => {
               (ev.target as HTMLImageElement).style.display = "none";
@@ -262,45 +262,32 @@ export default function ProfileSettingsPage() {
           </Button>
         </div>
 
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">
-          {fullName || "Profile"}
-        </h1>
-        {/* <p className="mt-1 text-sm text-muted-foreground">
-          {profile.user_email}
-        </p> */}
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight">{fullName || "Profile"}</h1>
       </header>
 
-      {/* Personal Information */}
+      {/* Personal Info */}
       <section className="mt-10">
-        <Card className="shadow-sm border border-border/60">
+        <Card className="border border-border/60">
           <CardContent className="py-8 space-y-6">
             <div className="space-y-1">
-              <h2 className="text-lg font-semibold tracking-tight">
-                Personal Information
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Account-managed fields.
-              </p>
+              <h2 className="text-lg font-semibold tracking-tight">{t("title")}</h2>
+              <p className="text-sm text-muted-foreground">{t("description")}</p>
             </div>
-
             <div className="grid gap-5">
               <div className="grid gap-1.5">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName">{t("fullName")}</Label>
                 <Input id="fullName" value={fullName} readOnly />
               </div>
-
               <div className="grid gap-1.5">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("email")}</Label>
                 <Input id="email" value={profile.user_email} readOnly />
               </div>
-
               <div className="grid gap-1.5">
-                <Label htmlFor="role">Roles</Label>
+                <Label htmlFor="role">{t("Roles")}</Label>
                 <Input id="role" value={rolesDisplay} readOnly />
               </div>
-
               <div className="grid gap-1.5">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status">{t("status")}</Label>
                 <Input id="status" value={profile.status || "N/A"} readOnly />
               </div>
             </div>
@@ -308,117 +295,97 @@ export default function ProfileSettingsPage() {
         </Card>
       </section>
 
-      {/* Business Information */}
+      {/* Business Info */}
       <section className="mt-8 mb-12">
-        <Card className="shadow-sm border border-border/60">
+        <Card className="border border-border/60">
           <CardContent className="py-8 space-y-6">
             <div className="space-y-1">
-              <h2 className="text-lg font-semibold tracking-tight">
-                Business Information
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Update business and address details.
-              </p>
+              <h2 className="text-lg font-semibold tracking-tight">{t("businessInformation")}</h2>
+              <p className="text-sm text-muted-foreground">{t("businessDescription")}</p>
             </div>
-
             <div className="grid gap-5">
               <div className="grid gap-1.5">
-                <Label htmlFor="bizNumber">Business Number</Label>
+                <Label htmlFor="bizNumber">{t("businessnumber")}</Label>
                 <Input
                   id="bizNumber"
                   value={biz.business_number}
-                  onChange={(e) =>
-                    setBiz({ ...biz, business_number: e.target.value })
-                  }
+                  onChange={(e) => setBiz({ ...biz, business_number: e.target.value })}
                 />
               </div>
-
               <div className="grid gap-1.5">
-                <Label htmlFor="bizName">Business Name</Label>
+                <Label htmlFor="bizName">{t("businessname")}</Label>
                 <Input
                   id="bizName"
                   value={biz.business_name}
-                  onChange={(e) =>
-                    setBiz({ ...biz, business_name: e.target.value })
-                  }
+                  onChange={(e) => setBiz({ ...biz, business_name: e.target.value })}
                 />
               </div>
-
               <div className="grid gap-1.5">
-                <Label htmlFor="addr1">Address Line 1</Label>
+                <Label htmlFor="addr1">{t("address1")}</Label>
                 <Input
                   id="addr1"
                   value={biz.business_address_1}
-                  onChange={(e) =>
-                    setBiz({ ...biz, business_address_1: e.target.value })
-                  }
+                  onChange={(e) => setBiz({ ...biz, business_address_1: e.target.value })}
                 />
               </div>
-
               <div className="grid gap-1.5">
-                <Label htmlFor="addr2">Address Line 2</Label>
+                <Label htmlFor="addr2">{t("address2")}</Label>
                 <Input
                   id="addr2"
                   value={biz.business_address_2}
-                  onChange={(e) =>
-                    setBiz({ ...biz, business_address_2: e.target.value })
-                  }
+                  onChange={(e) => setBiz({ ...biz, business_address_2: e.target.value })}
                 />
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="grid gap-1.5">
-                  <Label htmlFor="city">City</Label>
+                  <Label htmlFor="city">{t("city")}</Label>
                   <Input
                     id="city"
                     value={biz.business_city}
-                    onChange={(e) =>
-                      setBiz({ ...biz, business_city: e.target.value })
-                    }
+                    onChange={(e) => setBiz({ ...biz, business_city: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-1.5">
-                  <Label htmlFor="state">State / Province</Label>
+                  <Label htmlFor="state">{t("state")}</Label>
                   <Input
                     id="state"
                     value={biz.business_state}
-                    onChange={(e) =>
-                      setBiz({ ...biz, business_state: e.target.value })
-                    }
+                    onChange={(e) => setBiz({ ...biz, business_state: e.target.value })}
                   />
                 </div>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="grid gap-1.5">
-                  <Label htmlFor="postcode">Postcode / ZIP</Label>
+                  <Label htmlFor="postcode">{t("postcode")}</Label>
                   <Input
                     id="postcode"
                     value={biz.business_postcode}
-                    onChange={(e) =>
-                      setBiz({ ...biz, business_postcode: e.target.value })
-                    }
+                    onChange={(e) => setBiz({ ...biz, business_postcode: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-1.5">
-                  <Label htmlFor="country">Country</Label>
+                  <Label htmlFor="country">{t("country")}</Label>
                   <Input
                     id="country"
                     value={biz.business_country}
-                    onChange={(e) =>
-                      setBiz({ ...biz, business_country: e.target.value })
-                    }
+                    onChange={(e) => setBiz({ ...biz, business_country: e.target.value })}
                   />
                 </div>
               </div>
             </div>
 
+            {/* Cancel Avatar */}
+            {localAvatarUrl && (
+              <div className="flex justify-between items-center mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                <span>New avatar selected.</span>
+                <Button variant="destructive" size="sm" onClick={handleCancelAvatar}>
+                  Cancel
+                </Button>
+              </div>
+            )}
+
             <div className="pt-2">
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="w-full sm:w-auto"
-              >
+              <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
                 {saving ? "Saving..." : "Save Changes"}
               </Button>
             </div>

@@ -16,7 +16,6 @@
     "and": "và",
     "privacyPolicy": "Chính sách bảo mật"
   },
-
   "storesignup": {
     "title": "Tạo tài khoản cửa hàng",
     "description1": "Nhập email và mật khẩu của bạn bên dưới để tạo tài khoản cửa hàng.",
@@ -39,7 +38,6 @@
     "and": "và",
     "privacyPolicy": "Chính sách bảo mật"
   },
-
   "RoleMenu": {
     "title": "Menu vai trò",
     "description": "Truy cập công việc của bạn",
@@ -51,13 +49,29 @@
     "settings": "Cài đặt",
     "reports": "Báo cáo"
   },
-
   "Search": {
     "placeholder": "Tìm kiếm"
   },
-
+  "ProfileSettings": {
+    "title": "Thông tin cá nhân",
+    "description": "Các trường được quản lý bởi tài khoản.",
+    "fullName": "Họ và tên",
+    "email": "Email",
+    "Roles": "Vai trò",
+    "status": "Trạng thái",
+    "businessInformation": "Thông tin doanh nghiệp",
+    "businessDescription": "Cập nhật thông tin doanh nghiệp và địa chỉ.",
+    "businessnumber": "Số doanh nghiệp",
+    "businessname": "Tên doanh nghiệp",
+    "address1": "Địa chỉ dòng 1",
+    "address2": "Địa chỉ dòng 2",
+    "city": "Thành phố",
+    "state": "Bang / Tỉnh",
+    "postcode": "Mã bưu điện / ZIP",
+    "country": "Quốc gia"
+  },
   "LocaleSwitcher": {
- "label": "Language",
+    "label": "Language",
     "en": "English",
     "fr": "Français",
     "ar": "العربية",

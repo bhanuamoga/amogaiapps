@@ -17,7 +17,6 @@
     "privacyPolicy": "गोपनीयता नीति",
     "agreeTermsEnd": "से सहमत हैं।"
   },
-
   "storesignup": {
     "title": "स्टोर खाता बनाएँ",
     "description1": "स्टोर खाता बनाने के लिए नीचे अपना ईमेल और पासवर्ड दर्ज करें।",
@@ -41,7 +40,6 @@
     "privacyPolicy": "गोपनीयता नीति",
     "agreeTermsEnd": "से सहमत हैं।"
   },
-
   "RoleMenu": {
     "title": "भूमिका मेनू",
     "description": "अपने कार्य तक पहुँचें",
@@ -53,11 +51,27 @@
     "settings": "सेटिंग्स",
     "reports": "रिपोर्ट"
   },
-
   "Search": {
     "placeholder": "खोजें"
   },
-
+  "ProfileSettings": {
+    "title": "व्यक्तिगत जानकारी",
+    "description": "खाते द्वारा प्रबंधित फ़ील्ड।",
+    "fullName": "पूरा नाम",
+    "email": "ईमेल",
+    "Roles": "भूमिकाएँ",
+    "status": "स्थिति",
+    "businessInformation": "व्यवसाय संबंधी जानकारी",
+    "businessDescription": "व्यवसाय और पते का विवरण अपडेट करें।",
+    "businessnumber": "व्यवसाय संख्या",
+    "businessname": "व्यवसाय का नाम",
+    "address1": "पता पंक्ति 1",
+    "address2": "पता पंक्ति 2",
+    "city": "शहर",
+    "state": "राज्य / प्रांत",
+    "postcode": "पिन कोड / ज़िप",
+    "country": "देश"
+  },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

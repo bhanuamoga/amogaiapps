@@ -16,7 +16,6 @@
     "and": "dan",
     "privacyPolicy": "Dasar Privasi"
   },
-
   "storesignup": {
     "title": "Cipta Akaun Kedai",
     "description1": "Masukkan e-mel dan kata laluan anda di bawah untuk mencipta akaun kedai.",
@@ -39,7 +38,6 @@
     "and": "dan",
     "privacyPolicy": "Dasar Privasi"
   },
-
   "RoleMenu": {
     "title": "Menu Peranan",
     "description": "Akses kerja anda",
@@ -51,11 +49,27 @@
     "settings": "Tetapan",
     "reports": "Laporan"
   },
-
   "Search": {
     "placeholder": "Cari"
   },
-
+  "ProfileSettings": {
+    "title": "Maklumat Peribadi",
+    "description": "Medan yang diuruskan oleh akaun.",
+    "fullName": "Nama penuh",
+    "email": "E-mel",
+    "Roles": "Peranan",
+    "status": "Status",
+    "businessInformation": "Maklumat Perniagaan",
+    "businessDescription": "Kemas kini butiran perniagaan dan alamat.",
+    "businessnumber": "Nombor Perniagaan",
+    "businessname": "Nama Perniagaan",
+    "address1": "Baris Alamat 1",
+    "address2": "Baris Alamat 2",
+    "city": "Bandar",
+    "state": "Negeri / Wilayah",
+    "postcode": "Poskod / ZIP",
+    "country": "Negara"
+  },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

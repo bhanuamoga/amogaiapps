@@ -16,7 +16,6 @@
     "and": "et",
     "privacyPolicy": "Politique de confidentialité"
   },
-
   "storesignup": {
     "title": "Créer un compte magasin",
     "description1": "Entrez votre email et mot de passe ci-dessous pour créer un compte magasin.",
@@ -39,7 +38,6 @@
     "and": "et",
     "privacyPolicy": "Politique de confidentialité"
   },
-
   "RoleMenu": {
     "title": "Menu de rôle",
     "description": "Accédez à votre travail",
@@ -51,13 +49,29 @@
     "settings": "Paramètres",
     "reports": "Rapports"
   },
-
   "Search": {
     "placeholder": "Rechercher"
   },
-
+  "ProfileSettings": {
+    "title": "Informations personnelles",
+    "description": "Champs gérés par le compte.",
+    "fullName": "Nom complet",
+    "email": "E-mail",
+    "Roles": "Rôles",
+    "status": "Statut",
+    "businessInformation": "Informations sur l'entreprise",
+    "businessDescription": "Mettez à jour les détails de l'entreprise et de l'adresse.",
+    "businessnumber": "Numéro d'entreprise",
+    "businessname": "Nom de l'entreprise",
+    "address1": "Adresse ligne 1",
+    "address2": "Adresse ligne 2",
+    "city": "Ville",
+    "state": "État / Province",
+    "postcode": "Code postal / ZIP",
+    "country": "Pays"
+  },
   "LocaleSwitcher": {
-   "label": "Language",
+    "label": "Language",
     "en": "English",
     "fr": "Français",
     "ar": "العربية",

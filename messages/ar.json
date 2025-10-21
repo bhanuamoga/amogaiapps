@@ -16,7 +16,6 @@
     "and": "و",
     "privacyPolicy": "سياسة الخصوصية"
   },
-
   "storesignup": {
     "title": "إنشاء حساب متجر",
     "description1": "أدخل بريدك الإلكتروني وكلمة المرور أدناه لإنشاء حساب متجر.",
@@ -39,7 +38,6 @@
     "and": "و",
     "privacyPolicy": "سياسة الخصوصية"
   },
-
   "RoleMenu": {
     "title": "قائمة الأدوار",
     "description": "الوصول إلى عملك",
@@ -51,13 +49,29 @@
     "settings": "الإعدادات",
     "reports": "التقارير"
   },
-
   "Search": {
     "placeholder": "بحث"
   },
-
+  "ProfileSettings": {
+    "title": "المعلومات الشخصية",
+    "description": "الحقول التي يديرها الحساب.",
+    "fullName": "الاسم الكامل",
+    "email": "البريد الإلكتروني",
+    "Roles": "الأدوار",
+    "status": "الحالة",
+    "businessInformation": "معلومات العمل",
+    "businessDescription": "قم بتحديث تفاصيل العمل والعنوان.",
+    "businessnumber": "رقم العمل",
+    "businessname": "اسم العمل",
+    "address1": "العنوان السطر 1",
+    "address2": "العنوان السطر 2",
+    "city": "المدينة",
+    "state": "الولاية / المقاطعة",
+    "postcode": "الرمز البريدي",
+    "country": "البلد"
+  },
   "LocaleSwitcher": {
-     "label": "Language",
+    "label": "Language",
     "en": "English",
     "fr": "Français",
     "ar": "العربية",

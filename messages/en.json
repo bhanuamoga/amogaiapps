@@ -16,7 +16,6 @@
     "and": "and",
     "privacyPolicy": "Privacy Policy"
   },
-
   "storesignup": {
     "title": "Create an Store account",
     "description1": "Enter your email and password below to create a store account.",
@@ -38,10 +37,7 @@
     "termsOfService": "Terms of Service",
     "and": "and",
     "privacyPolicy": "Privacy Policy"
-
   },
-
-
   "RoleMenu": {
     "title": "Role Menu",
     "description": "Access your work",
@@ -56,7 +52,24 @@
   "Search": {
     "placeholder": "Search"
   },
-
+  "ProfileSettings": {
+    "title": "Personal Information",
+    "description": "Account-managed fields.",
+    "fullName": "Full Name",
+    "email": "Email",
+    "Roles": "Roles",
+    "status": "Status",
+    "businessInformation": "Business Information",
+    "businessDescription": "Update business and address details.",
+    "businessnumber": "Business Number",
+    "businessname": "Business Name",
+    "address1": "Address Line 1",
+    "address2": "Address Line 2",
+    "city": "City",
+    "state": "State / Province",
+    "postcode": "Postcode / ZIP",
+    "country": "Country"
+  },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",
@@ -66,6 +79,5 @@
     "vi": "Tiếng Việt",
     "hi": "हिन्दी",
     "te": "తెలుగు"
-    
   }
 }
