@@ -21,6 +21,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 
 const ITEMS_PER_PAGE = 10;
@@ -33,7 +34,7 @@ export default function StoreCustomersPage() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [actionLoading, setActionLoading] = useState(false);
-
+  const t= useTranslations("StoreCustomers");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,7 +89,7 @@ export default function StoreCustomersPage() {
   return (
     <div className="max-w-[800px] mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Store Customers</h1>
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
       </div>
 
 
@@ -108,12 +109,12 @@ export default function StoreCustomersPage() {
           onClick={() => router.push("/storcustomers/customers/new")}
           disabled={loading || actionLoading}
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 text-secondary" />
         </Button>
       </div>
 
 
-      <p className="text-sm mb-4">Total customers found: {filtered.length}</p>
+      <p className="text-sm mb-4">{t("total")}: {filtered.length}</p>
 
 
       {loading ? (

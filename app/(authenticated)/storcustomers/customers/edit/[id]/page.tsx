@@ -34,12 +34,12 @@ import statesData from "@/data/states.json";
 import {
   getAllCustomers,
   updateCustomer,
-  Customer,
   CustomerBilling,
   CustomerShipping,
 } from "../../../actions";
+import { useTranslations } from "next-intl";
 
-// Zod Schemas for validation
+// Zod Schemas
 const billingSchema = z.object({
   first_name: z.string().optional(),
   last_name: z.string().optional(),
@@ -50,7 +50,7 @@ const billingSchema = z.object({
   state: z.string().optional(),
   postcode: z.string().optional(),
   country: z.string().optional(),
-  email: z.string().email("Enter Valid email address"),
+  email: z.string().email("Enter valid email address"),
   phone: z.string().optional(),
 });
 
@@ -101,10 +101,9 @@ const defaultShipping: CustomerShipping = {
   city: "",
   state: "",
   postcode: "",
-  country: "",
 };
 
-// Dropdown component for countries/states
+// Dropdown component
 interface DropdownProps {
   value: string;
   onChange: (val: string) => void;
@@ -126,10 +125,11 @@ const Dropdown: React.FC<DropdownProps> = ({
 
   useEffect(() => {
     if (search.length >= 2) {
-      const filtered = options.filter((opt) =>
-        opt.name.toLowerCase().includes(search.toLowerCase())
+      setFilteredOptions(
+        options.filter((opt) =>
+          opt.name.toLowerCase().includes(search.toLowerCase())
+        )
       );
-      setFilteredOptions(filtered);
     } else {
       setFilteredOptions(options);
     }
@@ -138,6 +138,10 @@ const Dropdown: React.FC<DropdownProps> = ({
   useEffect(() => {
     if (!open) setSearch("");
   }, [open]);
+
+  const selectedOption = options.find(
+    (o) => o.name.toLowerCase() === (value ?? "").toLowerCase()
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -150,17 +154,13 @@ const Dropdown: React.FC<DropdownProps> = ({
           className="w-full justify-between"
           onClick={() => setOpen((o) => !o)}
         >
-          {value ? (
+          {selectedOption ? (
             <div className="flex items-center gap-2">
-              {options.find((o) => o.name.toLowerCase() === value.toLowerCase())?.emoji && (
-                <span>
-                  {options.find((o) => o.name.toLowerCase() === value.toLowerCase())?.emoji}
-                </span>
-              )}
-              <span>{options.find((o) => o.name.toLowerCase() === value.toLowerCase())?.name}</span>
+              {selectedOption.emoji && <span>{selectedOption.emoji}</span>}
+              <span>{selectedOption.name}</span>
             </div>
           ) : (
-            <span>{placeholder}</span>
+            <span className="text-muted-foreground">{placeholder}</span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
         </Button>
@@ -172,7 +172,7 @@ const Dropdown: React.FC<DropdownProps> = ({
             autoFocus
             placeholder={`Search ${placeholder.toLowerCase()}...`}
             value={search}
-            onValueChange={(text) => setSearch(text)}
+            onValueChange={setSearch}
           />
           <CommandEmpty>No {placeholder.toLowerCase()} found.</CommandEmpty>
           <CommandGroup>
@@ -193,7 +193,7 @@ const Dropdown: React.FC<DropdownProps> = ({
                   </div>
                   <Check
                     className={
-                      value.toLowerCase() === opt.name.toLowerCase()
+                      value?.toLowerCase() === opt.name.toLowerCase()
                         ? "opacity-100 h-4 w-4"
                         : "opacity-0 h-4 w-4"
                     }
@@ -216,10 +216,9 @@ export default function EditCustomerPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
   const [billingStates, setBillingStates] = useState<any[]>([]);
   const [shippingStates, setShippingStates] = useState<any[]>([]);
-
+  const t= useTranslations("StoreCustomers.edit");
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues: {
@@ -236,12 +235,16 @@ export default function EditCustomerPage() {
   useEffect(() => {
     const subscription = form.watch((values, { name }) => {
       if (name === "billing.country") {
-        const filtered = statesData.filter((s) => s.country_name === values.billing?.country);
+        const filtered = statesData.filter(
+          (s) => s.country_name === values.billing?.country
+        );
         setBillingStates(filtered);
         form.setValue("billing.state", "");
       }
       if (name === "shipping.country") {
-        const filtered = statesData.filter((s) => s.country_name === values.shipping?.country);
+        const filtered = statesData.filter(
+          (s) => s.country_name === values.shipping?.country
+        );
         setShippingStates(filtered);
         form.setValue("shipping.state", "");
       }
@@ -303,22 +306,22 @@ export default function EditCustomerPage() {
     <div className="max-w-2xl mx-auto p-6 border rounded-xl text-foreground mb-2">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Edit Customer</h1>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
         <Button
           variant="outline"
           onClick={() => router.push("/storcustomers")}
           className="flex items-center gap-1"
         >
           <ArrowLeft size={16} />
-          Go Back
+          {t("backButton")}
         </Button>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
-          {/* Basic Info in one column */}
+          {/* Basic Info */}
           <div className="space-y-4">
-            {["username", "first_name", "last_name", "email"].map((key) => (
+            {[t("userName"), t("firstName"), t("lastName"),t("email")].map((key) => (
               <FormField
                 key={key}
                 control={form.control}
@@ -339,13 +342,13 @@ export default function EditCustomerPage() {
               />
             ))}
 
-            {/* Role Select */}
+            {/* Role */}
             <FormField
               control={form.control}
               name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role</FormLabel>
+                  <FormLabel>{t("role")}</FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger>
@@ -366,17 +369,17 @@ export default function EditCustomerPage() {
 
           {/* Billing Section */}
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold">Billing Details</h2>
+            <h2 className="text-lg font-semibold">{t("billingHeader")}</h2>
             {[
-              "first_name",
-              "last_name",
-              "company",
-              "address_1",
-              "address_2",
-              "city",
-              "postcode",
-              "email",
-              "phone",
+              t("billingFirstName"),
+              t("billingLastName"),
+              t("billingCompany"),
+              t("billingAddress1"),
+              t("billingAddress2"),
+              t("billingCity"),
+              t("billingPostcode"),
+              t("billingEmail"),
+              t("billingPhone"),
             ].map((key) => (
               <FormField
                 key={key}
@@ -384,9 +387,7 @@ export default function EditCustomerPage() {
                 name={`billing.${key}` as any}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      {key.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                    </FormLabel>
+                    <FormLabel>{key.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -405,7 +406,7 @@ export default function EditCustomerPage() {
               name="billing.country"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Country</FormLabel>
+                  <FormLabel>{t("billingCountry")}</FormLabel>
                   <FormControl>
                     <Dropdown
                       value={field.value ?? ""}
@@ -424,7 +425,7 @@ export default function EditCustomerPage() {
               name="billing.state"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>State</FormLabel>
+                  <FormLabel>{t("billingState")}</FormLabel>
                   <FormControl>
                     <Dropdown
                       value={field.value ?? ""}
@@ -442,15 +443,15 @@ export default function EditCustomerPage() {
 
           {/* Shipping Section */}
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold">Shipping Details</h2>
+            <h2 className="text-lg font-semibold">{t("shippingHeader")}</h2>
             {[
-              "first_name",
-              "last_name",
-              "company",
-              "address_1",
-              "address_2",
-              "city",
-              "postcode",
+              t("shippingFirstName"),
+              t("shippingLastName"),
+              t("shippingCompany"),
+              t("shippingAddress1"),
+              t("shippingAddress2"),
+              t("shippingCity"),
+              t("shippingPostcode"),
             ].map((key) => (
               <FormField
                 key={key}
@@ -458,9 +459,7 @@ export default function EditCustomerPage() {
                 name={`shipping.${key}` as any}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      {key.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                    </FormLabel>
+                    <FormLabel>{key.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder={`Enter ${key.replace("_", " ")}`} />
                     </FormControl>
@@ -475,7 +474,7 @@ export default function EditCustomerPage() {
               name="shipping.country"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Country</FormLabel>
+                  <FormLabel>{t("shippingCountry")}</FormLabel>
                   <FormControl>
                     <Dropdown
                       value={field.value ?? ""}
@@ -494,7 +493,7 @@ export default function EditCustomerPage() {
               name="shipping.state"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>State</FormLabel>
+                  <FormLabel>{t("shippingState")}</FormLabel>
                   <FormControl>
                     <Dropdown
                       value={field.value ?? ""}

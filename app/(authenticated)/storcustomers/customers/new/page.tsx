@@ -32,6 +32,7 @@ import {
 import countriesData from "@/data/countries.json";
 import statesData from "@/data/states.json";
 import { createCustomer, CustomerBilling, CustomerShipping } from "../../actions";
+import { useTranslations } from "next-intl";
 
 // -------------------- Schemas --------------------
 const billingSchema = z.object({
@@ -208,7 +209,7 @@ export default function CreateCustomerPage() {
   const [saving, setSaving] = useState(false);
   const [billingStates, setBillingStates] = useState<any[]>([]);
   const [shippingStates, setShippingStates] = useState<any[]>([]);
-
+  const t= useTranslations("StoreCustomers.new");
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues: {
@@ -255,16 +256,16 @@ export default function CreateCustomerPage() {
   return (
     <div className="max-w-2xl mx-auto p-6 border rounded-xl text-foreground mb-2">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Create Customer</h1>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
         <Button variant="outline" onClick={() => router.push("/storcustomers")} className="flex items-center gap-1">
-          <ArrowLeft size={16} /> Go Back
+          <ArrowLeft size={16} /> {t("backButton")}
         </Button>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
           <div className="space-y-2">
-            {["username", "first_name", "last_name", "email"].map((key) => (
+            {[t("userName"), t("firstName"), t("lastName"), t("email")].map((key) => (
               <FormField
                 key={key}
                 control={form.control}
@@ -291,7 +292,7 @@ export default function CreateCustomerPage() {
               name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role</FormLabel>
+                  <FormLabel>{t("role")}</FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger>
@@ -312,8 +313,8 @@ export default function CreateCustomerPage() {
 
           {/* Billing Section */}
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold">Billing Details</h2>
-            {["first_name", "last_name", "company", "address_1", "address_2", "city", "postcode", "email", "phone"].map(
+            <h2 className="text-lg font-semibold">{t("billingHeader")}</h2>
+            {[t("billingFirstName"),t("billingLastName"),t("billingCompany"),t("billingAddress1"),t("billingAddress2"),t("billingCity"),t("billingPostcode"),t("billingEmail"),t("billingPhone")].map(
               (key) => (
                 <FormField
                   key={key}
@@ -337,7 +338,7 @@ export default function CreateCustomerPage() {
               name="billing.country"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Country</FormLabel>
+                  <FormLabel>{t("billingCountry")}</FormLabel>
                   <FormControl>
                     <Dropdown value={field.value ?? ""} onChange={field.onChange} options={countriesData} placeholder="Select Country" />
                   </FormControl>
@@ -351,7 +352,7 @@ export default function CreateCustomerPage() {
               name="billing.state"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>State</FormLabel>
+                  <FormLabel>{t("billingState")}</FormLabel>
                   <FormControl>
                     <Dropdown value={field.value ?? ""} onChange={field.onChange} options={billingStates} placeholder="Select State" disabled={!billingStates.length} />
                   </FormControl>
@@ -363,8 +364,8 @@ export default function CreateCustomerPage() {
 
           {/* Shipping Section */}
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold">Shipping Details</h2>
-            {["first_name", "last_name", "company", "address_1", "address_2", "city", "postcode"].map((key) => (
+            <h2 className="text-lg font-semibold">{t("shippingHeader")}</h2>
+            {[t("shippingFirstName"),t("shippingLastName"),t("shippingCompany"),t("shippingAddress1"),t("shippingAddress2"),t("shippingCity"),t("shippingPostcode")].map((key) => (
               <FormField
                 key={key}
                 control={form.control}
@@ -386,7 +387,7 @@ export default function CreateCustomerPage() {
               name="shipping.country"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Country</FormLabel>
+                  <FormLabel>{t("shippingCountry")}</FormLabel>
                   <FormControl>
                     <Dropdown value={field.value ?? ""} onChange={field.onChange} options={countriesData} placeholder="Select Country" />
                   </FormControl>
@@ -400,7 +401,7 @@ export default function CreateCustomerPage() {
               name="shipping.state"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>State</FormLabel>
+                  <FormLabel>{t("shippingState")}</FormLabel>
                   <FormControl>
                     <Dropdown value={field.value ?? ""} onChange={field.onChange} options={shippingStates} placeholder="Select State" disabled={!shippingStates.length} />
                   </FormControl>
