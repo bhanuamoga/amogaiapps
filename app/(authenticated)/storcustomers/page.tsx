@@ -2,13 +2,29 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAllCustomers, deleteCustomer, Customer } from "./actions";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit, Plus } from "lucide-react";
+import {
+  Trash2,
+  Edit,
+  Plus,
+  User,
+  UserCheck,
+  Building2,
+  MapPin,
+  Mail,
+  Phone,
+  Calendar,
+} from "lucide-react";
 import { toast } from "sonner";
 
+
 const ITEMS_PER_PAGE = 10;
+
 
 export default function StoreCustomersPage() {
   const router = useRouter();
@@ -17,6 +33,7 @@ export default function StoreCustomersPage() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [actionLoading, setActionLoading] = useState(false);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,6 +51,7 @@ export default function StoreCustomersPage() {
     fetchData();
   }, []);
 
+
   // Search & pagination
   const filtered = search
     ? customers.filter((c) =>
@@ -44,8 +62,13 @@ export default function StoreCustomersPage() {
       )
     : customers;
 
+
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const paginated = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
 
   const handleDelete = async (id: number) => {
     setActionLoading(true);
@@ -61,11 +84,13 @@ export default function StoreCustomersPage() {
     }
   };
 
+
   return (
     <div className="max-w-[800px] mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Store Customers</h1>
       </div>
+
 
       {/* Search + New Customer Button */}
       <div className="flex gap-2 mb-4">
@@ -83,11 +108,13 @@ export default function StoreCustomersPage() {
           onClick={() => router.push("/storcustomers/customers/new")}
           disabled={loading || actionLoading}
         >
-          <Plus className="w-4 h-4 " />
+          <Plus className="w-4 h-4" />
         </Button>
       </div>
 
-      <p className="text-sm  mb-4">Total customers found: {filtered.length}</p>
+
+      <p className="text-sm mb-4">Total customers found: {filtered.length}</p>
+
 
       {loading ? (
         <p>Loading...</p>
@@ -95,21 +122,63 @@ export default function StoreCustomersPage() {
         <div className="space-y-4">
           {paginated.map((c) => (
             <Card key={c.id} className="p-4 hover:shadow-md transition-shadow">
-              <CardHeader className="p-0 mb-2">
-                <CardTitle>
-                  {c.first_name} {c.last_name} ({c.username})
-                </CardTitle>
-                <CardDescription>{c.email}</CardDescription>
-              </CardHeader>
-
-              <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
-                <div>Role: <b>{c.role || "-"}</b></div>
-                <div>Postcode: <b>{c.billing?.postcode || "-"}</b></div>
-                <div>City: <b>{c.billing?.city || "-"}</b></div>
-                <div>State: <b>{c.billing?.state || "-"}</b></div>
-                <div>Country: <b>{c.billing?.country || "-"}</b></div>
+              <CardContent className="flex flex-col gap-4 text-sm">
+                <div className="flex items-center gap-3 py-1">
+                  <User className="w-5 h-5 text-gray-500" />
+                  <span className="font-semibold min-w-[90px]">Username:</span>
+                  <span>{c.username || "-"}</span>
+                </div>
+                <div className="flex items-center gap-3 py-1">
+                  <User className="w-4 h-4 text-gray-500" />
+                  <span className="font-semibold min-w-[90px]">First Name:</span>
+                  <span>{c.first_name || "-"}</span>
+                </div>
+                <div className="flex items-center gap-3 py-1">
+                  <User className="w-4 h-4 text-gray-500" />
+                  <span className="font-semibold min-w-[90px]">Last Name:</span>
+                  <span>{c.last_name || "-"}</span>
+                </div>
+                <div className="flex items-center gap-3 py-1">
+                  <UserCheck className="w-4 h-4 text-gray-500" />
+                  <span className="font-semibold min-w-[90px]">Role:</span>
+                  <span>{c.role || "-"}</span>
+                </div>
+                <div className="flex items-center gap-3 py-1">
+                  <Building2 className="w-4 h-4 text-gray-500" />
+                  <span className="font-semibold min-w-[90px]">Company:</span>
+                  <span>{c.billing?.company || "-"}</span>
+                </div>
+                <div className="flex items-center gap-3 py-1">
+                  <MapPin className="w-4 h-4 text-gray-500" />
+                  <span className="font-semibold min-w-[90px]">Zip Code:</span>
+                  <span>{c.billing?.postcode || "-"}</span>
+                </div>
+                <div className="flex items-center gap-3 py-1">
+                  <Mail className="w-4 h-4 text-gray-500" />
+                  <span className="font-semibold min-w-[90px]">Email:</span>
+                  {/* Added styles here for responsiveness */}
+                  <span 
+                    className="block max-w-full truncate overflow-hidden break-words"
+                    style={{ wordBreak: "break-word", whiteSpace: "normal" }}
+                  >
+                    {c.email || "-"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 py-1">
+                  <Phone className="w-4 h-4 text-gray-500" />
+                  <span className="font-semibold min-w-[90px]">Mobile:</span>
+                  <span>{c.billing?.phone || "-"}</span>
+                </div>
+                <div className="flex items-center gap-3 py-1">
+                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <span className="font-semibold min-w-[90px]">Join Date:</span>
+                  <span>
+                    {c.date_created
+                      ? new Date(c.date_created).toLocaleDateString()
+                      : "-"}
+                  </span>
+                </div>
               </CardContent>
-
               <div className="flex justify-end gap-2 mt-2">
                 <Button
                   onClick={() => router.push(`/storcustomers/customers/edit/${c.id}`)}
@@ -120,7 +189,7 @@ export default function StoreCustomersPage() {
                   <Edit className="w-4 h-4 mr-1" /> Edit
                 </Button>
                 <Button
-                  onClick={() => handleDelete(c.id!)}
+                  onClick={() => handleDelete(c.id)}
                   disabled={actionLoading}
                   variant="default"
                   size="sm"
@@ -133,6 +202,7 @@ export default function StoreCustomersPage() {
         </div>
       )}
 
+
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-4">
@@ -142,7 +212,9 @@ export default function StoreCustomersPage() {
           >
             Prev
           </Button>
-          <span className="px-3 py-1">Page {currentPage} of {totalPages}</span>
+          <span className="px-3 py-1">
+            Page {currentPage} of {totalPages}
+          </span>
           <Button
             disabled={currentPage === totalPages || actionLoading}
             onClick={() => setCurrentPage((p) => p + 1)}

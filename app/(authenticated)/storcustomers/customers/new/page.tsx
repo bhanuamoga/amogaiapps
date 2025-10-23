@@ -1,12 +1,78 @@
 "use client";
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createCustomer, CustomerBilling } from "../../actions";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
 
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { toast } from "sonner";
+import { ArrowLeft, Check, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Command, CommandInput, CommandItem, CommandEmpty, CommandGroup } from "@/components/ui/command";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import countriesData from "@/data/countries.json";
+import statesData from "@/data/states.json";
+import { createCustomer, CustomerBilling, CustomerShipping } from "../../actions";
+
+// -------------------- Schemas --------------------
+const billingSchema = z.object({
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  company: z.string().optional(),
+  address_1: z.string().optional(),
+  address_2: z.string().optional(),
+  country: z.string().optional(),
+  state: z.string().optional(),
+  city: z.string().optional(),
+  postcode: z.string().optional(),
+  email: z.string().email("Enter Valid email address"),
+  phone: z.string().optional(),
+});
+
+const shippingSchema = z.object({
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  company: z.string().optional(),
+  address_1: z.string().optional(),
+  address_2: z.string().optional(),
+  country: z.string().optional(),
+  state: z.string().optional(),
+  city: z.string().optional(),
+  postcode: z.string().optional(),
+});
+
+const customerSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+   first_name: z.string().min(1, "First name is required"),
+   last_name: z.string().min(1, "Last name is required"),
+   email: z.string().email("Invalid email address"),
+   role: z.string().min(1, "Role is required"),
+   billing: billingSchema,
+   shipping: shippingSchema,
+});
+
+type CustomerFormValues = z.infer<typeof customerSchema>;
+
+// -------------------- Defaults --------------------
 const defaultBilling: CustomerBilling = {
   first_name: "",
   last_name: "",
@@ -21,113 +87,339 @@ const defaultBilling: CustomerBilling = {
   phone: "",
 };
 
-export default function NewCustomerPage() {
+const defaultShipping: CustomerShipping = {
+  first_name: "",
+  last_name: "",
+  company: "",
+  address_1: "",
+  address_2: "",
+  city: "",
+  state: "",
+  postcode: "",
+  country: "",
+};
+
+// -------------------- Dropdown --------------------
+interface DropdownProps {
+  value: string;
+  onChange: (val: string) => void;
+  options: { id?: number; name: string; emoji?: string }[];
+  placeholder?: string;
+  disabled?: boolean;
+}
+
+const Dropdown: React.FC<DropdownProps> = ({
+  value,
+  onChange,
+  options,
+  placeholder = "Select...",
+  disabled,
+}) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filteredOptions, setFilteredOptions] = useState(options);
+
+  useEffect(() => {
+    if (search.length >= 2) {
+      const filtered = options.filter((opt) =>
+        opt.name.toLowerCase().includes(search.toLowerCase())
+      );
+      setFilteredOptions(filtered);
+    } else {
+      setFilteredOptions(options);
+    }
+  }, [search, options]);
+
+  useEffect(() => {
+    if (!open) setSearch("");
+  }, [open]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          disabled={disabled}
+          className="w-full justify-between"
+          onClick={() => setOpen((o) => !o)}
+        >
+          {value ? (
+            <div className="flex items-center gap-2">
+              {options.find((o) => o.name.toLowerCase() === value.toLowerCase())?.emoji && (
+                <span>{options.find((o) => o.name.toLowerCase() === value.toLowerCase())?.emoji}</span>
+              )}
+              <span>{options.find((o) => o.name.toLowerCase() === value.toLowerCase())?.name}</span>
+            </div>
+          ) : (
+            <span>{placeholder}</span>
+          )}
+          <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+
+      <PopoverContent className="w-full p-0" side="bottom" align="start">
+        <Command>
+          <CommandInput
+            autoFocus
+            placeholder={`Search ${placeholder.toLowerCase()}...`}
+            value={search}
+            onValueChange={(text) => setSearch(text)}
+          />
+          <CommandEmpty>No {placeholder.toLowerCase()} found.</CommandEmpty>
+          <CommandGroup>
+            <ScrollArea className="h-60 w-full">
+              {filteredOptions.map((opt) => (
+                <CommandItem
+                  key={opt.id ?? opt.name}
+                  value={opt.name}
+                  onSelect={() => {
+                    onChange(opt.name);
+                    setOpen(false);
+                  }}
+                  className="flex justify-between items-center text-sm cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    {opt.emoji && <span>{opt.emoji}</span>}
+                    <span>{opt.name}</span>
+                  </div>
+                  <Check
+                    className={
+                      value.toLowerCase() === opt.name.toLowerCase()
+                        ? "opacity-100 h-4 w-4"
+                        : "opacity-0 h-4 w-4"
+                    }
+                  />
+                </CommandItem>
+              ))}
+              <ScrollBar orientation="vertical" />
+            </ScrollArea>
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+// -------------------- Main Component --------------------
+export default function CreateCustomerPage() {
   const router = useRouter();
-  const [billing, setBilling] = useState<CustomerBilling>({ ...defaultBilling });
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [billingStates, setBillingStates] = useState<any[]>([]);
+  const [shippingStates, setShippingStates] = useState<any[]>([]);
 
-  const handleChange = (field: keyof CustomerBilling, value: string) => {
-    setBilling((prev) => ({ ...prev, [field]: value }));
-  };
+  const form = useForm<CustomerFormValues>({
+    resolver: zodResolver(customerSchema),
+    defaultValues: {
+      username: "",
+      first_name: "",
+      last_name: "",
+      email: "",
+      role: "customer",
+      billing: defaultBilling,
+      shipping: defaultShipping,
+    },
+  });
 
-  const handleSave = async () => {
-    setLoading(true);
+  useEffect(() => {
+    const subscription = form.watch((values, { name }) => {
+      if (name === "billing.country") {
+        const filtered = statesData.filter((s) => s.country_name === values.billing?.country);
+        setBillingStates(filtered);
+        form.setValue("billing.state", "");
+      }
+      if (name === "shipping.country") {
+        const filtered = statesData.filter((s) => s.country_name === values.shipping?.country);
+        setShippingStates(filtered);
+        form.setValue("shipping.state", "");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  const onSubmit = async (values: CustomerFormValues) => {
+    setSaving(true);
     try {
-      await createCustomer({
-        email: billing.email || "",
-        billing,
-      });
-      toast.success("Customer created");
+      if (!values.billing.email) values.billing.email = values.email;
+      await createCustomer(values);
+      toast.success("Customer created successfully");
       router.push("/storcustomers");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to create customer");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create customer");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-8 border border-gray-200 rounded-xl mb-2">
-      {/* Header bar with title and go back button */}
+    <div className="max-w-2xl mx-auto p-6 border rounded-xl text-foreground mb-2">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">New Customer</h1>
-        <Button
-          variant="outline"
-          onClick={() => router.push("/storcustomers")}
-          className="flex items-center gap-1"
-        >
-          <ArrowLeft size={16} />
-          Go Back
+        <h1 className="text-2xl font-bold">Create Customer</h1>
+        <Button variant="outline" onClick={() => router.push("/storcustomers")} className="flex items-center gap-1">
+          <ArrowLeft size={16} /> Go Back
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <Input
-          placeholder="First Name"
-          value={billing.first_name}
-          onChange={(e) => handleChange("first_name", e.target.value)}
-        />
-        <Input
-          placeholder="Last Name"
-          value={billing.last_name}
-          onChange={(e) => handleChange("last_name", e.target.value)}
-        />
-        <Input
-          placeholder="Email"
-          value={billing.email}
-          onChange={(e) => handleChange("email", e.target.value)}
-        />
-        <Input
-          placeholder="Phone"
-          value={billing.phone}
-          onChange={(e) => handleChange("phone", e.target.value)}
-        />
-        <Input
-          placeholder="Address 1"
-          value={billing.address_1}
-          onChange={(e) => handleChange("address_1", e.target.value)}
-        />
-        <Input
-          placeholder="Address 2"
-          value={billing.address_2}
-          onChange={(e) => handleChange("address_2", e.target.value)}
-        />
-        <Input
-          placeholder="Company"
-          value={billing.company}
-          onChange={(e) => handleChange("company", e.target.value)}
-        />
-        <Input
-          placeholder="City"
-          value={billing.city}
-          onChange={(e) => handleChange("city", e.target.value)}
-        />
-        <Input
-          placeholder="State"
-          value={billing.state}
-          onChange={(e) => handleChange("state", e.target.value)}
-        />
-        <Input
-          placeholder="Postcode"
-          value={billing.postcode}
-          onChange={(e) => handleChange("postcode", e.target.value)}
-        />
-        <Input
-          placeholder="Country"
-          value={billing.country}
-          onChange={(e) => handleChange("country", e.target.value)}
-        />
-      </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
+          <div className="space-y-2">
+            {["username", "first_name", "last_name", "email"].map((key) => (
+              <FormField
+                key={key}
+                control={form.control}
+                name={key as any}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{key.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder={`Enter ${key.replace("_", " ")}`}
+                        type={key === "email" ? "email" : "text"}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
 
-      <div className="flex justify-end gap-2 mt-4">
-        <Button onClick={() => router.push("/storcustomers")} disabled={loading} variant="outline">
-          Cancel
-        </Button>
-        <Button onClick={handleSave} disabled={loading}>
-          Save
-        </Button>
-      </div>
+            {/* ---------- Role Select using ShadCN ---------- */}
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="customer">Customer</SelectItem>
+                        <SelectItem value="subscriber">Subscriber</SelectItem>
+                        <SelectItem value="shop_manager">Shop Manager</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Billing Section */}
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Billing Details</h2>
+            {["first_name", "last_name", "company", "address_1", "address_2", "city", "postcode", "email", "phone"].map(
+              (key) => (
+                <FormField
+                  key={key}
+                  control={form.control}
+                  name={`billing.${key}` as any}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{key.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder={`Enter ${key.replace("_", " ")}`} type={key === "email" ? "email" : "text"} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )
+            )}
+
+            <FormField
+              control={form.control}
+              name="billing.country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Country</FormLabel>
+                  <FormControl>
+                    <Dropdown value={field.value ?? ""} onChange={field.onChange} options={countriesData} placeholder="Select Country" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="billing.state"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>State</FormLabel>
+                  <FormControl>
+                    <Dropdown value={field.value ?? ""} onChange={field.onChange} options={billingStates} placeholder="Select State" disabled={!billingStates.length} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Shipping Section */}
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Shipping Details</h2>
+            {["first_name", "last_name", "company", "address_1", "address_2", "city", "postcode"].map((key) => (
+              <FormField
+                key={key}
+                control={form.control}
+                name={`shipping.${key}` as any}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{key.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder={`Enter ${key.replace("_", " ")}`} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+
+            <FormField
+              control={form.control}
+              name="shipping.country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Country</FormLabel>
+                  <FormControl>
+                    <Dropdown value={field.value ?? ""} onChange={field.onChange} options={countriesData} placeholder="Select Country" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="shipping.state"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>State</FormLabel>
+                  <FormControl>
+                    <Dropdown value={field.value ?? ""} onChange={field.onChange} options={shippingStates} placeholder="Select State" disabled={!shippingStates.length} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button type="button" variant="outline" onClick={() => router.push("/storcustomers")} disabled={saving}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving..." : "Save"}
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }

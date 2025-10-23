@@ -1,8 +1,13 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from "react"
-import { useRouter, useParams } from "next/navigation"
-import { useForm } from "react-hook-form"
+import React, { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Form,
   FormField,
@@ -10,18 +15,68 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
+} from "@/components/ui/form";
+import { toast } from "sonner";
+import { ArrowLeft, ChevronsUpDown, Check } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Command, CommandInput, CommandItem, CommandEmpty, CommandGroup } from "@/components/ui/command";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import countriesData from "@/data/countries.json";
+import statesData from "@/data/states.json";
 import {
   getAllCustomers,
   updateCustomer,
   Customer,
   CustomerBilling,
   CustomerShipping,
-} from "../../../actions"
-import { ArrowLeft } from "lucide-react"
+} from "../../../actions";
+
+// Zod Schemas for validation
+const billingSchema = z.object({
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  company: z.string().optional(),
+  address_1: z.string().optional(),
+  address_2: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  postcode: z.string().optional(),
+  country: z.string().optional(),
+  email: z.string().email("Enter Valid email address"),
+  phone: z.string().optional(),
+});
+
+const shippingSchema = z.object({
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  company: z.string().optional(),
+  address_1: z.string().optional(),
+  address_2: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  postcode: z.string().optional(),
+  country: z.string().optional(),
+});
+
+const customerSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  role: z.string().min(1, "Role is required"),
+  billing: billingSchema,
+  shipping: shippingSchema,
+});
+
+type CustomerFormValues = z.infer<typeof customerSchema>;
 
 const defaultBilling: CustomerBilling = {
   first_name: "",
@@ -35,7 +90,7 @@ const defaultBilling: CustomerBilling = {
   country: "",
   email: "",
   phone: "",
-}
+};
 
 const defaultShipping: CustomerShipping = {
   first_name: "",
@@ -47,75 +102,206 @@ const defaultShipping: CustomerShipping = {
   state: "",
   postcode: "",
   country: "",
+};
+
+// Dropdown component for countries/states
+interface DropdownProps {
+  value: string;
+  onChange: (val: string) => void;
+  options: { id?: number; name: string; emoji?: string }[];
+  placeholder?: string;
+  disabled?: boolean;
 }
 
+const Dropdown: React.FC<DropdownProps> = ({
+  value,
+  onChange,
+  options,
+  placeholder = "Select...",
+  disabled,
+}) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filteredOptions, setFilteredOptions] = useState(options);
+
+  useEffect(() => {
+    if (search.length >= 2) {
+      const filtered = options.filter((opt) =>
+        opt.name.toLowerCase().includes(search.toLowerCase())
+      );
+      setFilteredOptions(filtered);
+    } else {
+      setFilteredOptions(options);
+    }
+  }, [search, options]);
+
+  useEffect(() => {
+    if (!open) setSearch("");
+  }, [open]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          disabled={disabled}
+          className="w-full justify-between"
+          onClick={() => setOpen((o) => !o)}
+        >
+          {value ? (
+            <div className="flex items-center gap-2">
+              {options.find((o) => o.name.toLowerCase() === value.toLowerCase())?.emoji && (
+                <span>
+                  {options.find((o) => o.name.toLowerCase() === value.toLowerCase())?.emoji}
+                </span>
+              )}
+              <span>{options.find((o) => o.name.toLowerCase() === value.toLowerCase())?.name}</span>
+            </div>
+          ) : (
+            <span>{placeholder}</span>
+          )}
+          <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+
+      <PopoverContent className="w-full p-0" side="bottom" align="start">
+        <Command>
+          <CommandInput
+            autoFocus
+            placeholder={`Search ${placeholder.toLowerCase()}...`}
+            value={search}
+            onValueChange={(text) => setSearch(text)}
+          />
+          <CommandEmpty>No {placeholder.toLowerCase()} found.</CommandEmpty>
+          <CommandGroup>
+            <ScrollArea className="h-60 w-full">
+              {filteredOptions.map((opt) => (
+                <CommandItem
+                  key={opt.id ?? opt.name}
+                  value={opt.name}
+                  onSelect={() => {
+                    onChange(opt.name);
+                    setOpen(false);
+                  }}
+                  className="flex justify-between items-center text-sm cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    {opt.emoji && <span>{opt.emoji}</span>}
+                    <span>{opt.name}</span>
+                  </div>
+                  <Check
+                    className={
+                      value.toLowerCase() === opt.name.toLowerCase()
+                        ? "opacity-100 h-4 w-4"
+                        : "opacity-0 h-4 w-4"
+                    }
+                  />
+                </CommandItem>
+              ))}
+              <ScrollBar orientation="vertical" />
+            </ScrollArea>
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 export default function EditCustomerPage() {
-  const router = useRouter()
-  const params = useParams()
-  const customerId = Number(params.id)
+  const router = useRouter();
+  const params = useParams();
+  const customerId = Number(params.id);
 
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const form = useForm<Partial<Customer>>({
+  const [billingStates, setBillingStates] = useState<any[]>([]);
+  const [shippingStates, setShippingStates] = useState<any[]>([]);
+
+  const form = useForm<CustomerFormValues>({
+    resolver: zodResolver(customerSchema),
     defaultValues: {
       billing: defaultBilling,
       shipping: defaultShipping,
+      username: "",
+      first_name: "",
+      last_name: "",
+      email: "",
+      role: "customer",
     },
-  })
+  });
+
+  useEffect(() => {
+    const subscription = form.watch((values, { name }) => {
+      if (name === "billing.country") {
+        const filtered = statesData.filter((s) => s.country_name === values.billing?.country);
+        setBillingStates(filtered);
+        form.setValue("billing.state", "");
+      }
+      if (name === "shipping.country") {
+        const filtered = statesData.filter((s) => s.country_name === values.shipping?.country);
+        setShippingStates(filtered);
+        form.setValue("shipping.state", "");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   useEffect(() => {
     const fetchCustomer = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
-        const data = await getAllCustomers()
-        const c = data.find((c) => c.id === customerId)
+        const data = await getAllCustomers();
+        const c = data.find((c) => c.id === customerId);
         if (!c) {
-          toast.error("Customer not found")
-          router.push("/storcustomers")
-          return
+          toast.error("Customer not found");
+          router.push("/storcustomers");
+          return;
         }
-        // If role is subscriber, show toast and redirect
         if (c.role === "subscriber") {
-          toast.error("Subscriber role has no access to edit customer")
-          router.push("/storcustomers")
-          return
+          toast.error("Subscriber role has no access to edit customer");
+          router.push("/storcustomers");
+          return;
         }
         form.reset({
           ...c,
           billing: { ...defaultBilling, ...(c.billing || {}) },
           shipping: { ...defaultShipping, ...(c.shipping || {}) },
-        })
+        });
+        setBillingStates(statesData.filter((s) => s.country_name === c.billing?.country));
+        setShippingStates(statesData.filter((s) => s.country_name === c.shipping?.country));
       } catch (err) {
-        console.error(err)
-        toast.error("Failed to fetch customer")
-        router.push("/storcustomers")
+        console.error(err);
+        toast.error("Failed to fetch customer");
+        router.push("/storcustomers");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchCustomer()
-  }, [customerId, router, form])
+    };
+    fetchCustomer();
+  }, [customerId, router, form]);
 
-  const onSubmit = async (values: Partial<Customer>) => {
-    setSaving(true)
+  const onSubmit = async (values: CustomerFormValues) => {
+    setSaving(true);
     try {
-      await updateCustomer(customerId, values)
-      toast.success("Customer details are updated successfully")
-      router.push("/storcustomers")
+      await updateCustomer(customerId, values);
+      toast.success("Customer details are updated successfully");
+      router.push("/storcustomers");
     } catch (err) {
-      console.error(err)
-      toast.error("Failed to update customer")
+      console.error(err);
+      toast.error("Failed to update customer");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
-  if (loading) return <p>Loading...</p>
+  if (loading) return <p>Loading...</p>;
 
   return (
-    <div className="max-w-3xl mx-auto p-8 border border-gray-200 rounded-xl mb-2">
-      {/* Header bar with title and go back button */}
+    <div className="max-w-2xl mx-auto p-6 border rounded-xl text-foreground mb-2">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Edit Customer</h1>
         <Button
@@ -129,140 +315,217 @@ export default function EditCustomerPage() {
       </div>
 
       <Form {...form}>
-        {/* Basic Info */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 ">
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Username</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="first_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>First Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="last_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Last Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {/* Role dropdown */}
-          <FormField
-            control={form.control}
-            name="role"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Role</FormLabel>
-                <FormControl>
-                  <select
-                    {...field}
-                    className="block w-full rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select role</option>
-                    <option value="customer">Customer</option>
-                    <option value="subscriber">Subscriber</option>
-                    <option value="shop_manager">Shop Manager</option>
-                  </select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
+          {/* Basic Info in one column */}
+          <div className="space-y-4">
+            {["username", "first_name", "last_name", "email"].map((key) => (
+              <FormField
+                key={key}
+                control={form.control}
+                name={key as any}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{key.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder={`Enter ${key.replace("_", " ")}`}
+                        type={key === "email" ? "email" : "text"}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
 
-        {/* Billing */}
-        <h2 className="mt-6 mb-2 font-semibold">Billing</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {Object.keys(defaultBilling).map((key) => (
+            {/* Role Select */}
             <FormField
-              key={key}
               control={form.control}
-              name={`billing.${key}` as any}
+              name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{key.replace("_", " ").toUpperCase()}</FormLabel>
+                  <FormLabel>Role</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="customer">Customer</SelectItem>
+                        <SelectItem value="subscriber">Subscriber</SelectItem>
+                        <SelectItem value="shop_manager">Shop Manager</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          ))}
-        </div>
+          </div>
 
-        {/* Shipping */}
-        <h2 className="mt-6 mb-2 font-semibold">Shipping</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {Object.keys(defaultShipping).map((key) => (
+          {/* Billing Section */}
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Billing Details</h2>
+            {[
+              "first_name",
+              "last_name",
+              "company",
+              "address_1",
+              "address_2",
+              "city",
+              "postcode",
+              "email",
+              "phone",
+            ].map((key) => (
+              <FormField
+                key={key}
+                control={form.control}
+                name={`billing.${key}` as any}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {key.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder={`Enter ${key.replace("_", " ")}`}
+                        type={key === "email" ? "email" : "text"}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+
             <FormField
-              key={key}
               control={form.control}
-              name={`shipping.${key}` as any}
+              name="billing.country"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{key.replace("_", " ").toUpperCase()}</FormLabel>
+                  <FormLabel>Country</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Dropdown
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      options={countriesData}
+                      placeholder="Select Country"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          ))}
-        </div>
 
-        {/* Save and cancel buttons */}
-        <div className="flex justify-end gap-2 mt-4">
-          <Button
-            onClick={() => router.push("/storcustomers")}
-            disabled={saving}
-            variant="outline"
-          >
-            Cancel
-          </Button>
-          <Button onClick={form.handleSubmit(onSubmit)} disabled={saving}>
-            Save
-          </Button>
-        </div>
+            <FormField
+              control={form.control}
+              name="billing.state"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>State</FormLabel>
+                  <FormControl>
+                    <Dropdown
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      options={billingStates}
+                      placeholder="Select State"
+                      disabled={!billingStates.length}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Shipping Section */}
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Shipping Details</h2>
+            {[
+              "first_name",
+              "last_name",
+              "company",
+              "address_1",
+              "address_2",
+              "city",
+              "postcode",
+            ].map((key) => (
+              <FormField
+                key={key}
+                control={form.control}
+                name={`shipping.${key}` as any}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {key.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder={`Enter ${key.replace("_", " ")}`} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+
+            <FormField
+              control={form.control}
+              name="shipping.country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Country</FormLabel>
+                  <FormControl>
+                    <Dropdown
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      options={countriesData}
+                      placeholder="Select Country"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="shipping.state"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>State</FormLabel>
+                  <FormControl>
+                    <Dropdown
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      options={shippingStates}
+                      placeholder="Select State"
+                      disabled={!shippingStates.length}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/storcustomers")}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving..." : "Save"}
+            </Button>
+          </div>
+        </form>
       </Form>
     </div>
-  )
+  );
 }
