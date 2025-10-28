@@ -169,6 +169,16 @@
    "StoreCustomers":{
     "title":"Store Customers",
     "total":"Total customers found",
+    "username":"Username",
+    "firstName":"First Name",
+    "lastName":"Last Name",
+    "Role":"Role",
+    "company":"Company",
+    "zipcode":"Zip Code",
+    "email":"Email",
+    "mobile":"Mobile",
+    "joinDate":"Join Date",
+    
     "new":{
         "title":"Create Customer",
         "backButton":"Go Back",

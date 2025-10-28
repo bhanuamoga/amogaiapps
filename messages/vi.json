@@ -162,6 +162,15 @@
   "StoreCustomers": {
     "title": "Khách hàng cửa hàng",
     "total": "Tổng số khách hàng tìm thấy",
+    "username": "Tên người dùng",
+  "firstName": "Tên đầu",
+  "lastName": "Họ",
+  "Role": "Vai trò",
+  "company": "Công ty",
+  "zipcode": "Mã bưu điện",
+  "email": "E-mail",
+  "mobile": "Di động",
+  "joinDate": "Ngày tham gia",
     "new": {
       "title": "Tạo khách hàng",
       "backButton": "Quay lại",

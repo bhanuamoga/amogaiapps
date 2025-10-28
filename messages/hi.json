@@ -162,6 +162,15 @@
   "StoreCustomers": {
     "title": "दुकान के ग्राहक",
     "total": "कुल ग्राहक मिले",
+    "username": "उपयोगकर्ता नाम",
+  "firstName": "पहला नाम",
+  "lastName": "उपनाम",
+  "Role": "भूमिका",
+  "company": "कंपनी",
+  "zipcode": "पिन कोड",
+  "email": "ईमेल",
+  "mobile": "मोबाइल",
+  "joinDate": "शामिल होने की तिथि",
     "new": {
       "title": "ग्राहक बनाएं",
       "backButton": "वापस जाएं",

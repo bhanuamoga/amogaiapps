@@ -126,37 +126,37 @@ export default function StoreCustomersPage() {
               <CardContent className="flex flex-col gap-4 text-sm">
                 <div className="flex items-center gap-3 py-1">
                   <User className="w-5 h-5 text-gray-500" />
-                  <span className="font-semibold min-w-[90px]">Username:</span>
+                  <span className="font-semibold min-w-[90px]">{t("username")}:</span>
                   <span>{c.username || "-"}</span>
                 </div>
                 <div className="flex items-center gap-3 py-1">
                   <User className="w-4 h-4 text-gray-500" />
-                  <span className="font-semibold min-w-[90px]">First Name:</span>
+                  <span className="font-semibold min-w-[90px]">{t("firstName")}:</span>
                   <span>{c.first_name || "-"}</span>
                 </div>
                 <div className="flex items-center gap-3 py-1">
                   <User className="w-4 h-4 text-gray-500" />
-                  <span className="font-semibold min-w-[90px]">Last Name:</span>
+                  <span className="font-semibold min-w-[90px]">{t("lastName")}:</span>
                   <span>{c.last_name || "-"}</span>
                 </div>
                 <div className="flex items-center gap-3 py-1">
                   <UserCheck className="w-4 h-4 text-gray-500" />
-                  <span className="font-semibold min-w-[90px]">Role:</span>
+                  <span className="font-semibold min-w-[90px]">{t("Role")}:</span>
                   <span>{c.role || "-"}</span>
                 </div>
                 <div className="flex items-center gap-3 py-1">
                   <Building2 className="w-4 h-4 text-gray-500" />
-                  <span className="font-semibold min-w-[90px]">Company:</span>
+                  <span className="font-semibold min-w-[90px]">{t("company")}:</span>
                   <span>{c.billing?.company || "-"}</span>
                 </div>
                 <div className="flex items-center gap-3 py-1">
                   <MapPin className="w-4 h-4 text-gray-500" />
-                  <span className="font-semibold min-w-[90px]">Zip Code:</span>
+                  <span className="font-semibold min-w-[90px]">{t("zipcode")}:</span>
                   <span>{c.billing?.postcode || "-"}</span>
                 </div>
                 <div className="flex items-center gap-3 py-1">
                   <Mail className="w-4 h-4 text-gray-500" />
-                  <span className="font-semibold min-w-[90px]">Email:</span>
+                  <span className="font-semibold min-w-[90px]">{t("email")}:</span>
                   {/* Added styles here for responsiveness */}
                   <span 
                     className="block max-w-full truncate overflow-hidden break-words"
@@ -167,12 +167,12 @@ export default function StoreCustomersPage() {
                 </div>
                 <div className="flex items-center gap-3 py-1">
                   <Phone className="w-4 h-4 text-gray-500" />
-                  <span className="font-semibold min-w-[90px]">Mobile:</span>
+                  <span className="font-semibold min-w-[90px]">{t("mobile")}:</span>
                   <span>{c.billing?.phone || "-"}</span>
                 </div>
                 <div className="flex items-center gap-3 py-1">
                   <Calendar className="w-4 h-4 text-gray-500" />
-                  <span className="font-semibold min-w-[90px]">Join Date:</span>
+                  <span className="font-semibold min-w-[90px]">{t("joinDate")}:</span>
                   <span>
                     {c.date_created
                       ? new Date(c.date_created).toLocaleDateString()

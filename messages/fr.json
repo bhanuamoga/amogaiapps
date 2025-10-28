@@ -162,6 +162,15 @@
   "StoreCustomers": {
     "title": "Clients du magasin",
     "total": "Nombre total de clients trouvés",
+     "username": "Nom d'utilisateur",
+  "firstName": "Prénom",
+  "lastName": "Nom de famille",
+  "Role": "Rôle",
+  "company": "Entreprise",
+  "zipcode": "Code postal",
+  "email": "E-mail",
+  "mobile": "Mobile",
+  "joinDate": "Date d'inscription",
     "new": {
       "title": "Créer un client",
       "backButton": "Retour",

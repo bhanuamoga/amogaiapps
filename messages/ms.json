@@ -162,6 +162,15 @@
   "StoreCustomers": {
     "title": "Pelanggan Kedai",
     "total": "Jumlah pelanggan ditemui",
+    "username": "Nama pengguna",
+  "firstName": "Nama pertama",
+  "lastName": "Nama keluarga",
+  "Role": "Peranan",
+  "company": "Syarikat",
+  "zipcode": "Poskod",
+  "email": "E-mel",
+  "mobile": "Mudah alih",
+  "joinDate": "Tarikh sertai",
     "new": {
       "title": "Cipta Pelanggan",
       "backButton": "Kembali",

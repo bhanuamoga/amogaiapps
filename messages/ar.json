@@ -162,6 +162,15 @@
   "StoreCustomers": {
     "title": "عملاء المتجر",
     "total": "إجمالي عدد العملاء",
+      "username": "اسم المستخدم",
+  "firstName": "الاسم الأول",
+  "lastName": "اللقب",
+  "Role": "الدور",
+  "company": "الشركة",
+  "zipcode": "الرمز البريدي",
+  "email": "البريد الإلكتروني",
+  "mobile": "موبايل",
+  "joinDate": "تاريخ الانضمام",
     "new": {
       "title": "إنشاء عميل جديد",
       "backButton": "رجوع",
