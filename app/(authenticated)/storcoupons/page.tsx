@@ -27,6 +27,7 @@ import {
   Edit,
   Trash,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function StoreCouponsPage() {
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -80,7 +81,7 @@ export default function StoreCouponsPage() {
 
   const totalPages = Math.ceil(filtered.length / perPage);
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
-
+  const t = useTranslations("storecoupons");
   // ✅ Direct delete with Sonner toast
   const handleDelete = async (id: number) => {
     try {
@@ -97,6 +98,8 @@ export default function StoreCouponsPage() {
   return (
     <div className="flex justify-center p-6">
       <div className="w-full max-w-[800px] space-y-6">
+        <h1 className="font-bold text-2xl">{t("title")}</h1>
+
         {/* Searchbar + New Button */}
         <div className="flex items-center gap-2 w-full">
           <div className="relative flex-1">
@@ -111,9 +114,15 @@ export default function StoreCouponsPage() {
           </div>
           <Button onClick={() => router.push("/storcoupons/coupons/new")}>
             <Plus className="h-4 w-4" />
-          
           </Button>
         </div>
+
+        {/* Total Coupons Count */}
+        {!loading && !error && (
+          <p className="text-sm text-gray-600">
+            {t("description")}: {coupons.length}
+          </p>
+        )}
 
         {/* Loading/Error */}
         {loading && <p className="text-center">Loading coupons...</p>}
@@ -138,17 +147,17 @@ export default function StoreCouponsPage() {
               <CardContent className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  <span className="font-medium">Description:</span>
+                  <span className="font-medium">{t("cardDescription")}:</span>
                   <span>{coupon.description || "—"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Percent className="h-4 w-4" />
-                  <span className="font-medium">Amount:</span>
+                  <span className="font-medium">{t("amount")}:</span>
                   <span>{coupon.amount || "_"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  <span className="font-medium">Created:</span>
+                  <span className="font-medium">{t("created")}:</span>
                   <span>
                     {coupon.date_created
                       ? new Date(coupon.date_created).toLocaleDateString()
@@ -157,7 +166,7 @@ export default function StoreCouponsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span className="font-medium">Expiry:</span>
+                  <span className="font-medium">{t("expiry")}:</span>
                   <span>
                     {coupon.date_expires || coupon.date_expires_gmt
                       ? new Date(
@@ -178,7 +187,7 @@ export default function StoreCouponsPage() {
                   ) : (
                     <XCircle className="h-4 w-4" />
                   )}
-                  <span className="font-medium">Status:</span>
+                  <span className="font-medium">{t("status")}:</span>
                   <span>{coupon.status || "unknown"}</span>
                 </div>
               </CardContent>
@@ -227,7 +236,6 @@ export default function StoreCouponsPage() {
               onClick={() => setPage(page + 1)}
             >
               Next
-              
             </Button>
           </div>
         )}

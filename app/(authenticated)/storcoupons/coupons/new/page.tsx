@@ -23,6 +23,7 @@ import { ArrowLeft } from "lucide-react";
 
 // Import server actions for creation
 import { createCoupon, getProducts } from "@/app/(authenticated)/storcoupons/actions";
+import { useTranslations } from "next-intl";
 
 // Schema (reuse from your code)
 const couponSchema = z.object({
@@ -46,7 +47,7 @@ export default function CreateCouponPage() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<{ id: number; name: string }[]>([]);
-
+  const t = useTranslations("storecoupons.new");
   const form = useForm<CouponFormValues>({
     resolver: zodResolver(couponSchema),
     defaultValues: {
@@ -97,13 +98,13 @@ export default function CreateCouponPage() {
   return (
     <div className="max-w-2xl mx-auto p-6 border rounded-2xl shadow-sm ">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-semibold">Create Coupon</h1>
+        <h1 className="text-xl font-semibold">{t("title")}</h1>
         <Button
           variant="outline"
           onClick={() => router.push("/storcoupons")}
           className="flex items-center gap-1"
         >
-          <ArrowLeft size={16} /> Back
+          <ArrowLeft size={16} /> {t("backButton")}
         </Button>
       </div>
 
@@ -117,7 +118,7 @@ export default function CreateCouponPage() {
             name="code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Coupon Code</FormLabel>
+                <FormLabel>{t("couponCode")}</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter coupon code" {...field} />
                 </FormControl>
@@ -132,7 +133,7 @@ export default function CreateCouponPage() {
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Amount</FormLabel>
+                <FormLabel>{t("amount")}</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter discount amount" {...field} />
                 </FormControl>
@@ -147,7 +148,7 @@ export default function CreateCouponPage() {
             name="discount_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Discount Type</FormLabel>
+                <FormLabel>{t("discountType")}</FormLabel>
                 <FormControl>
                   <Select
                     onValueChange={field.onChange}
@@ -174,7 +175,7 @@ export default function CreateCouponPage() {
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t("description")}</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter description" {...field} />
                 </FormControl>
@@ -189,7 +190,7 @@ export default function CreateCouponPage() {
             name="date_expires"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Expiration Date</FormLabel>
+                <FormLabel>{t("expirationDate")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -204,7 +205,7 @@ export default function CreateCouponPage() {
             name="minimum_amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Minimum Spend</FormLabel>
+                <FormLabel>{t("minimumSpend")}</FormLabel>
                 <FormControl>
                   <Input placeholder="0.00" {...field} />
                 </FormControl>
@@ -219,7 +220,7 @@ export default function CreateCouponPage() {
             name="maximum_amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Maximum Spend</FormLabel>
+                <FormLabel>{t("maximumSpend")}</FormLabel>
                 <FormControl>
                   <Input placeholder="0.00" {...field} />
                 </FormControl>
@@ -229,18 +230,23 @@ export default function CreateCouponPage() {
           />
 
           {/* Free Shipping */}
+          {/* Free Shipping */}
           <FormField
             control={form.control}
             name="free_shipping"
             render={({ field }) => (
-              <FormItem className="flex items-center space-x-2">
-                <FormControl>
-                  <Checkbox
-                    checked={!!field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel>Free Shipping</FormLabel>
+              <FormItem>
+                <div className="flex items-center gap-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={!!field.value}
+                      onCheckedChange={field.onChange}
+                      className="shrink-0"
+                    />
+                  </FormControl>
+                  <FormLabel className="mb-0 cursor-pointer">{t("freeShipping")}</FormLabel>
+                </div>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -250,14 +256,18 @@ export default function CreateCouponPage() {
             control={form.control}
             name="exclude_sale_items"
             render={({ field }) => (
-              <FormItem className="flex items-center space-x-2">
-                <FormControl>
-                  <Checkbox
-                    checked={!!field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel>Exclude Sale Items</FormLabel>
+              <FormItem>
+                <div className="flex items-center gap-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={!!field.value}
+                      onCheckedChange={field.onChange}
+                      className="shrink-0"
+                    />
+                  </FormControl>
+                  <FormLabel className="mb-0 cursor-pointer">{t("excludeSaleItems")}</FormLabel>
+                </div>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -267,17 +277,22 @@ export default function CreateCouponPage() {
             control={form.control}
             name="individual_use"
             render={({ field }) => (
-              <FormItem className="flex items-center space-x-2">
-                <FormControl>
-                  <Checkbox
-                    checked={!!field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel>Individual Use Only</FormLabel>
+              <FormItem>
+                <div className="flex items-center gap-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={!!field.value}
+                      onCheckedChange={field.onChange}
+                      className="shrink-0"
+                    />
+                  </FormControl>
+                  <FormLabel className="mb-0 cursor-pointer">{t("individualUseOnly")}</FormLabel>
+                </div>
+                <FormMessage />
               </FormItem>
             )}
           />
+
 
           {/* Product IDs */}
           <FormField
@@ -285,7 +300,7 @@ export default function CreateCouponPage() {
             name="product_ids"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Apply to Products</FormLabel>
+                <FormLabel>{t("applytoProducts")}</FormLabel>
                 <FormControl>
                   <div className="border rounded-md p-2">
                     <Command className="max-h-60 overflow-y-auto text-sm">
@@ -321,7 +336,7 @@ export default function CreateCouponPage() {
                   </div>
                 </FormControl>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Selected:{" "}
+                  {t("selected")}:{" "}
                   {(field.value ?? []).length
                     ? (field.value ?? []).join(", ")
                     : "No products selected"}

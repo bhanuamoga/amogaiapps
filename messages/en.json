@@ -244,7 +244,49 @@
         "shippingState":"State"
     }
    },
+    "storecoupons":{
+      "title":"Store coupons",
+      "description":"Total Coupons Fetched",
+      "cardDescription":"Description",
+      "amount":"Amount",
+      "created":"Created",
+      "expiry":"Expiry",
+      "status":"Status",
+      "new":{
+        "title":"Create Coupon",
+        "backButton":"Go Back",
+        "couponCode":"Coupon Code",
+        "amount":"Amount",
+        "discountType":"Discount Type",
+        "description":"Description",
+        "expirationDate":"Expiration Date",
+        "minimumSpend":"Minimum Spend",
+        "maximumSpend":"Maximum Spend",
+        "freeShipping":"Free Shipping",
+        "excludeSaleItems":"Exclude Sale Items",
+        "individualUseOnly":"Individual Use Only",
+        "applytoProducts":"Apply to Products",
+        "selected":"Selected"
+      },
+       "edit":{
+        "title":"Edit Coupon",
+        "backButton":"Go Back",
+        "couponCode":"Coupon Code",
+        "amount":"Amount",
+        "discountType":"Discount Type",
+        "description":"Description",
+        "expirationDate":"Expiration Date",
+        "minimumSpend":"Minimum Spend",
+        "maximumSpend":"Maximum Spend",
+        "freeShipping":"Free Shipping",
+        "excludeSaleItems":"Exclude Sale Items",
+        "individualUseOnly":"Individual Use Only",
+        "applytoProducts":"Apply to Products",
+        "selected":"Selected"
+      }
 
+      
+    },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",
