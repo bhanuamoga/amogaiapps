@@ -19,18 +19,44 @@ export type WooProductCore = {
   short_description?: string;
   description?: string;
   categories?: { id: number; name?: string }[];
+
+  sku?: string;
+  weight?: string;
+  dimensions?: {
+    length?: string;
+    width?: string;
+    height?: string;
+  };
+  tax_status?: "taxable" | "shipping" | "none";
+  tax_class?: "" | "reduced-rate" | "zero-rate";
+  shipping_class?: "" | "free-shipping";
+  purchase_note?: string;
+  status?: "publish" | "draft" | "private";
 };
 
 export type UpsertPayload = {
   name: string;
-  regular_price?: string;               // numeric string per Woo
-  sale_price?: string;                  // numeric string per Woo
-  stock_quantity?: number | null;       // number to set, null to clear, undefined to leave unchanged
+  regular_price?: string;              // numeric string per Woo
+  sale_price?: string;                // numeric string per Woo
+  stock_quantity?: number | null;     // number to set, null to clear, undefined to leave unchanged
   stock_status?: "instock" | "outofstock" | "onbackorder";
   description?: string;
-  image?: string;                       // first image URL
+  short_description?: string;
+  sku?: string;
+  weight?: string;
+  dimensions?: {
+    length?: string;
+    width?: string;
+    height?: string;
+  };
+
+  image?: string;                     // first image URL
   status?: "publish" | "draft" | "private";
-  categories?: number[];                // category IDs
+  categories?: number[];
+  tax_status?: "taxable" | "shipping" | "none";
+  tax_class?: "" | "reduced-rate" | "zero-rate";
+  shipping_class?: "" | "free-shipping";
+  purchase_note?: string;
 };
 
 const normalize = (p: any): WooProductCore => ({
@@ -45,9 +71,17 @@ const normalize = (p: any): WooProductCore => ({
   short_description: p.short_description,
   description: p.description,
   categories: Array.isArray(p.categories) ? p.categories : undefined,
+
+  sku: p.sku,
+  weight: p.weight,
+  dimensions: p.dimensions,
+  tax_status: p.tax_status,
+  tax_class: p.tax_class,
+  shipping_class: p.shipping_class,
+  purchase_note: p.purchase_note,
+  status: p.status,
 });
 
-// CATEGORIES
 const normalizeCategory = (c: any): WooCategory => ({
   id: c.id,
   name: c.name,
@@ -76,7 +110,6 @@ export async function getWooCategories(params?: { search?: string; perPage?: num
   return (res.data as any[]).map(normalizeCategory);
 }
 
-// LIST
 export async function getWooProducts(params: { search?: string; page?: number; perPage?: number }) {
   const page = params.page ?? 1;
   const perPage = params.perPage ?? 20;
@@ -94,14 +127,12 @@ export async function getWooProducts(params: { search?: string; page?: number; p
   return { products: (res.data as any[]).map(normalize), pages: res.pages ?? 1 };
 }
 
-// READ
 export async function getWooProductById(id: string | number) {
   const res = await callWooCommerceAPI(`/wc/v3/products/${id}`, { method: "GET", cache: 0 });
   if (!res.success) throw new Error(res.error || "Failed to load product");
   return normalize(res.data);
 }
 
-// CREATE
 export async function createWooProduct(input: UpsertPayload) {
   const body: any = {
     name: input.name,
@@ -111,22 +142,29 @@ export async function createWooProduct(input: UpsertPayload) {
     ...(typeof input.stock_quantity === "number" ? { manage_stock: true, stock_quantity: input.stock_quantity } : {}),
     ...(input.stock_status ? { stock_status: input.stock_status } : {}),
     ...(input.description !== undefined ? { description: input.description } : {}),
+    ...(input.short_description !== undefined ? { short_description: input.short_description } : {}),
     ...(input.image ? { images: [{ src: input.image }] } : {}),
-    ...(Array.isArray(input.categories) && input.categories.length
-      ? { categories: input.categories.map((id) => ({ id })) }
-      : {}),
+    ...(Array.isArray(input.categories) && input.categories.length ? { categories: input.categories.map((id) => ({ id })) } : {}),
     status: input.status || "publish",
+    ...(input.sku ? { sku: input.sku } : {}),
+    ...(input.weight ? { weight: input.weight } : {}),
+    ...(input.dimensions ? { dimensions: { ...input.dimensions } } : {}),
+    ...(input.tax_status ? { tax_status: input.tax_status } : {}),
+    ...(input.tax_class ? { tax_class: input.tax_class } : {}),
+    ...(input.shipping_class ? { shipping_class: input.shipping_class } : {}),
+    ...(input.purchase_note ? { purchase_note: input.purchase_note } : {}),
   };
 
   const res = await callWooCommerceAPI(`/wc/v3/products`, { method: "POST", body, cache: 0 });
+
   if (!res.success) {
     console.error("Woo create error:", res.data);
     throw new Error(res.error || res.data?.message || "Failed to create product");
   }
+
   return normalize(res.data);
 }
 
-// UPDATE
 export async function updateWooProduct(id: string | number, input: UpsertPayload) {
   const regular_price = typeof input.regular_price === "string" ? input.regular_price : undefined;
   const sale_price = typeof input.sale_price === "string" ? input.sale_price : undefined;
@@ -136,14 +174,20 @@ export async function updateWooProduct(id: string | number, input: UpsertPayload
     name: input.name,
     ...(regular_price !== undefined ? { regular_price: regular_price.trim() } : {}),
     ...(sale_price !== undefined ? { sale_price: sale_price.trim() } : {}),
-    ...(hasQty
-      ? { manage_stock: true, stock_quantity: input.stock_quantity }
-      : { stock_quantity: input.stock_quantity === null ? null : undefined }),
+    ...(hasQty ? { manage_stock: true, stock_quantity: input.stock_quantity } : { stock_quantity: input.stock_quantity === null ? null : undefined }),
     ...(input.stock_status ? { stock_status: input.stock_status } : {}),
     ...(input.description !== undefined ? { description: input.description } : {}),
+    ...(input.short_description !== undefined ? { short_description: input.short_description } : {}),
+    ...(input.sku ? { sku: input.sku } : {}),
+    ...(input.weight ? { weight: input.weight } : {}),
+    ...(input.dimensions ? { dimensions: { ...input.dimensions } } : {}),
     ...(input.image ? { images: [{ src: input.image }] } : {}),
-    ...(Array.isArray(input.categories) ? { categories: input.categories.map((id) => ({ id })) } : {}),
+    ...(Array.isArray(input.categories) && input.categories.length ? { categories: input.categories.map((id) => ({ id })) } : {}),
     ...(input.status ? { status: input.status } : {}),
+    ...(input.tax_status ? { tax_status: input.tax_status } : {}),
+    ...(input.tax_class ? { tax_class: input.tax_class } : {}),
+    ...(input.shipping_class ? { shipping_class: input.shipping_class } : {}),
+    ...(input.purchase_note ? { purchase_note: input.purchase_note } : {}),
   };
 
   const res = await callWooCommerceAPI(`/wc/v3/products/${id}`, { method: "PUT", body, cache: 0 });
@@ -151,10 +195,10 @@ export async function updateWooProduct(id: string | number, input: UpsertPayload
     console.error("Woo update error:", res.data);
     throw new Error(res.error || res.data?.message || "Failed to update product");
   }
+
   return normalize(res.data);
 }
 
-// DELETE
 export async function deleteWooProduct(id: string | number) {
   const res = await callWooCommerceAPI(`/wc/v3/products/${id}?force=true`, { method: "DELETE", cache: 0 });
   if (!res.success) {
@@ -169,8 +213,7 @@ export async function deleteWooProduct(id: string | number) {
  * Input: base64 + file meta from client
  * Output: { id, url } where url is a public HTTPS image URL
  * Use url in product payload as images: [{ src: url }]
-
-  */
+ */
 export async function uploadMediaFromClient(input: {
   fileName: string;
   type: string;
@@ -187,7 +230,6 @@ export async function uploadMediaFromClient(input: {
   const folder = "products";
   const publicId = input.fileName.replace(/\.[^/.]+$/, "");
 
-  // Include all params sent to Cloudinary in alphabetical order for signature
   const toSign = `folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${API_SECRET}`;
   const signature = crypto.createHash("sha1").update(toSign).digest("hex");
 

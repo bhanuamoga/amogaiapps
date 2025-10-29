@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft, Image as ImageIcon, X } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -23,9 +23,13 @@ import { useTranslations } from "next-intl";
 
 type Category = { id: number; name: string };
 
+const allowedStockStatuses = ["instock", "outofstock", "onbackorder"] as const;
+type StockStatus = typeof allowedStockStatuses[number];
+
 const productSchema = z
   .object({
     name: z.string().min(1, "Name is required"),
+    status: z.enum(["publish", "draft", "private"]).optional(),
     regular_price: z
       .string()
       .min(1, "Regular price is required")
@@ -40,13 +44,27 @@ const productSchema = z
       .string()
       .optional()
       .transform((v) => (v ? v : ""))
-      .refine((v) => v === "" || (!Number.isNaN(Number(v)) && Number(v) >= 0), {
-        message: "Stock qty must be a non-negative number",
-      }),
-    stock_status: z.enum(["instock", "outofstock", "onbackorder"]),
+      .refine(
+        (v) => v === "" || (!Number.isNaN(Number(v)) && Number(v) >= 0),
+        { message: "Stock quantity must be a non-negative number" }
+      ),
+    stock_status: z.enum(allowedStockStatuses),
+    sku: z.string().optional(),
+    weight: z.string().optional(),
+    dimensions: z
+      .object({
+        length: z.string().optional(),
+        width: z.string().optional(),
+        height: z.string().optional(),
+      })
+      .optional(),
+    tax_status: z.enum(["taxable", "shipping", "none"]).optional(),
+    tax_class: z.enum(["", "reduced-rate", "zero-rate"]).optional(),
+    shipping_class: z.enum(["", "free-shipping"]).optional(),
+    purchase_note: z.string().optional(),
+    categoryId: z.union([z.number(), z.string()]).optional(),
     image: z.string().min(1, "Product image is required"),
     description: z.string().min(1, "Description is required"),
-    categoryId: z.union([z.number(), z.string()]).optional(),
   })
   .refine(
     (data) =>
@@ -60,6 +78,10 @@ const productSchema = z
   );
 
 type FormValues = z.infer<typeof productSchema>;
+
+function isStockStatus(value: any): value is StockStatus {
+  return allowedStockStatuses.includes(value);
+}
 
 export default function EditProducts({ id }: { id: string }) {
   const router = useRouter();
@@ -76,13 +98,21 @@ export default function EditProducts({ id }: { id: string }) {
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
+      status: "publish",
       regular_price: "",
       sale_price: "",
       stock_quantity: "",
       stock_status: "instock",
+      sku: "",
+      weight: "",
+      dimensions: { length: "", width: "", height: "" },
+      tax_status: "taxable",
+      tax_class: "",
+      shipping_class: "",
+      purchase_note: "",
+      categoryId: "",
       image: "",
       description: "",
-      categoryId: "",
     },
     mode: "onChange",
   });
@@ -94,50 +124,56 @@ export default function EditProducts({ id }: { id: string }) {
   const [error, setError] = React.useState<string | null>(null);
   const [uploading, setUploading] = React.useState(false);
   const [localPreview, setLocalPreview] = React.useState<string | null>(null);
-  const t = useTranslations("StoreProducts.editProduct");
-  
+  const t=useTranslations("StoreProducts.editProduct")
   React.useEffect(() => {
-    let on = true;
+    let isMounted = true;
     (async () => {
       setLoading(true);
       setError(null);
+
       try {
-        const [p, cats] = await Promise.all([
+        const [product, cats] = await Promise.all([
           getWooProductById(id),
           getWooCategories({ perPage: 100 }),
         ]);
+        if (!isMounted) return;
 
-        if (!on) return;
-
-        const imageUrl =
-          Array.isArray(p.images) && p.images[0]?.src ? p.images[0].src : "";
+        const safeStockStatus = isStockStatus(product.stock_status) ? product.stock_status : "instock";
+        const imageUrl = Array.isArray(product.images) && product.images[0]?.src ? product.images[0].src : "";
 
         reset({
-          name: p.name || "",
-          regular_price: p.regular_price || "",
-          sale_price: p.sale_price || "",
-          stock_quantity:
-            typeof p.stock_quantity === "number" ? String(p.stock_quantity) : "",
-          stock_status: (p.stock_status as any) || "instock",
-          image: imageUrl,
-          description: p.short_description || p.description || "",
+          name: product.name || "",
+          status: (product as any).status || "publish",
+          regular_price: product.regular_price || "",
+          sale_price: product.sale_price || "",
+          stock_quantity: typeof product.stock_quantity === "number" ? String(product.stock_quantity) : "",
+          stock_status: safeStockStatus,
+          sku: (product as any).sku || "",
+          weight: (product as any).weight || "",
+          dimensions: product.dimensions || { length: "", width: "", height: "" },
+          tax_status: (product as any).tax_status || "taxable",
+          tax_class: (product as any).tax_class || "",
+          shipping_class: (product as any).shipping_class || "",
+          purchase_note: (product as any).purchase_note || "",
           categoryId: "",
+          image: imageUrl,
+          description: product.short_description || product.description || "",
         });
 
         setCategories(cats.map((c: any) => ({ id: c.id, name: c.name })));
 
-        const pCats = Array.isArray((p as any).categories) ? (p as any).categories : [];
-        setSelectedCat(pCats[0]?.id ?? "");
-      } catch (e: any) {
-        const msg = e?.message || "Failed to load product";
-        setError(msg);
-        toast.error("Load failed", { description: msg });
+        const productCats = Array.isArray((product as any).categories) ? (product as any).categories : [];
+        setSelectedCat(productCats[0]?.id ?? "");
+      } catch (error: any) {
+        setError(error?.message || "Failed to load product");
+        toast.error("Load failed", { description: error?.message || "Failed to load product" });
       } finally {
         setLoading(false);
       }
     })();
+
     return () => {
-      on = false;
+      isMounted = false;
     };
   }, [id, reset]);
 
@@ -147,6 +183,7 @@ export default function EditProducts({ id }: { id: string }) {
     const previewUrl = URL.createObjectURL(file);
     setLocalPreview(previewUrl);
     setUploading(true);
+
     try {
       const base64 = await fileToBase64(file);
       const res = await uploadMediaFromClient({
@@ -158,10 +195,10 @@ export default function EditProducts({ id }: { id: string }) {
       setValue("image", res.url, { shouldValidate: true, shouldTouch: true, shouldDirty: true });
       await trigger("image");
       toast.success("Image uploaded", { description: "Image set from local file." });
-    } catch (err: any) {
+    } catch (error: any) {
       URL.revokeObjectURL(previewUrl);
       setLocalPreview(null);
-      toast.error("Upload failed", { description: err?.message || "Could not upload" });
+      toast.error("Upload failed", { description: error?.message || "Could not upload" });
     } finally {
       setUploading(false);
     }
@@ -178,6 +215,7 @@ export default function EditProducts({ id }: { id: string }) {
   const onSubmit = async (data: FormValues) => {
     setPending(true);
     setError(null);
+
     try {
       if (!data.image) {
         toast.error("Image required", { description: "Please upload or paste an image URL." });
@@ -186,22 +224,28 @@ export default function EditProducts({ id }: { id: string }) {
 
       await updateWooProduct(id, {
         name: data.name,
+        status: data.status || "publish",
         regular_price: data.regular_price || undefined,
         sale_price: data.sale_price || undefined,
         stock_quantity: data.stock_quantity ? Number(data.stock_quantity) : null,
         stock_status: data.stock_status,
+        sku: data.sku || undefined,
+        weight: data.weight || undefined,
+        dimensions: data.dimensions ? { ...data.dimensions } : undefined,
+        tax_status: data.tax_status,
+        tax_class: data.tax_class,
+        shipping_class: data.shipping_class,
+        purchase_note: data.purchase_note,
         description: data.description ?? undefined,
         image: data.image || undefined,
         categories: selectedCat ? [Number(selectedCat)] : undefined,
-        status: "publish",
       });
 
       toast.success("Product updated", { description: "Changes saved successfully." });
       router.push("/storproducts");
-    } catch (err: any) {
-      const msg = err?.message || "Failed to update";
-      setError(msg);
-      toast.error("Update failed", { description: msg });
+    } catch (error: any) {
+      setError(error?.message || "Failed to update");
+      toast.error("Update failed", { description: error?.message || "Try again" });
     } finally {
       setPending(false);
     }
@@ -211,7 +255,6 @@ export default function EditProducts({ id }: { id: string }) {
 
   return (
     <Card className="max-w-3xl">
-      {/* Top-right back button */}
       <CardHeader className="flex flex-row items-center justify-between gap-3">
         <CardTitle className="text-xl">{t("title")}</CardTitle>
         <Button type="button" variant="ghost" className="gap-2" onClick={() => router.back()}>
@@ -221,52 +264,125 @@ export default function EditProducts({ id }: { id: string }) {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {error ? <p className="mb-2 text-sm text-destructive">{error}</p> : null}
+        {error && <p className="mb-2 text-sm text-destructive">{error}</p>}
 
         <form id="edit-product-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Product Name */}
           <div className="grid gap-2">
-            <Label>Name</Label>
+            <Label>{t("name")}</Label>
             <Input {...register("name")} aria-invalid={!!errors.name} />
             {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label>{t("regularPrice")}</Label>
-              <Input type="number" inputMode="decimal" {...register("regular_price")} aria-invalid={!!errors.regular_price} />
-              {errors.regular_price && <p className="text-xs text-destructive">{errors.regular_price.message}</p>}
-            </div>
-            <div className="grid gap-2">
-              <Label>{t("salePrice")}</Label>
-              <Input type="number" inputMode="decimal" {...register("sale_price")} aria-invalid={!!errors.sale_price} />
-              {errors.sale_price && <p className="text-xs text-destructive">{errors.sale_price.message}</p>}
-            </div>
+          {/* Status */}
+          <div className="grid gap-2">
+            <Label>{t("status")}</Label>
+            <select {...register("status")} className="h-10 rounded-md border bg-background px-3 text-sm" defaultValue="publish">
+              <option value="publish">Publish</option>
+              <option value="draft">Draft</option>
+              <option value="private">Private</option>
+            </select>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label>{t("stockQuantity")}</Label>
-              <Input type="number" inputMode="numeric" {...register("stock_quantity")} aria-invalid={!!errors.stock_quantity} />
-              {errors.stock_quantity && <p className="text-xs text-destructive">{errors.stock_quantity.message}</p>}
-            </div>
-            <div className="grid gap-2">
-              <Label>Status</Label>
-              <select
-                className="h-10 rounded-md border bg-background px-3 text-sm"
-                {...register("stock_status")}
-                defaultValue="instock"
-                aria-invalid={!!errors.stock_status}
-              >
-                <option value="instock">In stock</option>
-                <option value="outofstock">Out of stock</option>
-                <option value="onbackorder">On backorder</option>
-              </select>
-              {errors.stock_status && (
-                <p className="text-xs text-destructive">{errors.stock_status.message as string}</p>
-              )}
-            </div>
+          {/* Regular Price */}
+          <div className="grid gap-2">
+            <Label>{t("regularPrice")}</Label>
+            <Input type="number" inputMode="decimal" {...register("regular_price")} aria-invalid={!!errors.regular_price} />
+            {errors.regular_price && <p className="text-xs text-destructive">{errors.regular_price.message}</p>}
           </div>
 
+          {/* Sale Price */}
+          <div className="grid gap-2">
+            <Label>{t("salePrice")}</Label>
+            <Input type="number" inputMode="decimal" {...register("sale_price")} aria-invalid={!!errors.sale_price} />
+            {errors.sale_price && <p className="text-xs text-destructive">{errors.sale_price.message}</p>}
+          </div>
+
+          {/* Stock Quantity */}
+          <div className="grid gap-2">
+            <Label>{t("stockQuantity")}</Label>
+            <Input type="number" inputMode="numeric" {...register("stock_quantity")} aria-invalid={!!errors.stock_quantity} />
+            {errors.stock_quantity && <p className="text-xs text-destructive">{errors.stock_quantity.message}</p>}
+          </div>
+
+          {/* Stock Status */}
+          <div className="grid gap-2">
+            <Label>{t("stockStatus")}</Label>
+            <select {...register("stock_status")} className="h-10 rounded-md border bg-background px-3 text-sm" aria-invalid={!!errors.stock_status}>
+              <option value="instock">In Stock</option>
+              <option value="outofstock">Out of Stock</option>
+              <option value="onbackorder">On Backorder</option>
+            </select>
+            {errors.stock_status && <p className="text-xs text-destructive">{errors.stock_status.message}</p>}
+          </div>
+
+          {/* SKU */}
+          <div className="grid gap-2">
+            <Label>{t("sku")}</Label>
+            <Input {...register("sku")} aria-invalid={!!errors.sku} />
+            {errors.sku && <p className="text-xs text-destructive">{errors.sku.message}</p>}
+          </div>
+
+          {/* Weight */}
+          <div className="grid gap-2">
+            <Label>{t("weight")}</Label>
+            <Input {...register("weight")} aria-invalid={!!errors.weight} />
+            {errors.weight && <p className="text-xs text-destructive">{errors.weight.message}</p>}
+          </div>
+
+          {/* Dimensions */}
+          <div className="grid gap-2">
+            <Label>{t("length")}</Label>
+            <Input {...register("dimensions.length")} aria-invalid={!!errors.dimensions?.length} />
+            {errors.dimensions?.length && <p className="text-xs text-destructive">{errors.dimensions.length.message}</p>}
+          </div>
+          <div className="grid gap-2">
+            <Label>{t("width")}</Label>
+            <Input {...register("dimensions.width")} aria-invalid={!!errors.dimensions?.width} />
+            {errors.dimensions?.width && <p className="text-xs text-destructive">{errors.dimensions.width.message}</p>}
+          </div>
+          <div className="grid gap-2">
+            <Label>{t("height")}</Label>
+            <Input {...register("dimensions.height")} aria-invalid={!!errors.dimensions?.height} />
+            {errors.dimensions?.height && <p className="text-xs text-destructive">{errors.dimensions.height.message}</p>}
+          </div>
+
+          {/* Tax Status */}
+          <div className="grid gap-2">
+            <Label>{t("taxStatus")}</Label>
+            <select {...register("tax_status")} className="h-10 rounded-md border bg-background px-3 text-sm">
+              <option value="taxable">Taxable</option>
+              <option value="shipping">Shipping</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+
+          {/* Tax Class */}
+          <div className="grid gap-2">
+            <Label>{t("taxClass")}</Label>
+            <select {...register("tax_class")} className="h-10 rounded-md border bg-background px-3 text-sm">
+              <option value="">Default</option>
+              <option value="reduced-rate">Reduced Rate</option>
+              <option value="zero-rate">Zero Rate</option>
+            </select>
+          </div>
+
+          {/* Shipping Class */}
+          <div className="grid gap-2">
+            <Label>{t("shippingClass")}</Label>
+            <select {...register("shipping_class")} className="h-10 rounded-md border bg-background px-3 text-sm">
+              <option value="">Default</option>
+              <option value="free-shipping">Free Shipping</option>
+            </select>
+          </div>
+
+          {/* Purchase Note */}
+          <div className="grid gap-2">
+            <Label>{t("purchaseNote")}</Label>
+            <Textarea rows={3} {...register("purchase_note")} />
+          </div>
+
+          {/* Category */}
           <div className="grid gap-2">
             <Label>{t("category")}</Label>
             <select
@@ -287,10 +403,9 @@ export default function EditProducts({ id }: { id: string }) {
             </select>
           </div>
 
-          {/* Image section identical to create */}
+          {/* Product Image */}
           <div className="grid gap-2">
             <Label>{t("productImage")}</Label>
-
             <label
               className={`border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer ${
                 uploading ? "opacity-50 cursor-wait" : "hover:border-primary hover:bg-primary/5"
@@ -299,7 +414,7 @@ export default function EditProducts({ id }: { id: string }) {
               <div className="flex items-center gap-2">
                 <ImageIcon className="h-6 w-6 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  {localPreview || getValues("image") ? "Change image" : t("imagePlaceholder")}
+                  {localPreview || getValues("image") ? "Change Image" : t("imagePlaceholder")}
                 </span>
               </div>
 
@@ -311,7 +426,6 @@ export default function EditProducts({ id }: { id: string }) {
                 disabled={uploading}
                 className="hidden"
               />
-
               {(localPreview || getValues("image")) && (
                 <div className="relative w-32 h-32 rounded overflow-hidden border shadow-sm mt-2">
                   <img
@@ -330,7 +444,6 @@ export default function EditProducts({ id }: { id: string }) {
                 </div>
               )}
             </label>
-
             <Input
               placeholder="Or paste an image URL (https://...)"
               {...register("image")}
@@ -340,24 +453,26 @@ export default function EditProducts({ id }: { id: string }) {
             {errors.image && <p className="text-xs text-destructive">{errors.image.message}</p>}
           </div>
 
-          {/* Restored required Description field */}
+          {/* Description */}
           <div className="grid gap-2">
             <Label>{t("description")}</Label>
             <Textarea rows={5} {...register("description")} aria-invalid={!!errors.description} />
             {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
           </div>
+
+          {/* Sticky footer */}
+          <div className="sticky bottom-0 mt-2 bg-background">
+            <div className="flex items-center justify-end gap-2 border-t py-3">
+              <Button type="button" variant="outline" onClick={() => router.push("/storproducts")}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={pending || uploading || isSubmitting}>
+                {pending || isSubmitting ? "Updating..." : "Update"}
+              </Button>
+            </div>
+          </div>
         </form>
       </CardContent>
-
-      {/* Bottom-right: Cancel + Update */}
-      <CardFooter className="justify-end gap-2 border-t py-3">
-        <Button type="button" variant="outline" onClick={() => router.push("/storproducts")}>
-          Cancel
-        </Button>
-        <Button type="submit" form="edit-product-form" disabled={pending || uploading || isSubmitting}>
-          {pending || isSubmitting ? "Updating..." : "Update"}
-        </Button>
-      </CardFooter>
     </Card>
   );
 }
