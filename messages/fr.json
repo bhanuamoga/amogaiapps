@@ -297,6 +297,68 @@
       "selected": "Sélectionné"
     }
   },
+  "pos": {
+    "cart": {
+      "title": "Panier",
+      "backButton": "Retour",
+      "customerDetails": "Détails du client",
+      "description": "Aucun client sélectionné",
+      "title1": "Détails de facturation",
+      "noCustomer": "Aucun client sélectionné",
+      "billing": {
+        "title": "Détails de facturation (Invité)",
+        "first_name": "Prénom",
+        "last_name": "Nom de famille",
+        "email": "Email",
+        "phone": "Numéro de téléphone",
+        "address_1": "Adresse ligne 1",
+        "address_2": "Adresse ligne 2",
+        "city": "Ville",
+        "state": "État",
+        "postcode": "Code postal",
+        "country": "Pays",
+        "placeholder": {
+          "first_name": "Entrez le prénom",
+          "last_name": "Entrez le nom de famille",
+          "email": "Entrez l'email",
+          "phone": "Entrez le numéro de téléphone",
+          "address_1": "Entrez l'adresse ligne 1",
+          "address_2": "Entrez l'adresse ligne 2",
+          "city": "Entrez la ville",
+          "state": "Entrez l'état",
+          "postcode": "Entrez le code postal",
+          "country": "Entrez le pays"
+        }
+      },
+      "shipping": {
+        "title": "Détails de livraison (Invité)",
+        "first_name": "Prénom",
+        "last_name": "Nom de famille",
+        "phone": "Numéro de téléphone",
+        "address_1": "Adresse ligne 1",
+        "address_2": "Adresse ligne 2",
+        "city": "Ville",
+        "state": "État",
+        "postcode": "Code postal",
+        "country": "Pays",
+        "placeholder": {
+          "first_name": "Entrez le prénom",
+          "last_name": "Entrez le nom de famille",
+          "phone": "Entrez le numéro de téléphone",
+          "address_1": "Entrez l'adresse ligne 1",
+          "address_2": "Entrez l'adresse ligne 2",
+          "city": "Entrez la ville",
+          "state": "Entrez l'état",
+          "postcode": "Entrez le code postal",
+          "country": "Entrez le pays"
+        }
+      },
+      "order": {
+        "title": "Détails de la commande",
+        "cartempty": "Votre panier est vide"
+      }
+    }
+  },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

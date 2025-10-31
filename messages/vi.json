@@ -297,6 +297,68 @@
       "selected": "Đã chọn"
     }
   },
+  "pos": {
+    "cart": {
+      "title": "Giỏ hàng",
+      "backButton": "Quay lại",
+      "customerDetails": "Thông tin khách hàng",
+      "description": "Chưa chọn khách hàng",
+      "title1": "Chi tiết thanh toán",
+      "noCustomer": "Chưa chọn khách hàng",
+      "billing": {
+        "title": "Chi tiết thanh toán (Khách)",
+        "first_name": "Tên",
+        "last_name": "Họ",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "address_1": "Địa chỉ dòng 1",
+        "address_2": "Địa chỉ dòng 2",
+        "city": "Thành phố",
+        "state": "Tỉnh/ Bang",
+        "postcode": "Mã bưu điện",
+        "country": "Quốc gia",
+        "placeholder": {
+          "first_name": "Nhập tên",
+          "last_name": "Nhập họ",
+          "email": "Nhập email",
+          "phone": "Nhập số điện thoại",
+          "address_1": "Nhập địa chỉ dòng 1",
+          "address_2": "Nhập địa chỉ dòng 2",
+          "city": "Nhập thành phố",
+          "state": "Nhập tỉnh/ bang",
+          "postcode": "Nhập mã bưu điện",
+          "country": "Nhập quốc gia"
+        }
+      },
+      "shipping": {
+        "title": "Chi tiết vận chuyển (Khách)",
+        "first_name": "Tên",
+        "last_name": "Họ",
+        "phone": "Số điện thoại",
+        "address_1": "Địa chỉ dòng 1",
+        "address_2": "Địa chỉ dòng 2",
+        "city": "Thành phố",
+        "state": "Tỉnh/ Bang",
+        "postcode": "Mã bưu điện",
+        "country": "Quốc gia",
+        "placeholder": {
+          "first_name": "Nhập tên",
+          "last_name": "Nhập họ",
+          "phone": "Nhập số điện thoại",
+          "address_1": "Nhập địa chỉ dòng 1",
+          "address_2": "Nhập địa chỉ dòng 2",
+          "city": "Nhập thành phố",
+          "state": "Nhập tỉnh/ bang",
+          "postcode": "Nhập mã bưu điện",
+          "country": "Nhập quốc gia"
+        }
+      },
+      "order": {
+        "title": "Chi tiết đơn hàng",
+        "cartempty": "Giỏ hàng của bạn trống"
+      }
+    }
+  },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

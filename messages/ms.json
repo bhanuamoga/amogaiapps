@@ -297,6 +297,68 @@
       "selected": "Dipilih"
     }
   },
+  "pos": {
+    "cart": {
+      "title": "Troli",
+      "backButton": "Kembali",
+      "customerDetails": "Maklumat Pelanggan",
+      "description": "Tiada pelanggan dipilih",
+      "title1": "Maklumat Penagihan",
+      "noCustomer": "Tiada pelanggan dipilih",
+      "billing": {
+        "title": "Maklumat Penagihan (Tetamu)",
+        "first_name": "Nama Pertama",
+        "last_name": "Nama Akhir",
+        "email": "Emel",
+        "phone": "Nombor Telefon",
+        "address_1": "Alamat Baris 1",
+        "address_2": "Alamat Baris 2",
+        "city": "Bandar",
+        "state": "Negeri",
+        "postcode": "Poskod",
+        "country": "Negara",
+        "placeholder": {
+          "first_name": "Masukkan nama pertama",
+          "last_name": "Masukkan nama akhir",
+          "email": "Masukkan emel",
+          "phone": "Masukkan nombor telefon",
+          "address_1": "Masukkan alamat baris 1",
+          "address_2": "Masukkan alamat baris 2",
+          "city": "Masukkan bandar",
+          "state": "Masukkan negeri",
+          "postcode": "Masukkan poskod",
+          "country": "Masukkan negara"
+        }
+      },
+      "shipping": {
+        "title": "Maklumat Penghantaran (Tetamu)",
+        "first_name": "Nama Pertama",
+        "last_name": "Nama Akhir",
+        "phone": "Nombor Telefon",
+        "address_1": "Alamat Baris 1",
+        "address_2": "Alamat Baris 2",
+        "city": "Bandar",
+        "state": "Negeri",
+        "postcode": "Poskod",
+        "country": "Negara",
+        "placeholder": {
+          "first_name": "Masukkan nama pertama",
+          "last_name": "Masukkan nama akhir",
+          "phone": "Masukkan nombor telefon",
+          "address_1": "Masukkan alamat baris 1",
+          "address_2": "Masukkan alamat baris 2",
+          "city": "Masukkan bandar",
+          "state": "Masukkan negeri",
+          "postcode": "Masukkan poskod",
+          "country": "Masukkan negara"
+        }
+      },
+      "order": {
+        "title": "Maklumat Pesanan",
+        "cartempty": "Troli anda kosong"
+      }
+    }
+  },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",
