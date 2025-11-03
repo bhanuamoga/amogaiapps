@@ -66,21 +66,44 @@ export async function getCustomers(): Promise<{
   data: Array<{ id: number; name: string; email?: string }>;
   error?: string;
 }> {
-  const url = "/wc/v3/customers?per_page=100";
-  const result = await callWooCommerceAPI(url);
+  const perPage = 100;  // maximum allowed per request by Woo API
+  let page = 1;
+  let allCustomers: Array<{ id: number; name: string; email?: string }> = [];
 
-  if (!result.success) return result;
+  try {
+    while (true) {
+      const url = `/wc/v3/customers?per_page=${perPage}&page=${page}`;
+      const result = await callWooCommerceAPI(url);
 
-  const customers = result.data.map((c: any) => ({
-    id: c.id,
-    name: `${c.first_name || ""} ${c.last_name || ""}`.trim() || c.username || "Unnamed",
-    email: c.email,
-  }));
+      if (!result.success) {
+        return result;
+      }
 
-  // Add "Guest" customer as first option with id 0 and empty email
-  const dataWithGuest = [{ id: 0, name: "Guest", email: "" }, ...customers];
-  return { success: true, data: dataWithGuest };
+      const customersBatch = result.data.map((c: any) => ({
+        id: c.id,
+        name: `${c.first_name || ""} ${c.last_name || ""}`.trim() || c.username || "Unnamed",
+        email: c.email,
+      }));
+
+      allCustomers = [...allCustomers, ...customersBatch];
+
+      if (customersBatch.length < perPage) {
+        // last page reached, break out of loop
+        break;
+      }
+
+      page++;
+    }
+
+    // Add Guest customer at the beginning
+    const dataWithGuest = [{ id: 0, name: "Guest", email: "" }, ...allCustomers];
+
+    return { success: true, data: dataWithGuest };
+  } catch (e: any) {
+    return { success: false, data: [], error: e.message || "Failed to fetch customers" };
+  }
 }
+
 
 /**
  * Get single WooCommerce customer details including billing & shipping.

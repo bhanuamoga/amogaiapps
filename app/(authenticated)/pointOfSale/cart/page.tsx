@@ -3,7 +3,6 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useCart, BillingDetails, ShippingDetails } from "../context/context";
-import { createOrder, getCustomerById } from "../actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Trash2, Plus, Minus } from "lucide-react";
@@ -77,7 +76,8 @@ export default function CartPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const t=useTranslations("pos.cart");
+  const t = useTranslations("pos.cart");
+
   // State for validation error messages per field for display
   const [billingErrors, setBillingErrors] = useState<Record<string, string>>({});
   const [shippingErrors, setShippingErrors] = useState<Record<string, string>>({});
@@ -152,7 +152,6 @@ export default function CartPage() {
     const value = e.target.value;
     if (type === "billing" && guestBilling) {
       setGuestBilling({ ...guestBilling, [field]: value });
-      // Clear error for this field on change
       setBillingErrors((prev) => ({ ...prev, [field]: "" }));
     }
     if (type === "shipping" && guestShipping) {
@@ -231,8 +230,11 @@ export default function CartPage() {
         orderData.billing = guestBilling;
         orderData.shipping = guestShipping;
       } else {
-        const customerResp = await getCustomerById(selectedCustomer.id);
-        const customerData: CustomerDataWithDetails = customerResp.data || {};
+        // Use API route instead of direct server action
+        const customerResp = await fetch(`/api/pos/customers/${selectedCustomer.id}`);
+        const customerJson = await customerResp.json();
+        const customerData: CustomerDataWithDetails = customerJson.data || {};
+
         if (!customerData.billing) customerData.billing = {} as BillingDetails;
         if (!customerData.billing.email || customerData.billing.email.trim() === "") {
           customerData.billing.email = customerData.email || "";
@@ -243,7 +245,13 @@ export default function CartPage() {
         orderData.shipping = customerData.shipping || {};
       }
 
-      const result = await createOrder(orderData);
+      // Use API route to create order
+      const orderResp = await fetch("/api/pos/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderData),
+      });
+      const result = await orderResp.json();
 
       if (!result.success) throw new Error(result.error || "Order failed");
 
@@ -301,10 +309,10 @@ export default function CartPage() {
                 {billingFields.map((field) => (
                   <div key={`billing-${field}`} className="flex flex-col">
                     <label className="text-sm font-medium mb-1">
-                     {t(`billing.${field}`)}
+                      {t(`billing.${field}`)}
                     </label>
                     <Input
-                       placeholder={t(`billing.placeholder.${field}`)} 
+                      placeholder={t(`billing.placeholder.${field}`)}
                       value={guestBilling[field] || ""}
                       onChange={(e) => handleInputChange(e, "billing", field)}
                     />
@@ -326,7 +334,7 @@ export default function CartPage() {
                       {t(`shipping.${field}`)}
                     </label>
                     <Input
-                     placeholder={t(`shipping.placeholder.${field}`)} 
+                      placeholder={t(`shipping.placeholder.${field}`)}
                       value={guestShipping[field] || ""}
                       onChange={(e) => handleInputChange(e, "shipping", field)}
                     />
@@ -369,7 +377,7 @@ export default function CartPage() {
                     onClick={() =>
                       updateCartItem(product.id, Math.max(1, quantity - 1))
                     }
-                     variant="default"
+                    variant="default"
                   >
                     <Minus size={16} />
                   </Button>
@@ -378,7 +386,7 @@ export default function CartPage() {
                   </span>
                   <Button
                     onClick={() => updateCartItem(product.id, quantity + 1)}
-                     variant="default"
+                    variant="default"
                   >
                     <Plus size={16} />
                   </Button>
