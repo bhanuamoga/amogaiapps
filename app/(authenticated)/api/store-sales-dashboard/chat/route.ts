@@ -9,22 +9,19 @@ export async function POST(req: Request) {
   const data = JSON.stringify(contextData, null, 2);
 
   let modelProvider;
-  if (apiKeys?.provider === "gemini") {
-    const google = createGoogleGenerativeAI({
-      apiKey: apiKeys?.apiKey,
-    });
-    modelProvider = google("gemini-2.0-flash");
-  } else if (apiKeys?.provider === "openai") {
-    const openai = createOpenAI({
-      apiKey: apiKeys?.apiKey,
-    });
-    modelProvider = openai("gpt-4o");
-  } else {
-    return Response.json(
-      { error: "No valid AI provider specified in contextData.apiKeys." },
-      { status: 400 }
-    );
-  }
+ if (apiKeys?.provider === "google") {
+  const google = createGoogleGenerativeAI({ apiKey: apiKeys?.key });
+  modelProvider = google(apiKeys?.model || "gemini-2.5-flash");
+} else if (apiKeys?.provider === "openai") {
+  const openai = createOpenAI({ apiKey: apiKeys?.key });
+  modelProvider = openai(apiKeys?.model || "gpt-4o");
+} else {
+  return Response.json(
+    { error: "No valid AI provider specified in contextData.apiKeys." },
+    { status: 400 }
+  );
+}
+
 
   try {
     const result = await generateText({

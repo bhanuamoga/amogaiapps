@@ -55,17 +55,35 @@ export default function SalesTabClient({}: SalesTabClientProps) {
   // const theme = themes.find((theme) => theme.name === config.theme)
 
   React.useEffect(() => {
-    const fetchApiKey = async () => {
-      try {
-        const response = await getApiKey();
-        setApiKeys(response[0]?.ai_provider_key);
-      } catch (error) {
-        toast.error("Error fetching AI API key");
-        throw error;
+  const fetchApiKey = async () => {
+    try {
+      const response = await getApiKey(); // returns the array
+      const apiArray = response[0]?.aiapi_connection_json;
+
+      if (!apiArray || apiArray.length === 0) {
+        toast.error("No AI API keys found");
+        return;
       }
-    };
-    fetchApiKey();
-  }, []);
+
+      // Prefer the default key, fallback to first
+      const defaultKey = apiArray.find((k: any) => k.default) || apiArray[0];
+
+      if (!defaultKey?.key) {
+        toast.error("AI API key is missing.");
+        return;
+      }
+
+      setApiKeys(defaultKey);
+      console.log("Fetched AI API key:", defaultKey);
+    } catch (error) {
+      toast.error("Error fetching AI API key");
+      console.error(error);
+    }
+  };
+
+  fetchApiKey();
+}, []);
+
 
   // const theme = themes.find((theme) => theme.name === config.theme)
 

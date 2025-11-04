@@ -236,148 +236,140 @@ const ChatwithData = ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const queryData = prompt.replace(/"/g, "");
-    setIsMessageAction(false);
-    if (!contextData) return;
+ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  if (!prompt.trim() || !contextData) return;
+  
+  setIsMessageAction(false);
+  setIsResponseLoading(true);
 
-    setIsResponseLoading(true);
-    try {
-      const newChatUuid = uuidv4();
-      const userMsgId = uuidv4();
-      const assistantMsgId = uuidv4();
-      const currentChatId = chatId || newChatUuid;
-      const createdDate = new Date().toISOString();
-      if (chatId) {
-        const payload = {
-          createdAt: createdDate,
-          user_id: session?.user?.user_catalog_id,
-          id: currentChatId,
-          title: queryData,
-          status: "active",
-          chat_group: "Chat with Store Board",
-        };
-        const createChatData = await createChat(payload);
-        if (!createChatData.success) {
-          toast.error("Error creating chat");
-        }
-      }
+  try {
+    // Use existing chatId or generate new UUID only if no chat started yet
+    const newChatUuid = uuidv4();
+    const currentChatId = chatId || newChatUuid;
+    const userMsgId = uuidv4();
+    const assistantMsgId = uuidv4();
+    const createdDate = new Date().toISOString();
 
-      const userMessage = {
-        id: userMsgId,
-        chatId: currentChatId,
-        content: queryData,
-        text: queryData,
-        role: "user",
+    // Create chat only once per conversation (if chatId not already known)
+    if (!chatId) {
+      const createChatPayload = {
+        id: currentChatId,
         createdAt: createdDate,
         user_id: session?.user?.user_catalog_id,
-        bookmark: null,
-        isLike: null,
-        favorite: null,
-      };
-
-      setMessages((prev) => [...prev, userMessage]);
-
-      const messagePayload = {
-        id: userMsgId,
-        chatId: currentChatId,
-        content: queryData,
-        role: "user",
+        title: prompt,
+        status: "active",
         chat_group: "Chat with Store Board",
-
-        createdAt: createdDate,
-        user_id: session?.user?.user_catalog_id,
-      };
-      await createMessage(messagePayload);
-
-      const assistantMsg = {
-        id: assistantMsgId,
-        chatId: currentChatId,
-        content: "Generating...",
-        role: "assistant",
-        createdAt: createdDate,
-        user_id: session?.user?.user_catalog_id,
-        bookmark: null,
-        isLike: null,
-        favorite: null,
       };
 
-      setMessages((prev) => [...prev, assistantMsg]);
+      const createChatData = await createChat(createChatPayload);
+      if (!createChatData.success) {
+        toast.error("Error creating chat");
+      }
+    }
 
-      try {
-        const response = await fetch("/api/store-sales-dashboard/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contextData, queryData }),
-        });
-        const result = await response.json();
-        if (result.usage) {
-          setUsage(result.usage);
-        }
+    // Add user's message locally
+    const userMessage = {
+      id: userMsgId,
+      chatId: currentChatId,
+      content: prompt,
+      text: prompt,
+      role: "user",
+      createdAt: createdDate,
+      user_id: session?.user?.user_catalog_id,
+    };
+    setMessages((prev) => [...prev, userMessage]);
 
-        if (!response.body) {
-          toast.error("No response body from AI");
-          setIsResponseLoading(false);
-          return;
-        }
-        
-        let aiResponse = result.text.text || "AI response missing.";
-        let chartType = result.text.chartType || null;
-        let chartData = result.text.chartData || null;
-        let chartOptions = result.text.chartOptions || null;
+    // Persist user's message in backend
+    await createMessage({
+      id: userMsgId,
+      chatId: currentChatId,
+      content: prompt,
+      role: "user",
+      createdAt: createdDate,
+      user_id: session?.user?.user_catalog_id,
+    });
 
-        if (result) {
-          chartType = result.text.chartType;
-          chartData = result.text.chartData;
-          chartOptions = result.text.chartOptions;
-          aiResponse = result.text.text || result.text.summary || result.text;
-        } else {
-          aiResponse = result.text.text || "No structured chart data found.";
-        }
+    // Add placeholder assistant message while waiting for AI response
+    const assistantMessage = {
+      id: assistantMsgId,
+      chatId: currentChatId,
+      content: "Generating...",
+      text: "Generating...",
+      role: "assistant",
+      createdAt: createdDate,
+      user_id: session?.user?.user_catalog_id,
+    };
+    setMessages((prev) => [...prev, assistantMessage]);
 
-        setMessages((prev) => {
-          const messages = [...prev];
-          if (
-            messages.length > 0 &&
-            messages[messages.length - 1].role === "assistant"
-          ) {
-            messages[messages.length - 1].text = aiResponse;
-            messages[messages.length - 1].content = aiResponse; // Update both fields
-            messages[messages.length - 1].chartType = chartType;
-            messages[messages.length - 1].chartData = chartData;
-            messages[messages.length - 1].chartOptions = chartOptions;
-          }
-          return messages;
-        });
+    // Call AI API with context and prompt
+    const response = await fetch("/api/store-sales-dashboard/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contextData, queryData: prompt }),
+    });
 
-        await createMessage({
-          id: assistantMsgId,
-          chatId: currentChatId,
+    const result = await response.json();
+
+    // Extract AI response text and optional chart data safely
+    let aiResponse = "AI response missing.";
+    let chartType = null;
+    let chartData = null;
+    let chartOptions = null;
+
+    if (result?.text) {
+      if (typeof result.text === "object" && result.text !== null) {
+        aiResponse = result.text.text || result.text.summary || aiResponse;
+        chartType = result.text.chartType || null;
+        chartData = result.text.chartData || null;
+        chartOptions = result.text.chartOptions || null;
+      } else if (typeof result.text === "string") {
+        aiResponse = result.text;
+      }
+    }
+
+    if (result.usage) {
+      setUsage(result.usage);
+    }
+
+    // Update last assistant message with actual AI response
+    setMessages((prev) => {
+      const updatedMessages = [...prev];
+      const lastIndex = updatedMessages.findIndex((m) => m.id === assistantMsgId);
+      if (lastIndex !== -1) {
+        updatedMessages[lastIndex] = {
+          ...updatedMessages[lastIndex],
           content: aiResponse,
-          role: "assistant",
-          chat_group: "Chat with Store Board",
-
-          createdAt: new Date().toISOString(),
-          user_id: session?.user?.user_catalog_id,
+          text: aiResponse,
           chartType,
           chartData,
           chartOptions,
-        });
-      } catch (error) {
-        toast.error("Failed fetching response");
-        throw error;
+        };
       }
+      return updatedMessages;
+    });
 
-      setIsResponseLoading(false);
+    // Persist assistant's message
+    await createMessage({
+      id: assistantMsgId,
+      chatId: currentChatId,
+      content: aiResponse,
+      role: "assistant",
+      createdAt: new Date().toISOString(),
+      user_id: session?.user?.user_catalog_id,
+      chartType,
+      chartData,
+      chartOptions,
+    });
 
-      setPrompt("");
-    } catch (error) {
-      setIsResponseLoading(false);
-
-      throw error;
-    }
-  };
+    setPrompt(""); // clear input
+  } catch (error) {
+    toast.error("An error occurred.");
+    console.error(error);
+  } finally {
+    setIsResponseLoading(false);
+  }
+};
 
   const handleFavorite = async (message: any) => {
     const newFavoriteStatus = !message.favorite;

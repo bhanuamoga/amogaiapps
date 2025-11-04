@@ -51,9 +51,9 @@ export async function getApiKey() {
   const session = await auth();
   try {
     const { data, error } = await postgrest
-      .from("business_settings" as any)
-      .select("ai_provider_key")
-      .eq("created_user_id", session?.user?.user_catalog_id);
+      .from("user_catalog" as any)
+      .select("aiapi_connection_json")
+      .eq("user_catalog_id", session?.user?.user_catalog_id);
     if (error) throw error;
     return data;
   } catch (error) {
