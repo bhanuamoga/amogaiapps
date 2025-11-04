@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { auth } from "@/auth";
 import { postgrest } from "./postgrest";
 
@@ -14,87 +13,82 @@ const woorest = async (
   const session = await auth();
 
   if (!session?.user?.user_catalog_id) {
-    throw new Error("didnt find user sesssion");
+    throw new Error("User session or user_catalog_id not found");
   }
 
+  // Fetch ai_provider_key from business_settings using business_number
   const { data: businessSettings, error: businessError } = await postgrest
-    .from("business_settings")
-    .select("data_source_json, ai_provider_key")
-    .eq("business_number", session?.user?.business_number)
+    .from("business_settings" as any)
+    .select("ai_provider_key")
+    .eq("business_number", session.user.business_number)
     .single();
 
   if (businessError || !businessSettings) {
-    throw new Error(
-      businessError?.message || "Failed to load business settings."
-    );
+    throw new Error(businessError?.message || "Failed to load business settings.");
   }
 
-  const woocommerceConfig = businessSettings.data_source_json?.find(
-    (config: { platform_type: string }) =>
-      config.platform_type === "woocommerce"
+  // Fetch user_catalog for api_connection_json by user_catalog_id
+  const { data: userCatalog, error: userCatalogError } = await postgrest
+    .from("user_catalog")
+    .select("api_connection_json")
+    .eq("user_catalog_id", session.user.user_catalog_id)
+    .single();
+
+  if (userCatalogError || !userCatalog) {
+    throw new Error(userCatalogError?.message || "Failed to load user catalog data.");
+  }
+
+  // Find active WooCommerce config from api_connection_json
+  const woocommerceConfig = userCatalog.api_connection_json?.find(
+    (config: { apiname: string; status: string }) =>
+      config.apiname.toLowerCase() === "woocommerce" && config.status.toLowerCase() === "active"
   );
 
   if (!woocommerceConfig) {
-    throw new Error("No WooCommerce configuration found.");
+    throw new Error("No active WooCommerce configuration found in user_catalog.api_connection_json");
   }
 
-  const siteUrl: string =
-    woocommerceConfig.credentials.woocommerce.site_url.replace(/\/+$/, "");
+  // Normalize site_url
+  const siteUrl: string = woocommerceConfig.site_url.replace(/\/+$/, "");
 
-  const store_integratiogn = configuration || {
-    api_name: "growretails",
+  // Build store integration config, allow override via configuration param
+  const store_integration = configuration || {
+    api_name: woocommerceConfig.apiname,
     base_url: siteUrl + "/wp-json",
-    woo_consumer_key: woocommerceConfig.credentials.woocommerce.consumer_key,
-    woo_consumer_secret:
-      woocommerceConfig.credentials.woocommerce.consumer_secret,
+    woo_consumer_key: woocommerceConfig.consumer_key,
+    woo_consumer_secret: woocommerceConfig.consumer_secret,
     authorization: btoa(
-      woocommerceConfig.credentials.woocommerce.consumer_key +
-        ":" +
-        woocommerceConfig.credentials.woocommerce.consumer_secret
+      woocommerceConfig.consumer_key + ":" + woocommerceConfig.consumer_secret
     ),
   };
 
-  // console.log("store_integratiogn", store_integratiogn);
-
-  if (!store_integratiogn) {
-    console.error("thier is no store integration data", business_number);
-  }
-
+  // Default headers with Basic Auth
   const default_headers: Record<string, string> = {
     "Content-Type": "application/json",
-    Authorization: `Basic ${store_integratiogn.authorization}`,
+    Authorization: `Basic ${store_integration.authorization}`,
   };
 
+  // Compose fetch options
   const options: RequestInit = {
     method,
-    headers: custom_headers
-      ? { ...default_headers, ...custom_headers }
-      : default_headers,
+    headers: custom_headers ? { ...default_headers, ...custom_headers } : default_headers,
     credentials: "include",
     body: body ? JSON.stringify(body) : undefined,
-    // cache: cache ? cache : "no-store",
     next: { revalidate: cache ? cache : 0 },
   };
 
-  const response = await fetch(`${store_integratiogn.base_url}${url}`, options);
-
+  // Make the fetch to WooCommerce API
+  const response = await fetch(`${store_integration.base_url}${url}`, options);
   const responseBody = await response.text();
-  console.log("request url:", `${store_integratiogn.base_url}${url}`);
-  console.log("response.body =", responseBody);
 
-  // console.log("response",response.body)
+  console.log("Request URL:", `${store_integration.base_url}${url}`);
+  console.log("WooCommerce API response:", responseBody);
+
   if (!response.ok) {
-    console.error(
-      "response error url",
-      response.url,
-      "response.body",
-      responseBody
-    );
+    console.error("Response error URL", response.url, "Response body", responseBody);
     throw new Error(responseBody);
-    // return `HTTP error! Status: ${response.status}`;
   }
 
-  // Check if the response body is not empty before attempting to parse as JSON
   if (responseBody.trim() !== "") {
     try {
       return JSON.parse(responseBody);
@@ -104,7 +98,7 @@ const woorest = async (
     }
   } else {
     console.error("Empty response body");
-    return null; // You can choose to return something else or throw an error
+    return null;
   }
 };
 

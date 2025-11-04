@@ -43,52 +43,54 @@ const callWooCommerceAPI = async (
       };
     }
 
-    const { data: businessSettings, error: businessError } = await postgrest
-      .from("business_settings" as any) // Temporarily cast to any to bypass TypeScript error
-      .select("data_source_json, ai_provider_key")
-      .eq("business_number", userBusinessNumber)
+    // Fetch from user_catalog and get api_connection_json
+    const { data: userCatalog, error: catalogError } = await postgrest
+      .from("user_catalog" as any)
+      .select("api_connection_json")
+      .eq("user_catalog_id", userCatalogId)
       .single();
 
-    if (businessError || !businessSettings) {
+    if (catalogError || !userCatalog) {
       return {
         success: false,
         data: null,
-        error: businessError?.message || "Failed to load business settings.",
+        error: catalogError?.message || "Failed to load user catalog.",
       };
     }
 
-    const woocommerceConfig = businessSettings.data_source_json?.find(
-      (config: { platform_type: string }) =>
-        config.platform_type === "woocommerce"
-    );
+    // Pick WooCommerce config with apiname: "woocommerce" and status: "active"
+    const woocommerceConfig = Array.isArray(userCatalog.api_connection_json)
+      ? userCatalog.api_connection_json.find(
+          (config: { apiname: string; status: string }) =>
+            config.apiname === "woocommerce" && config.status === "active"
+        )
+      : null;
 
     if (!woocommerceConfig) {
       return {
         success: false,
         data: null,
-        error: "WooCommerce configuration not found.",
+        error: "Active WooCommerce configuration not found.",
       };
     }
 
-    const siteUrl =
-      woocommerceConfig.credentials?.woocommerce?.site_url?.replace(/\/+$/, "");
+    const siteUrl = woocommerceConfig.site_url?.replace(/\/+$/, "");
 
     if (!siteUrl) {
       return {
         success: false,
         data: null,
-        error: "Site URL is missing in WooCommerce credentials.",
+        error: "Site URL is missing in WooCommerce configuration.",
       };
     }
 
-    const consumerKey = woocommerceConfig.credentials.woocommerce.consumer_key;
-    const consumerSecret =
-      woocommerceConfig.credentials.woocommerce.consumer_secret;
+    const consumerKey = woocommerceConfig.consumer_key;
+    const consumerSecret = woocommerceConfig.consumer_secret;
 
     const authHeader = btoa(`${consumerKey}:${consumerSecret}`);
 
     const storeIntegration = configuration || {
-      api_name: "growretails",
+      api_name: woocommerceConfig.App_name || "woocommerce",
       base_url: `${siteUrl}/wp-json`,
       woo_consumer_key: consumerKey,
       woo_consumer_secret: consumerSecret,

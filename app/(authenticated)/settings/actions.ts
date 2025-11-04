@@ -422,7 +422,7 @@ export async function editAIFieldsSettings(
       .asAdmin()
       .from("user_catalog")
       .update({
-        api_connection_json: updatedArray,
+        aiapi_connection_json: updatedArray,
       })
       .eq("user_catalog_id", session.user.user_catalog_id);
     if (error) {
@@ -553,7 +553,6 @@ export async function saveAIFieldsSettings(payload: Partial<AISettings>, randomI
   }
 }
 
-
 export interface WooSettings {
   id: string;
   apiname: string;
@@ -566,6 +565,7 @@ export interface WooSettings {
   updated_at: string;
 }
 
+// Fetch WooCommerce settings for logged-in user
 export async function getWooSettingsData() {
   const session = await auth();
   if (!session?.user?.user_catalog_id) return { error: "No user session found" };
@@ -578,10 +578,9 @@ export async function getWooSettingsData() {
 
     if (error) throw error;
 
-    const rows = (Array.isArray(data?.api_connection_json)
-      ? data?.api_connection_json
-      : []) as any[];
+    const rows = Array.isArray(data?.api_connection_json) ? data.api_connection_json : [];
 
+    // Filter to WooSettings shape
     const wooOnly = rows.filter(
       (r) =>
         r &&
@@ -603,6 +602,7 @@ export async function getWooSettingsData() {
   }
 }
 
+// Save new WooSettings config with uniqueness enforcement on active per apiname
 export async function saveWooFieldsSettings(payload: Partial<WooSettings>, randomId: string) {
   const session = await auth();
   if (!session?.user?.user_catalog_id) throw new Error("No user session found");
@@ -616,11 +616,21 @@ export async function saveWooFieldsSettings(payload: Partial<WooSettings>, rando
 
     if (fetchError) throw fetchError;
 
-    let existingArray: any[] = Array.isArray(userData?.api_connection_json)
-      ? (userData!.api_connection_json as any[])
+    let existingArray: WooSettings[] = Array.isArray(userData?.api_connection_json)
+      ? (userData!.api_connection_json as WooSettings[])
       : [];
 
     const now = new Date().toISOString();
+
+    // If saving as active, deactivate any prior active with same apiname
+    if (payload.status === "active" && payload.apiname) {
+      existingArray = existingArray.map((item) =>
+        item.apiname === payload.apiname && item.status === "active"
+          ? { ...item, status: "inactive", updated_at: now }
+          : item
+      );
+    }
+
     const newRow: WooSettings = {
       id: randomId,
       apiname: payload.apiname ?? "WooCommerce",
@@ -648,6 +658,7 @@ export async function saveWooFieldsSettings(payload: Partial<WooSettings>, rando
   }
 }
 
+// Edit existing WooSettings config with same uniqueness enforcement on active per apiname
 export async function editWooFieldsSettings(editId: string, updatedFields: Partial<WooSettings>) {
   const session = await auth();
   if (!session?.user?.user_catalog_id) throw new Error("No user session found");
@@ -661,19 +672,24 @@ export async function editWooFieldsSettings(editId: string, updatedFields: Parti
 
     if (fetchError) throw fetchError;
 
-    let existingArray: any[] = Array.isArray(userData?.api_connection_json)
-      ? (userData!.api_connection_json as any[])
+    let existingArray: WooSettings[] = Array.isArray(userData?.api_connection_json)
+      ? (userData!.api_connection_json as WooSettings[])
       : [];
 
     const now = new Date().toISOString();
 
-    const updatedArray = existingArray.map((item: any) =>
-      item?.id === editId
-        ? {
-            ...item,
-            ...updatedFields,
-            updated_at: now,
-          }
+    // If setting this config active, deactivate others with same apiname
+    if (updatedFields.status === "active" && updatedFields.apiname) {
+      existingArray = existingArray.map((item) =>
+        item.id !== editId && item.apiname === updatedFields.apiname && item.status === "active"
+          ? { ...item, status: "inactive", updated_at: now }
+          : item
+      );
+    }
+
+    const updatedArray = existingArray.map((item) =>
+      item.id === editId
+        ? { ...item, ...updatedFields, updated_at: now }
         : item
     );
 
@@ -690,6 +706,7 @@ export async function editWooFieldsSettings(editId: string, updatedFields: Parti
   }
 }
 
+// Delete WooSettings config by id
 export async function deleteWooFieldsSettings(deleteId: string) {
   const session = await auth();
   if (!session?.user?.user_catalog_id) throw new Error("No user session found");
@@ -703,11 +720,11 @@ export async function deleteWooFieldsSettings(deleteId: string) {
 
     if (fetchError) throw fetchError;
 
-    let existingArray: any[] = Array.isArray(userData?.api_connection_json)
-      ? (userData!.api_connection_json as any[])
+    let existingArray: WooSettings[] = Array.isArray(userData?.api_connection_json)
+      ? (userData!.api_connection_json as WooSettings[])
       : [];
 
-    const updatedArray = existingArray.filter((item: any) => item?.id !== deleteId);
+    const updatedArray = existingArray.filter((item) => item.id !== deleteId);
 
     const { data, error } = await postgrest
       .asAdmin()

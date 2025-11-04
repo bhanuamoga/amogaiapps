@@ -321,6 +321,7 @@ const ChatwithData = ({
           setIsResponseLoading(false);
           return;
         }
+        
         let aiResponse = result.text.text || "AI response missing.";
         let chartType = result.text.chartType || null;
         let chartData = result.text.chartData || null;
