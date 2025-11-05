@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { dateToIsoString, formatPrice } from "@/lib/utils";
 import * as React from "react";
 import { DateRange } from "react-day-picker";
-import { getApiKey, getRevenueReportsData } from "../actions";
 import { Button } from "@/components/ui/button";
 import {
   Bar,
@@ -57,33 +56,24 @@ export default function SalesTabClient({}: SalesTabClientProps) {
   React.useEffect(() => {
   const fetchApiKey = async () => {
     try {
-      const response = await getApiKey(); // returns the array
-      const apiArray = response[0]?.aiapi_connection_json;
+      const res = await fetch("/api/store-sales-dashboard/getaiapi");
+      const result = await res.json();
 
-      if (!apiArray || apiArray.length === 0) {
-        toast.error("No AI API keys found");
+      if (!result.success || !result.data?.length) {
+        toast.error("No AI API metadata found");
         return;
       }
 
-      // Prefer the default key, fallback to first
-      const defaultKey = apiArray.find((k: any) => k.default) || apiArray[0];
-
-      if (!defaultKey?.key) {
-        toast.error("AI API key is missing.");
-        return;
-      }
-
-      setApiKeys(defaultKey);
-      console.log("Fetched AI API key:", defaultKey);
+      const defaultKey = result.data.find((k: any) => k.default) || result.data[0];
+      setApiKeys(defaultKey); // only stores provider/model/default
     } catch (error) {
-      toast.error("Error fetching AI API key");
-      console.error(error);
+      console.error("Error fetching AI API metadata", error);
+      toast.error("Failed to fetch AI API metadata");
     }
   };
 
   fetchApiKey();
 }, []);
-
 
   // const theme = themes.find((theme) => theme.name === config.theme)
 
@@ -107,41 +97,50 @@ export default function SalesTabClient({}: SalesTabClientProps) {
     }
   }, [chartData]);
 
-  const updateSalesData = (from?: Date, to?: Date) => {
-    if (
-      (filterDate?.from && !filterDate?.to) ||
-      (!filterDate?.from && filterDate?.to)
-    ) {
-      toast.error("select range date", {
-        description: "select range date",
-      });
+const updateSalesData = async (from?: Date, to?: Date) => {
+  if (
+    (filterDate?.from && !filterDate?.to) ||
+    (!filterDate?.from && filterDate?.to)
+  ) {
+    toast.error("Please select a full date range");
+    return;
+  }
+
+  const fromDate = dateToIsoString(filterDate?.from || from);
+  const toDate = dateToIsoString(filterDate?.to || to);
+
+  setLoading(true);
+
+  try {
+    const res = await fetch(
+      `/api/store-sales-dashboard/getrevenue?from=${fromDate}&to=${toDate}`,
+      { method: "GET" }
+    );
+
+    const result = await res.json();
+
+    if (!result.success || !result.data) {
+      toast.error("Failed to load revenue data");
+      setLoading(false);
       return;
     }
-    console.log("filterDate", filterDate);
-    setLoading(true);
-    getRevenueReportsData(
-      dateToIsoString(filterDate?.from || from),
-      dateToIsoString(filterDate?.to || to)
-    )
-      .then((res) => {
-        console.log(res);
-        setRapportData(res.success);
 
-        const chartd = res.success?.intervals.map((interval: any) => {
-          return {
-            name: interval["interval"],
-            ...interval["subtotals"],
-          };
-        });
+    const revenue = result.data;
 
-        console.log("chartd", chartd);
-        setChartData(chartd);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setLoading(false);
-      });
-  };
+    setRapportData(revenue);
+    const chartd = revenue?.intervals?.map((interval: any) => ({
+      name: interval["interval"],
+      ...interval["subtotals"],
+    }));
+    setChartData(chartd);
+  } catch (error) {
+    toast.error("Error fetching revenue data");
+    console.error(error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   React.useEffect(() => {
     console.log("filterDate", filterDate);

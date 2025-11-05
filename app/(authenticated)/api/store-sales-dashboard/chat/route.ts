@@ -1,29 +1,68 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
+import { getApiKey } from "@/app/(authenticated)/store-sales-dashboard/actions";
 
 export async function POST(req: Request) {
-  const { contextData, queryData } = await req.json();
+      try {
+    const { contextData, queryData } = await req.json();
 
-  const { apiKeys } = contextData;
-  const data = JSON.stringify(contextData, null, 2);
+    // Validate request
+    if (!contextData || !queryData) {
+      return Response.json(
+        { error: "Missing contextData or queryData." },
+        { status: 400 }
+      );
+    }
 
-  let modelProvider;
- if (apiKeys?.provider === "google") {
-  const google = createGoogleGenerativeAI({ apiKey: apiKeys?.key });
-  modelProvider = google(apiKeys?.model || "gemini-2.5-flash");
-} else if (apiKeys?.provider === "openai") {
-  const openai = createOpenAI({ apiKey: apiKeys?.key });
-  modelProvider = openai(apiKeys?.model || "gpt-4o");
-} else {
-  return Response.json(
-    { error: "No valid AI provider specified in contextData.apiKeys." },
-    { status: 400 }
-  );
-}
+    // Securely fetch AI API keys from DB
+    const apiKeyData = await getApiKey();
+
+    if (!apiKeyData || apiKeyData.length === 0) {
+      return Response.json(
+        { error: "No AI API keys found in database." },
+        { status: 500 }
+      );
+    }
+
+    const apiKeysArray = apiKeyData[0]?.aiapi_connection_json;
+
+    if (!apiKeysArray || apiKeysArray.length === 0) {
+      return Response.json(
+        { error: "AI API keys missing in database." },
+        { status: 500 }
+      );
+    }
+
+    // Use the key marked as default
+    const defaultKey = apiKeysArray.find((k: any) => k.default) || apiKeysArray[0];
+
+    if (!defaultKey?.key) {
+      return Response.json(
+        { error: "Default AI API key missing key value." },
+        { status: 500 }
+      );
+    }
+
+    // Initialize model
+    let modelProvider;
+    if (defaultKey.provider === "google") {
+      const google = createGoogleGenerativeAI({ apiKey: defaultKey.key });
+      modelProvider = google(defaultKey.model || "gemini-2.5-flash");
+    } else if (defaultKey.provider === "openai") {
+      const openai = createOpenAI({ apiKey: defaultKey.key });
+      modelProvider = openai(defaultKey.model || "gpt-4o-mini");
+    } else {
+      return Response.json(
+        { error: `Unsupported AI provider: ${defaultKey.provider}` },
+        { status: 400 }
+      );
+    }
+
+    // Prepare the context data
+    const data = JSON.stringify(contextData, null, 2);
 
 
-  try {
     const result = await generateText({
       model: modelProvider,
       system: `
@@ -67,41 +106,48 @@ export async function POST(req: Request) {
         I will be using this fields for rendering the text and chart in the UI, so make sure to return these fields properly. 
         Send the response in a valid JSON format, and make sure to include the chartType, chartData, and chartOptions fields if you are generating a chart. Make sure you parse it properly and returna a valid JSON to rendercharts
 
-        let aiResponse = result.text.text || "AI response missing.";
-        let chartType = result.text.chartType || null;
-        let chartData = result.text.chartData || null;
-        let chartOptions = result.text.chartOptions || null;
         Your response must be a valid JSON object that directly addresses the query. ${data}`,
       prompt: queryData,
     });
 
     const { text, usage } = result;
-
     let cleanedText = text.trim();
 
-    // Step 1: Remove ```json ... ```
-    if (cleanedText.startsWith("```json")) {
-      cleanedText = cleanedText
-        .replace(/^```json/, "")
-        .replace(/```$/, "")
-        .trim();
-    } else if (cleanedText.startsWith("```")) {
-      cleanedText = cleanedText.replace(/^```/, "").replace(/```$/, "").trim();
-    }
+    // Clean code fences (```json ... ```)
+    cleanedText = cleanedText
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/```$/, "")
+      .trim();
 
+    // Parse JSON output safely
     let jsonResponse;
     try {
       jsonResponse = JSON.parse(cleanedText);
     } catch (err) {
-      console.error("Failed to parse cleaned response:", err);
-      return Response.json({ text: cleanedText }); // fallback
+      console.error("Failed to parse AI response JSON:", cleanedText, err);
+      return Response.json({ text: cleanedText }, { status: 200 });
     }
+
+    // Validate shape of response
+    if (typeof jsonResponse !== "object" || Array.isArray(jsonResponse)) {
+      return Response.json(
+        { text: cleanedText, warning: "AI response was not a valid object." },
+        { status: 422 }
+      );
+    }
+
+    // Ensure all required fields exist
+    jsonResponse.text ??= "No summary provided.";
+    jsonResponse.chartType ??= null;
+    jsonResponse.chartData ??= null;
+    jsonResponse.chartOptions ??= null;
 
     return Response.json({ text: jsonResponse, usage });
   } catch (error) {
     console.error("AI generation error:", error);
     return Response.json(
-      { error: "Failed to generate response." },
+      { error: "Failed to generate AI response." },
       { status: 500 }
     );
   }

@@ -5,11 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { dateToIsoString } from "@/lib/utils";
 import * as React from "react";
 import { DateRange } from "react-day-picker";
-import {
-  getApiKey,
-  getLeaderboardsData,
-  getRevenueReportsData,
-} from "../actions";
+
 import { Button } from "@/components/ui/button";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import {
@@ -51,36 +47,27 @@ export default function OverviewTabClient({}: OverviewTabClientProps) {
 
   // const theme = themes.find((theme) => theme.name === config.theme)
 
-  React.useEffect(() => {
+ React.useEffect(() => {
   const fetchApiKey = async () => {
     try {
-      const response = await getApiKey(); // returns the array
-      const apiArray = response[0]?.aiapi_connection_json;
+      const res = await fetch("/api/store-sales-dashboard/getaiapi");
+      const result = await res.json();
 
-      if (!apiArray || apiArray.length === 0) {
-        toast.error("No AI API keys found");
+      if (!result.success || !result.data?.length) {
+        toast.error("No AI API metadata found");
         return;
       }
 
-      // Prefer the default key, fallback to first
-      const defaultKey = apiArray.find((k: any) => k.default) || apiArray[0];
-
-      if (!defaultKey?.key) {
-        toast.error("AI API key is missing.");
-        return;
-      }
-
-      setApiKeys(defaultKey);
-      console.log("Fetched AI API key:", defaultKey);
+      const defaultKey = result.data.find((k: any) => k.default) || result.data[0];
+      setApiKeys(defaultKey); // only stores provider/model/default
     } catch (error) {
-      toast.error("Error fetching AI API key");
-      console.error(error);
+      console.error("Error fetching AI API metadata", error);
+      toast.error("Failed to fetch AI API metadata");
     }
   };
 
   fetchApiKey();
 }, []);
-
 
   React.useEffect(() => {
     if (chartData?.length > 0 && leaderboardsData?.length > 0 && apiKeys) {
@@ -106,51 +93,39 @@ export default function OverviewTabClient({}: OverviewTabClientProps) {
       year: "2-digit",
     });
   };
-  const updateSalesData = (from?: Date, to?: Date) => {
-    if (
-      (filterDate?.from && !filterDate?.to) ||
-      (!filterDate?.from && filterDate?.to)
-    ) {
-      toast.error("select range date");
-      return;
-    }
-    console.log("filterDate", filterDate);
-    setLoading(true);
-    getRevenueReportsData(
-      dateToIsoString(filterDate?.from || from),
-      dateToIsoString(filterDate?.to || to)
-    )
-      .then((res) => {
-        console.log(res);
-        setRapportData(res.success);
+   const updateSalesData = async (from?: Date, to?: Date) => {
+  const fromDate = dateToIsoString(filterDate?.from || from);
+  const toDate = dateToIsoString(filterDate?.to || to);
 
-        const chartd = res.success?.intervals.map((interval: any) => {
-          return {
-            name: formatDate(interval["interval"]),
-            ...interval["subtotals"],
-          };
-        });
+  setLoading(true);
+  try {
+    // Revenue
+    const revRes = await fetch(`/api/store-sales-dashboard/getrevenue?from=${fromDate}&to=${toDate}`);
+    const revData = await revRes.json();
 
-        console.log("chartd", chartd);
-        setChartData(chartd);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setLoading(false);
-      });
+    if (!revData.success) throw new Error("Failed to fetch revenue data");
+    setRapportData(revData.data);
 
-    getLeaderboardsData(
-      dateToIsoString(filterDate?.from || from),
-      dateToIsoString(filterDate?.to || to)
-    )
-      .then((res) => {
-        console.log("setLeaderboardsData", res);
-        setLeaderboardsData(res.success);
-      })
-      .catch((err) => {
-        setLeaderboardsData([]);
-      });
-  };
+    const chartd = revData.data?.intervals?.map((i: any) => ({
+      name: formatDate(i.interval),
+      ...i.subtotals,
+    }));
+    setChartData(chartd);
+
+    // Leaderboards
+    const lbRes = await fetch(`/api/store-sales-dashboard/getLeaderboards?from=${fromDate}&to=${toDate}`);
+    const lbData = await lbRes.json();
+    if (lbData.success) setLeaderboardsData(lbData.data);
+    else setLeaderboardsData([]);
+
+  } catch (error) {
+    console.error(error);
+    toast.error("Error fetching overview data");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   React.useEffect(() => {
     console.log("filterDate", filterDate);

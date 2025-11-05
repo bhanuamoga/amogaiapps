@@ -3,9 +3,22 @@
 import { auth } from "@/auth";
 import { postgrest } from "@/lib/postgrest";
 
-export async function createChat(payload) {
+export async function createChat(payload: any) {
   const session = await auth();
   try {
+    // check if chat already exists
+    const { data: existingChat } = await postgrest
+      .from("chat")
+      .select("id")
+      .eq("id", payload.id)
+      .maybeSingle();
+
+    if (existingChat) {
+      // chat already exists, just return success
+      return { data: existingChat, success: true, message: "Chat already exists" };
+    }
+
+    // otherwise, insert new chat
     const { data, error } = await postgrest.from("chat").insert({
       ...payload,
       business_number: session?.user?.business_number,
@@ -16,19 +29,22 @@ export async function createChat(payload) {
       for_business_number: session?.user?.for_business_number,
       for_business_name: session?.user?.for_business_name,
     });
+
     if (error) throw error;
     return { data, success: true };
   } catch (error) {
+    console.error("❌ createChat error:", error);
     throw error;
   }
 }
 
-export async function createMessage(payload) {
+export async function createMessage(payload: any) {
   try {
     const { data, error } = await postgrest.from("message").insert(payload);
     if (error) throw error;
     return data;
   } catch (error) {
+    console.error("❌ createMessage error:", error);
     throw error;
   }
 }
@@ -42,6 +58,7 @@ export async function fetchMessages(chatId: string) {
     if (error) throw error;
     return data;
   } catch (error) {
+    console.error("❌ fetchMessages error:", error);
     throw error;
   }
 }
@@ -54,10 +71,11 @@ export async function getChatHistory() {
       .from("chat")
       .select("*")
       .eq("user_id", userId)
-      .eq("chat_group","Chat with Analytic Agent");
+      .eq("chat_group", "Chat with Analytic Agent");
     if (error) throw error;
     return data;
   } catch (error) {
+    console.error("❌ getChatHistory error:", error);
     return error;
   }
 }
@@ -74,6 +92,7 @@ export async function getChatFavorites() {
     if (error) throw error;
     return data;
   } catch (error) {
+    console.error("❌ getChatFavorites error:", error);
     return error;
   }
 }
@@ -87,6 +106,7 @@ export async function addFavorite(id: string) {
     if (error) throw error;
     return { data, success: true };
   } catch (error) {
+    console.error("❌ addFavorite error:", error);
     throw error;
   }
 }
@@ -95,11 +115,12 @@ export async function addFeedback(id: string, isLike: boolean | null) {
   try {
     const { data, error } = await postgrest
       .from("message")
-      .update({ isLike: isLike })
+      .update({ isLike })
       .eq("id", id);
     if (error) throw error;
     return { data, success: true };
   } catch (error) {
+    console.error("❌ addFeedback error:", error);
     throw error;
   }
 }

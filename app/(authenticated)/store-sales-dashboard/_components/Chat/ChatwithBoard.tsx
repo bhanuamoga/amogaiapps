@@ -67,8 +67,36 @@ interface PageProps {
   >;
 }
 
+// --- helpers: sanitize any secrets from context sent to server ---
+function stripSecrets(obj: any): any {
+  if (obj == null || typeof obj !== "object") return obj;
+
+  if (Array.isArray(obj)) {
+    return obj.map(stripSecrets);
+  }
+
+  const forbiddenKeys = new Set([
+    "key",
+    "apiKey",
+    "apikey",
+    "secret",
+    "token",
+    "accessToken",
+  ]);
+
+  const out: any = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (forbiddenKeys.has(k)) {
+      // drop the secret
+      continue;
+    }
+    out[k] = stripSecrets(v);
+  }
+  return out;
+}
+
 const ChatwithData = ({
-  chatId,
+  chatId: initialChatId,
   openHistory,
   setOpenHistory,
   openFavorite,
@@ -77,12 +105,13 @@ const ChatwithData = ({
   setOpenMenu,
   setUsage,
 }: PageProps) => {
+  const [chatId, setChatId] = React.useState<string | undefined>(initialChatId);
   const [prompt, setPrompt] = React.useState("");
   const [messages, setMessages] = React.useState<any[]>([]);
   const [isResponseLoading, setIsResponseLoading] = React.useState(false);
   const [historyData, setHistoryData] = React.useState<any[]>([]);
   const [favoriteData, setFavoriteData] = React.useState<any[]>([]);
-  const [contextData, setContextData] = React.useState<any[]>([]);
+  const [contextData, setContextData] = React.useState<any>({});
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
   const [isMessageAction, setIsMessageAction] = React.useState(false);
 
@@ -97,6 +126,7 @@ const ChatwithData = ({
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
 
+  // fetch board context (no secrets should be returned by backend; still sanitize defensively)
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
@@ -104,15 +134,23 @@ const ChatwithData = ({
           method: "GET",
         });
         const result = await response.json();
-        setContextData(result.data);
+        const safeData = stripSecrets(result?.data ?? {});
+        setContextData(safeData);
         setSuggestions([]);
       } catch (error) {
-        throw error;
+        console.error(error);
+        toast.error("Failed to load board data");
       }
     };
     fetchSalesData();
   }, []);
 
+  // adopt incoming prop chatId only once on mount / when it changes
+  useEffect(() => {
+    if (initialChatId) setChatId(initialChatId);
+  }, [initialChatId]);
+
+  // speech to text
   useEffect(() => {
     if (!listening && transcript) {
       setPrompt(transcript);
@@ -120,6 +158,7 @@ const ChatwithData = ({
     }
   }, [listening, transcript, resetTranscript]);
 
+  // autoscroll
   useEffect(() => {
     if (
       scrollAreaRef.current &&
@@ -129,7 +168,7 @@ const ChatwithData = ({
     ) {
       const scrollContainer = scrollAreaRef.current.querySelector(
         "[data-radix-scroll-area-viewport]"
-      );
+      ) as HTMLDivElement | null;
       if (scrollContainer) {
         requestAnimationFrame(() => {
           scrollContainer.scrollTop = scrollContainer.scrollHeight;
@@ -139,19 +178,18 @@ const ChatwithData = ({
     isMessageActionUpdate.current = false;
   }, [messages, isAtBottom, suggestions, isMessageAction]);
 
+  // history/favorites
   useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response: any = await getChatHistory("Chat with Store Board");
+        setHistoryData(response);
+      } catch (error) {
+        toast.error("Error fetching history");
+      }
+    };
     fetchHistory();
   }, [openHistory]);
-
-  const fetchHistory = async () => {
-    try {
-      const response: any = await getChatHistory("Chat with Store Board");
-      setHistoryData(response);
-    } catch (error) {
-      toast.error("Error fetching history");
-      throw error;
-    }
-  };
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -160,12 +198,12 @@ const ChatwithData = ({
         setFavoriteData(response);
       } catch (error) {
         toast.error("Error fetching favorites");
-        throw error;
       }
     };
     fetchFavorites();
   }, [openFavorite]);
 
+  // load existing messages if opening an existing chat
   useEffect(() => {
     if (chatId) {
       const renderMessages = async () => {
@@ -200,6 +238,7 @@ const ChatwithData = ({
     }
   }, [chatId]);
 
+  // ensure stable order if createdAt missing (rare)
   useEffect(() => {
     if (messages.length > 0) {
       const sortedMessages = [...messages].sort((a, b) => {
@@ -208,15 +247,12 @@ const ChatwithData = ({
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           );
         }
-        // Fallback to id if available
         if (a.id && b.id) {
-          return a.id - b.id;
+          return String(a.id).localeCompare(String(b.id));
         }
-        // If no reliable sorting field is available, maintain current order
         return 0;
       });
 
-      // Only update if the order has changed
       if (
         JSON.stringify(sortedMessages.map((m) => m.id)) !==
         JSON.stringify(messages.map((m) => m.id))
@@ -227,149 +263,159 @@ const ChatwithData = ({
   }, [messages]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (scrollAreaRef.current) {
-      const scrollContainer = e.currentTarget;
-      const isBottom =
-        scrollContainer.scrollHeight - scrollContainer.scrollTop <=
-        scrollContainer.clientHeight + 10;
-      setIsAtBottom(isBottom);
-    }
+    const scrollContainer = e.currentTarget;
+    const isBottom =
+      scrollContainer.scrollHeight - scrollContainer.scrollTop <=
+      scrollContainer.clientHeight + 10;
+    setIsAtBottom(isBottom);
   };
 
- const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
-  if (!prompt.trim() || !contextData) return;
-  
-  setIsMessageAction(false);
+
+  const queryData = prompt.trim().replace(/"/g, "");
+  if (!queryData) return;
+  if (!session?.user?.user_catalog_id) {
+    toast.error("You must be logged in to send messages.");
+    return;
+  }
+
   setIsResponseLoading(true);
+  setIsMessageAction(false);
 
   try {
-    // Use existing chatId or generate new UUID only if no chat started yet
+    const userId = session.user.user_catalog_id;
     const newChatUuid = uuidv4();
-    const currentChatId = chatId || newChatUuid;
     const userMsgId = uuidv4();
     const assistantMsgId = uuidv4();
+    const currentChatId = chatId || newChatUuid;
     const createdDate = new Date().toISOString();
 
-    // Create chat only once per conversation (if chatId not already known)
+    // ✅ Step 1: Ensure a chat exists — create if not already saved
+    let chatCreated = false;
     if (!chatId) {
-      const createChatPayload = {
+      const chatPayload = {
         id: currentChatId,
-        createdAt: createdDate,
-        user_id: session?.user?.user_catalog_id,
-        title: prompt,
+        user_id: userId,
+        title: queryData,
         status: "active",
         chat_group: "Chat with Store Board",
+        createdAt: createdDate,
       };
 
-      const createChatData = await createChat(createChatPayload);
-      if (!createChatData.success) {
-        toast.error("Error creating chat");
+      const createChatData = await createChat(chatPayload);
+
+      if (createChatData?.success) {
+        chatCreated = true;
+        setChatId(currentChatId);
+      } else {
+        console.error("❌ Chat not saved:", createChatData);
+        toast.error("Failed to save chat record");
       }
     }
 
-    // Add user's message locally
+    // ✅ Step 2: Always update chat title (optional for clarity)
+    if (chatId && !chatCreated) {
+      await createChat({
+        id: currentChatId,
+        user_id: userId,
+        title: queryData,
+        status: "active",
+        chat_group: "Chat with Store Board",
+        createdAt: createdDate,
+      });
+    }
+
+    // ✅ Step 3: Save user message
     const userMessage = {
       id: userMsgId,
       chatId: currentChatId,
-      content: prompt,
-      text: prompt,
+      content: queryData,
       role: "user",
       createdAt: createdDate,
-      user_id: session?.user?.user_catalog_id,
+      user_id: userId,
+      chat_group: "Chat with Store Board",
     };
-    setMessages((prev) => [...prev, userMessage]);
 
-    // Persist user's message in backend
-    await createMessage({
-      id: userMsgId,
-      chatId: currentChatId,
-      content: prompt,
-      role: "user",
-      createdAt: createdDate,
-      user_id: session?.user?.user_catalog_id,
-    });
+    setMessages((prev) => [...prev, { ...userMessage, text: queryData }]);
+    await createMessage(userMessage);
 
-    // Add placeholder assistant message while waiting for AI response
-    const assistantMessage = {
+    // ✅ Step 4: Add a temporary “assistant is typing” message
+    const assistantMsg = {
       id: assistantMsgId,
       chatId: currentChatId,
       content: "Generating...",
-      text: "Generating...",
       role: "assistant",
       createdAt: createdDate,
-      user_id: session?.user?.user_catalog_id,
+      user_id: userId,
     };
-    setMessages((prev) => [...prev, assistantMessage]);
+    setMessages((prev) => [...prev, assistantMsg]);
 
-    // Call AI API with context and prompt
+    // ✅ Step 5: Fetch AI response safely
+    const safeContext = stripSecrets(contextData);
     const response = await fetch("/api/store-sales-dashboard/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contextData, queryData: prompt }),
+      body: JSON.stringify({ contextData: safeContext, queryData }),
     });
 
     const result = await response.json();
+    if (result?.usage) setUsage(result.usage);
 
-    // Extract AI response text and optional chart data safely
-    let aiResponse = "AI response missing.";
+    // ✅ Step 6: Parse AI response
+    let aiResponse = "";
     let chartType = null;
     let chartData = null;
     let chartOptions = null;
 
-    if (result?.text) {
-      if (typeof result.text === "object" && result.text !== null) {
-        aiResponse = result.text.text || result.text.summary || aiResponse;
-        chartType = result.text.chartType || null;
-        chartData = result.text.chartData || null;
-        chartOptions = result.text.chartOptions || null;
-      } else if (typeof result.text === "string") {
-        aiResponse = result.text;
-      }
+    if (result?.text && typeof result.text === "object") {
+      aiResponse = result.text.text || result.text.summary || "Response ready.";
+      chartType = result.text.chartType ?? null;
+      chartData = result.text.chartData ?? null;
+      chartOptions = result.text.chartOptions ?? null;
+    } else {
+      aiResponse = result?.text || "No structured chart data found.";
     }
 
-    if (result.usage) {
-      setUsage(result.usage);
-    }
+    // ✅ Step 7: Update assistant message in UI
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === assistantMsgId
+          ? {
+              ...msg,
+              text: aiResponse,
+              content: aiResponse,
+              chartType,
+              chartData,
+              chartOptions,
+            }
+          : msg
+      )
+    );
 
-    // Update last assistant message with actual AI response
-    setMessages((prev) => {
-      const updatedMessages = [...prev];
-      const lastIndex = updatedMessages.findIndex((m) => m.id === assistantMsgId);
-      if (lastIndex !== -1) {
-        updatedMessages[lastIndex] = {
-          ...updatedMessages[lastIndex],
-          content: aiResponse,
-          text: aiResponse,
-          chartType,
-          chartData,
-          chartOptions,
-        };
-      }
-      return updatedMessages;
-    });
-
-    // Persist assistant's message
+    // ✅ Step 8: Save assistant message in DB
     await createMessage({
       id: assistantMsgId,
       chatId: currentChatId,
       content: aiResponse,
       role: "assistant",
+      chat_group: "Chat with Store Board",
       createdAt: new Date().toISOString(),
-      user_id: session?.user?.user_catalog_id,
+      user_id: userId,
       chartType,
       chartData,
       chartOptions,
     });
 
-    setPrompt(""); // clear input
+    setPrompt("");
   } catch (error) {
-    toast.error("An error occurred.");
-    console.error(error);
+    console.error("❌ Error in handleSubmit:", error);
+    toast.error("Failed to process your message");
   } finally {
     setIsResponseLoading(false);
   }
 };
+
 
   const handleFavorite = async (message: any) => {
     const newFavoriteStatus = !message.favorite;
@@ -381,8 +427,7 @@ const ChatwithData = ({
       )
     );
     const favorite = await addFavorite(message.id);
-
-    if (!favorite.success) {
+    if (!favorite?.success) {
       toast.error("Error adding favorite");
     }
   };
@@ -397,143 +442,129 @@ const ChatwithData = ({
       )
     );
     const feedback = await addFeedback(message.id, newLikeStatus);
-
-    if (!feedback.success) {
-      toast.error("Error adding favorite");
+    if (!feedback?.success) {
+      toast.error("Error saving feedback");
     }
   };
 
   const handleSuggestedPromps = async (query: string) => {
     const queryData = query.replace(/"/g, "");
-    if (!queryData) return null;
-    setIsMessageAction(false);
+    if (!queryData) return;
+    if (!session?.user?.user_catalog_id) {
+      toast.error("You must be signed in to chat.");
+      return;
+    }
 
+    setIsMessageAction(false);
     setIsResponseLoading(true);
+
     try {
-      const newChatUuid = uuidv4();
-      const userMsgId = uuidv4();
-      const assistantMsgId = uuidv4();
-      const currentChatId = chatId || newChatUuid;
+      // existing or new chat
+      let currentChatId = chatId;
       const createdDate = new Date().toISOString();
-      if (chatId) {
+
+      if (!currentChatId) {
+        currentChatId = uuidv4();
         const payload = {
           createdAt: createdDate,
-          user_id: session?.user?.user_catalog_id,
+          user_id: session.user.user_catalog_id,
           id: currentChatId,
           title: queryData,
           status: "active",
           chat_group: "Chat with Store Board",
         };
         const createChatData = await createChat(payload);
-        if (!createChatData.success) {
+        if (!createChatData?.success) {
           toast.error("Error creating chat");
         }
+        setChatId(currentChatId);
       }
+
+      // add user message
+      const userMsgId = uuidv4();
+      const assistantMsgId = uuidv4();
 
       const userMessage = {
         id: userMsgId,
-        chatId: currentChatId,
+        chatId: currentChatId!,
         content: queryData,
         text: queryData,
         role: "user",
         createdAt: createdDate,
-        user_id: session?.user?.user_catalog_id,
-        bookmark: null,
-
-        isLike: null,
-        favorite: null,
+        user_id: session.user.user_catalog_id,
       };
-
       setMessages((prev) => [...prev, userMessage]);
+      await createMessage(userMessage);
 
-      const messagePayload = {
-        id: userMsgId,
-        chatId: currentChatId,
-        content: queryData,
-        role: "user",
-        createdAt: createdDate,
-        user_id: session?.user?.user_catalog_id,
-      };
-      await createMessage(messagePayload);
-
+      // placeholder assistant
       const assistantMsg = {
         id: assistantMsgId,
-        chatId: currentChatId,
+        chatId: currentChatId!,
         content: "Generating...",
+        text: "Generating...",
         role: "assistant",
         createdAt: createdDate,
-        user_id: session?.user?.user_catalog_id,
-
-        bookmark: null,
-        isLike: null,
-        favorite: null,
+        user_id: session.user.user_catalog_id,
       };
-
       setMessages((prev) => [...prev, assistantMsg]);
 
-      try {
-        const response = await fetch("/api/ai-chat/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contextData, queryData }),
-        });
-        const result = await response.json();
+      // sanitize context before sending
+      const safeContext = stripSecrets(contextData);
 
-        if (!response.body) {
-          toast.error("No response body from AI");
-          setIsResponseLoading(false);
-          return;
-        }
+      const response = await fetch("/api/store-sales-dashboard/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contextData: safeContext, queryData }),
+      });
+      const result = await response.json();
 
-        let aiResponse = "";
-        let chartType = null;
-        let chartData = null;
-        let chartOptions = null;
+      let aiResponse = "";
+      let chartType: any = null;
+      let chartData: any = null;
+      let chartOptions: any = null;
 
-        if (result.chartType && result.chartData && result.chartOptions) {
-          chartType = result.chartType;
-          chartData = result.chartData;
-          chartOptions = result.chartOptions;
-          aiResponse = result.text || "Here's your chart.";
-        } else {
-          aiResponse = result.text || "No structured chart data found.";
-        }
-
-        setMessages((prev) => {
-          const messages = [...prev];
-          if (
-            messages.length > 0 &&
-            messages[messages.length - 1].role === "assistant"
-          ) {
-            messages[messages.length - 1].text = aiResponse;
-            messages[messages.length - 1].content = aiResponse; // Update both fields
-            messages[messages.length - 1].chartType = chartType;
-            messages[messages.length - 1].chartData = chartData;
-            messages[messages.length - 1].chartOptions = chartOptions;
-          }
-          return messages;
-        });
-
-        await createMessage({
-          id: assistantMsgId,
-          chatId: currentChatId,
-          content: aiResponse,
-          role: "assistant",
-          createdAt: new Date().toISOString(),
-          user_id: session?.user?.user_catalog_id,
-        });
-      } catch (error) {
-        toast.error("Failed fetching response");
-        throw error;
+      if (result?.text && typeof result.text === "object") {
+        aiResponse = result.text.text || "Here's your chart.";
+        chartType = result.text.chartType ?? null;
+        chartData = result.text.chartData ?? null;
+        chartOptions = result.text.chartOptions ?? null;
+      } else {
+        aiResponse = result?.text || "No structured chart data found.";
       }
 
-      setIsResponseLoading(false);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantMsgId
+            ? {
+                ...m,
+                text: aiResponse,
+                content: aiResponse,
+                chartType,
+                chartData,
+                chartOptions,
+              }
+            : m
+        )
+      );
+
+      await createMessage({
+        id: assistantMsgId,
+        chatId: currentChatId!,
+        content: aiResponse,
+        role: "assistant",
+        createdAt: new Date().toISOString(),
+        user_id: session.user.user_catalog_id,
+        chartType,
+        chartData,
+        chartOptions,
+      });
 
       setPrompt("");
     } catch (error) {
+      console.error(error);
+      toast.error("Failed fetching AI response");
+    } finally {
       setIsResponseLoading(false);
-
-      throw error;
     }
   };
 
@@ -547,26 +578,33 @@ const ChatwithData = ({
   };
 
   const speak = (text: string) => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && typeof text === "string") {
       const synth = window.speechSynthesis;
       synth.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.pitch = 1;
-      utterance.voice = window.speechSynthesis.getVoices()[1];
-
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices[1]) utterance.voice = voices[1];
       synth.speak(utterance);
     }
   };
 
   return (
-    <div className="mt-5 flex w-full  justify-center  h-screen ">
-      <div className="flex flex-col justify-center items-center  w-full h-full">
+    <div className="mt-5 flex w-full justify-center h-screen ">
+      <div className="flex flex-col justify-center items-center w-full h-full">
         <HistoryBar
           open={openHistory}
           data={historyData}
           title="History"
           setOpen={setOpenHistory}
-          fetchHistory={fetchHistory}
+          fetchHistory={async () => {
+            try {
+              const response: any = await getChatHistory("Chat with Store Board");
+              setHistoryData(response);
+            } catch {
+              toast.error("Error fetching history");
+            }
+          }}
         />
         <FavoritesBar
           open={openFavorite}
@@ -593,30 +631,31 @@ const ChatwithData = ({
               </div>
             ))}
         </div>
-        <div className="flex-1  w-full h-[85%]">
+
+        <div className="flex-1 w-full h-[85%]">
           <ScrollArea
             ref={scrollAreaRef}
             onScroll={handleScroll}
             className="flex-1 w-full h-full"
           >
-            <div className="flex mr-5  flex-col gap-4 w-full md:p-4 pb-8">
+            <div className="flex mr-5 flex-col gap-4 w-full md:p-4 pb-8">
               {messages.map((message, index) => (
                 <div
-                  key={index}
+                  key={message.id ?? index}
                   className="flex items-center gap-2 w-full justify-start "
                 >
                   <div className="flex bg-secondary rounded-full h-10 w-10 flex-col items-center justify-center">
                     {message.role === "user" ? (
                       <p className="flex flex-col items-center justify-center">
-                        {session?.user?.user_name?.[0].toUpperCase()}
+                        {session?.user?.user_name?.[0]?.toUpperCase() ?? "U"}
                       </p>
                     ) : (
                       <Bot className="w-5 h-5" />
                     )}
                   </div>
-                  <div className="flex w-[680px] flex-col  gap-2  ">
+                  <div className="flex w-[680px] flex-col gap-2">
                     <div
-                      className={` rounded-t-md  break-words break-all overflow-y-auto   rounded-l-lg p-3 ${
+                      className={`rounded-t-md break-words break-all overflow-y-auto rounded-l-lg p-3 ${
                         message.role === "user" ? "bg-muted" : "bg-muted"
                       }`}
                     >
@@ -625,6 +664,7 @@ const ChatwithData = ({
                           ? message.text
                           : JSON.stringify(message.text ?? "Generating...")}
                       </ReactMarkdown>
+
                       {message.chartType && message.chartData && (
                         <div className="mt-4">
                           <Chart
@@ -640,62 +680,69 @@ const ChatwithData = ({
                       )}
                     </div>
 
-                    <div>
-                      {message.role === "assistant" && (
-                        <div className="flex  md:ml-3 items-center gap-5">
-                          <div className="flex items-center gap-5">
-                            <Eye className="w-5 h-5 cursor-pointer text-muted-foreground" />
-                            <Star
-                              className={`w-5 h-5 cursor-pointer text-muted-foreground ${
-                                message.favorite
-                                  ? "fill-primary text-primary"
-                                  : ""
-                              }`}
-                              onClick={() => handleFavorite(message)}
-                            />
-                            <Copy
-                              onClick={() => {
-                                navigator.clipboard.writeText(message.text);
-                                toast.success("Copied to clipboard");
-                              }}
-                              className="w-5 h-5 cursor-pointer text-muted-foreground"
-                            />
-                            <RefreshCw className="w-5 h-5 cursor-pointer text-muted-foreground" />
-                            <Share2 className="w-5 h-5 cursor-pointer text-muted-foreground" />
-                            <Edit className="w-5 h-5 cursor-pointer text-muted-foreground" />
-                            <Volume2
-                              onClick={() => speak(message.text)}
-                              className="w-5 h-5 cursor-pointer text-muted-foreground"
-                            />
-                          </div>
-                          <div className="flex items-center  gap-5 justify-end w-full">
-                            <ThumbsUp
-                              onClick={() => handleLike(message, true)}
-                              className={`w-5 h-5 ${
-                                message.isLike === true &&
-                                "fill-primary text-primary"
-                              } cursor-pointer text-muted-foreground`}
-                            />
-                            <ThumbsDown
-                              onClick={() => handleLike(message, false)}
-                              className={`w-5 h-5 ${
-                                message.isLike === false &&
-                                "fill-primary text-primary"
-                              } cursor-pointer text-muted-foreground`}
-                            />
-                          </div>
+                    {message.role === "assistant" && (
+                      <div className="flex md:ml-3 items-center gap-5">
+                        <div className="flex items-center gap-5">
+                          <Eye className="w-5 h-5 cursor-pointer text-muted-foreground" />
+                          <Star
+                            className={`w-5 h-5 cursor-pointer text-muted-foreground ${
+                              message.favorite ? "fill-primary text-primary" : ""
+                            }`}
+                            onClick={() => handleFavorite(message)}
+                          />
+                          <Copy
+                            onClick={() => {
+                              navigator.clipboard.writeText(
+                                typeof message.text === "string"
+                                  ? message.text
+                                  : JSON.stringify(message.text ?? "")
+                              );
+                              toast.success("Copied to clipboard");
+                            }}
+                            className="w-5 h-5 cursor-pointer text-muted-foreground"
+                          />
+                          <RefreshCw className="w-5 h-5 cursor-pointer text-muted-foreground" />
+                          <Share2 className="w-5 h-5 cursor-pointer text-muted-foreground" />
+                          <Edit className="w-5 h-5 cursor-pointer text-muted-foreground" />
+                          <Volume2
+                            onClick={() =>
+                              speak(
+                                typeof message.text === "string"
+                                  ? message.text
+                                  : JSON.stringify(message.text ?? "")
+                              )
+                            }
+                            className="w-5 h-5 cursor-pointer text-muted-foreground"
+                          />
                         </div>
-                      )}
-                    </div>
+                        <div className="flex items-center gap-5 justify-end w-full">
+                          <ThumbsUp
+                            onClick={() => handleLike(message, true)}
+                            className={`w-5 h-5 ${
+                              message.isLike === true &&
+                              "fill-primary text-primary"
+                            } cursor-pointer text-muted-foreground`}
+                          />
+                          <ThumbsDown
+                            onClick={() => handleLike(message, false)}
+                            className={`w-5 h-5 ${
+                              message.isLike === false &&
+                              "fill-primary text-primary"
+                            } cursor-pointer text-muted-foreground`}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           </ScrollArea>
         </div>
+
         <form
           onSubmit={handleSubmit}
-          className=" mt-4 sticky bottom-0 w-full  p-4 bg-background"
+          className="mt-4 sticky bottom-0 w-full p-4 bg-background"
         >
           <div className="rounded-full flex items-center p-2.5 border">
             <Input
@@ -707,7 +754,7 @@ const ChatwithData = ({
             <div className="flex items-center gap-4">
               <FileUp className="w-5 h-5 cursor-not-allowed text-muted-foreground" />
               <Button
-                disabled={isResponseLoading || !prompt}
+                disabled={isResponseLoading || !prompt.trim()}
                 size={"icon"}
                 className="rounded-full"
               >
@@ -738,5 +785,4 @@ const ChatwithData = ({
 };
 
 const ChatwithBoard = React.memo(ChatwithData);
-
 export default ChatwithBoard;
