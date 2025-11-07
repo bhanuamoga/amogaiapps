@@ -359,6 +359,19 @@
       }
     }
   },
+  "storeaichat": {
+    "welcome": "Chào mừng đến với Trò chuyện AI",
+    "description": "Tôi có thể giúp gì cho bạn hôm nay? Chọn một gợi ý bên dưới hoặc bắt đầu nhập câu hỏi của bạn.",
+    "analyze": "Phân tích tài liệu",
+    "insights": "Nhận thông tin chi tiết từ tệp của bạn",
+    "visualization": "Tạo hình trực quan",
+    "charts": "Tạo biểu đồ từ dữ liệu của bạn",
+    "summarize": "Tóm tắt nội dung",
+    "extract": "Trích xuất thông tin chính",
+    "get": "Nhận thông tin chi tiết",
+    "receive": "Nhận đề xuất thông minh",
+    "placeholder": "Đặt câu hỏi tiếp theo..."
+  },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

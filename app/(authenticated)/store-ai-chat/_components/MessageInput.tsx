@@ -11,6 +11,7 @@ import { useUISettings } from "@/context/langchin-agent/UISettingsContext";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button as UIButton } from "@/components/ui/button";
 import { StandardApiConfig } from "@/app/(authenticated)/settings/actions";
+import { useTranslations } from "next-intl";
 
 
 interface MessageInputProps {
@@ -38,7 +39,7 @@ export const MessageInput = ({
   // UI settings for toggling tool messages
   const { aiConfigs, apiConfigs, selectedModel: ctxModel, selectedAiConfig, setSelectedModel: setCtxModel, setSelectedAiConfig, selectedApi, setSelectedApi, missingAiOrApi } = useUISettings();
   const [showSetupDialog, setShowSetupDialog] = useState(false);
-
+  const t= useTranslations("storeaichat");
   useEffect(() => {
     if (ctxModel) setSelectedModel(ctxModel);
     if (missingAiOrApi) setShowSetupDialog(true);
@@ -122,9 +123,9 @@ export const MessageInput = ({
               <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
                 <Bot className="w-8 h-8 text-primary" />
               </div>
-              <h1 className="text-3xl font-bold">Welcome to AI Chat</h1>
+              <h1 className="text-3xl font-bold">{t("welcome")}</h1>
               <p className="text-muted-foreground text-lg">
-                How can I help you today? Choose a suggestion below or start typing your own question.
+                {t("description")}
               </p>
             </div>
 
@@ -136,9 +137,9 @@ export const MessageInput = ({
               >
                 <div className="flex items-start space-x-3">
                   <FileSearch className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-base">Analyze Documents</p>
-                    <p className="text-sm text-muted-foreground mt-1">Get insights from your files</p>
+                  <div className="flex-1 min-w-0  max-w-[250px]">
+                    <p className="font-medium text-base">{t("analyze")}</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-tight truncate text-ellipsis overflow-hidden whitespace-nowrap">{t("insights")}</p>
                   </div>
                 </div>
               </Button>
@@ -150,9 +151,9 @@ export const MessageInput = ({
               >
                 <div className="flex items-start space-x-3">
                   <BarChart3 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-base">Create Visualizations</p>
-                    <p className="text-sm text-muted-foreground mt-1">Generate charts from your data</p>
+                  <div className="flex-1 min-w-0  max-w-[250px]">
+                    <p className="font-medium text-base">{t("visualization")}</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-tight truncate text-ellipsis overflow-hidden whitespace-nowrap">{t("charts")}</p>
                   </div>
                 </div>
               </Button>
@@ -164,9 +165,9 @@ export const MessageInput = ({
               >
                 <div className="flex items-start space-x-3">
                   <FileText className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-base">Summarize Content</p>
-                    <p className="text-sm text-muted-foreground mt-1">Extract key information</p>
+                  <div className="flex-1 min-w-0 max-w-[250px]">
+                    <p className="font-medium text-base">{t("summarize")}</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-tight truncate text-ellipsis overflow-hidden whitespace-nowrap">{t("extract")}</p>
                   </div>
                 </div>
               </Button>
@@ -178,9 +179,9 @@ export const MessageInput = ({
               >
                 <div className="flex items-start space-x-3">
                   <Lightbulb className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-base">Get Insights</p>
-                    <p className="text-sm text-muted-foreground mt-1">Receive smart recommendations</p>
+                  <div className="flex-1 min-w-0 max-w-[250px]">
+                    <p className="font-medium text-base">{t("get")}</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-tight truncate text-ellipsis overflow-hidden whitespace-nowrap">{t("receive")}</p>
                   </div>
                 </div>
               </Button>
@@ -366,7 +367,7 @@ export const MessageInput = ({
             </DropdownMenu>
 
             <Input
-              placeholder="Ask a follow-up..."
+              placeholder= {t("placeholder")}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && handleSubmit(e)}

@@ -359,6 +359,19 @@
       }
     }
   },
+  "storeaichat": {
+    "welcome": "Bienvenue dans le chat IA",
+    "description": "Comment puis-je vous aider aujourd'hui ? Choisissez une suggestion ci-dessous ou commencez à taper votre propre question.",
+    "analyze": "Analyser les documents",
+    "insights": "Obtenez des informations à partir de vos fichiers",
+    "visualization": "Créer une visualisation",
+    "charts": "Générer des graphiques à partir de vos données",
+    "summarize": "Résumer le contenu",
+    "extract": "Extraire les informations clés",
+    "get": "Obtenir des informations",
+    "receive": "Recevoir des recommandations intelligentes",
+    "placeholder": "Posez une question de suivi..."
+  },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

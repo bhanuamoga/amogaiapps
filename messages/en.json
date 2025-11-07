@@ -359,6 +359,19 @@
       }
     }
   },
+  "storeaichat": {
+    "welcome": "Welcome to AI Chat",
+    "description": "How can I help you today? Choose a suggestion below or start typing your own question.",
+    "analyze": "Analyze Documents",
+    "insights": "Get insights from your files",
+    "visualization": "Create Visualization",
+    "charts": "Generate charts from your data",
+    "summarize": "Summarize Content",
+    "extract": "Extract key information",
+    "get": "Get Insights",
+    "receive": "Receive smart recommendations",
+    "placeholder": "Ask a follow-up..."
+  },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",

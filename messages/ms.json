@@ -359,6 +359,19 @@
       }
     }
   },
+  "storeaichat": {
+    "welcome": "Selamat datang ke Sembang AI",
+    "description": "Bagaimana saya boleh membantu anda hari ini? Pilih cadangan di bawah atau mula menaip soalan anda sendiri.",
+    "analyze": "Analisis Dokumen",
+    "insights": "Dapatkan pandangan daripada fail anda",
+    "visualization": "Cipta Visualisasi",
+    "charts": "Hasilkan carta daripada data anda",
+    "summarize": "Ringkaskan Kandungan",
+    "extract": "Ekstrak maklumat utama",
+    "get": "Dapatkan Pandangan",
+    "receive": "Terima cadangan pintar",
+    "placeholder": "Tanya soalan susulan..."
+  },
   "LocaleSwitcher": {
     "label": "Language",
     "en": "English",
