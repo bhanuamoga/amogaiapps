@@ -1,0 +1,41 @@
+"use client";
+// import { useCallback, useState } from "react";
+// import { ThreadList } from "./ThreadList";
+// import Sidebar from "./Sidebar";
+// import Header from "./Header";
+import { ReactNode } from "react";
+//import { MCPServerList } from "./MCPServerList";
+
+interface MainLayoutProps {
+  children: ReactNode;
+}
+
+export function MainLayout({ children }: MainLayoutProps) {
+  // const [isSidebarOpen, setSidebarOpen] = useState(false);
+  // const [showMCPConfig, setShowMCPConfig] = useState(false);
+  // const toggleSidebar = useCallback(() => setSidebarOpen((v) => !v), []);
+  // const openMCPConfig = useCallback(() => { setShowMCPConfig(true); console.log(showMCPConfig); }, [showMCPConfig]);
+  // const closeMCPConfig = useCallback(() => setSho wMCPConfig(false), []);
+
+  return (
+    <div className="flex h-full overflow-hidden bg-background mx-auto max-w-full sm:max-w-[800px] w-full">
+      {/* Sidebar */}
+      {/* <Sidebar isOpen={isSidebarOpen} toggle={toggleSidebar}>
+        <ThreadList onOpenMCPConfig={openMCPConfig} />
+      </Sidebar> */}
+
+      {/* Main content area */}
+      <div className="bg-background flex min-w-0 flex-1 flex-col">
+        {/* <div className="z-10">
+          <Header toggleSidebar={toggleSidebar} />
+        </div> */}
+
+        {/* Main content */}
+        <div className="relative h-[calc(100vh-4rem)] flex-1">{children}</div>
+      </div>
+
+      {/* MCP Configuration Modal */}
+      {/*<MCPServerList isOpen={showMCPConfig} onClose={closeMCPConfig} />*/}
+    </div>
+  );
+}

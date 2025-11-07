@@ -52,7 +52,7 @@ export default function OverviewTabClient({}: OverviewTabClientProps) {
     try {
       const res = await fetch("/api/store-sales-dashboard/getaiapi");
       const result = await res.json();
-
+      console.log(result)
       if (!result.success || !result.data?.length) {
         toast.error("No AI API metadata found");
         return;

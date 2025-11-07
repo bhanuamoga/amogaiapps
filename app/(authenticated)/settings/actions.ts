@@ -6,6 +6,14 @@ import { postgrest } from "@/lib/postgrest";
 import { revalidatePath } from "next/cache";
 
 // Represents configuration for a SINGLE platform
+export interface StandardApiConfig {
+  id: string;
+  apiName: string;
+  appName: string;
+  apiUrl: string;
+  apiSecret: string;
+  apiKey: string;
+}
 export interface DataSourceConfig {
   platform_type: "shopify" | "woocommerce";
   status: "active" | "inactive" | "error" | "pending";
