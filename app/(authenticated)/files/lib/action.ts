@@ -97,11 +97,12 @@ export async function getChatFavorites() {
   }
 }
 
-export async function addFavorite(id: string) {
+
+export async function addFavorite(id: string,isFavorite: boolean) {
   try {
     const { data, error } = await postgrest
       .from("message")
-      .update({ favorite: true })
+      .update({favorite: isFavorite })
       .eq("id", id);
     if (error) throw error;
     return { data, success: true };

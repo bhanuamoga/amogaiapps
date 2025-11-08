@@ -81,21 +81,29 @@ export async function getFormSetupData() {
     throw error;
   }
 }
-
 export async function deleteChat(id: string) {
+  try {
+    const { error } = await postgrest.from("chat").delete().eq("id", id);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error("❌ Error deleting chat:", error);
+    return { success: false };
+  }
+}
+
+export async function toggleBookmark(id: string, bookmark: boolean) {
   try {
     const { error } = await postgrest
       .from("chat")
-      .update({ status: "delete" })
+      .update({ bookmark })
       .eq("id", id);
 
-    if (error) {
-      throw new Error("Failed to delete chat");
-    }
-
+    if (error) throw error;
     return { success: true };
   } catch (error) {
-    console.error("Error deleting chat:", error);
-    throw error;
+    console.error("❌ toggleBookmark error:", error);
+    return { success: false };
   }
 }

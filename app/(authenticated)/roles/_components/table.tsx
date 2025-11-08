@@ -6,6 +6,7 @@ import type {
   DataTableFilterField,
   DataTableRowAction,
 } from "@/types";
+import { v4 as uuidv4 } from "uuid";
 import * as React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -24,10 +25,11 @@ import { RecordsTableFloatingBar } from "./table-floating-bar";
 import { RecordsTableToolbarActions } from "./table-toolbar-actions";
 import { UpdateRecordSheet } from "./update-sheet";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Row, Table } from "@tanstack/react-table";
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { CardsView } from "./view-cards";
-import { Plus } from "lucide-react";
+import { Plus,MessageCircle } from "lucide-react";
 
 interface RecordsTableProps {
   promises: Promise<
@@ -48,6 +50,7 @@ interface ViewOption {
 }
 
 export function RecordsTable({ promises }: RecordsTableProps) {
+  const chatId = uuidv4();
   const { featureFlags } = useFeatureFlags();
 
   const [{ data, pageCount }, statusCounts] = React.use(promises);
@@ -215,6 +218,22 @@ export function RecordsTable({ promises }: RecordsTableProps) {
           </DataTableToolbar>
         )}
       </DataTable>
+      <div className="flex justify-end mt-6">
+        <Link
+          href={{
+            pathname: `/store-sales-dashboard/chat/${chatId}`,
+            query: { contextType: "roles" },
+          }}
+        >
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 text-sm shadow-md"
+          >
+            <MessageCircle className="w-4 h-4" />
+            Chat with Roles Data
+          </Button>
+        </Link>
+      </div>
 
       <UpdateRecordSheet
         open={rowAction?.type === "update" || rowAction?.type === "new"}

@@ -147,8 +147,8 @@
   --card-foreground: 0 0% 95%;
   --popover: 0 0% 12%;             /* dark popover */
   --popover-foreground: 0 0% 95%;
-  --primary: 0 0% 85%;             /* darkened primary background */
-  --primary-foreground: 0 0% 98.5%;
+  --primary: 0 0% 85%;
+  --primary-foreground: 0 0% 10%;  /* Deep near-black */
   --secondary: 0 0% 12%;           /* secondary dark */
   --secondary-foreground: 0 0% 95%;
   --muted: 0 0% 15%;               /* muted dark areas */
@@ -205,7 +205,7 @@
   --popover: 0 0% 12%;             /* dark popover */
   --popover-foreground: 0 0% 95%;
   --primary: 0 0% 85%;             /* darkened primary background */
-  --primary-foreground: 0 0% 98.5%;
+  --primary-foreground: 0 0% 10%;  /* Deep near-black */
   --secondary: 0 0% 12%;           /* secondary dark */
   --secondary-foreground: 0 0% 95%;
   --muted: 0 0% 15%;               /* muted dark areas */
