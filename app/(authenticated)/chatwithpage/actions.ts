@@ -38,15 +38,12 @@ export async function getApis() {
   } catch (error) {
     throw error;
   }
-}
-
-
-export async function saveChatTitle(chatUuid: string, title: string) {
+} 
+export async function saveChatTitle(chatUuid: string, title: string,chat_share_url?: string) {
   const session = await auth();
   const userId = session?.user?.user_catalog_id;
-
-  if (!userId) throw new Error("Unauthorized: No valid session or user ID found.");
-
+  const userEmail = session?.user?.user_email;
+  const businessname =session?.user?.business_name;
   try {
     const { data, error } = await postgrest
       .from("chat" as any)
@@ -54,7 +51,14 @@ export async function saveChatTitle(chatUuid: string, title: string) {
         {
           id: chatUuid, // ✅ store frontend UUID here
           title,
-          user_id: userId, // ✅ store session user ID (string)
+          user_id: userId,
+          user_email: userEmail,
+          business_name:businessname,
+          chat_group: "Chat With Page",
+          status:"active",
+          visibility:"yes",
+          bookmark:"false",
+          chat_share_url: chat_share_url ?? null, // ✅ store session user ID (string)
         },
       ])
       .select("*");
@@ -68,16 +72,17 @@ export async function saveChatTitle(chatUuid: string, title: string) {
 }
 
 /* ---------------------- UPDATE CHAT TITLE ---------------------- */
-export async function updateChatTitle(chatUuid: string, title: string) {
+export async function updateChatTitle(chatUuid: string, title: string,chat_share_url?: string) {
   const session = await auth();
   const userId = session?.user?.user_catalog_id;
 
   if (!userId) throw new Error("Unauthorized: No valid session or user ID found.");
-
+    const updateData: Record<string, any> = { title };
+    if (chat_share_url) updateData.chat_share_url = chat_share_url;
   try {
     const { data, error } = await postgrest
       .from("chat" as any)
-      .update({ title })
+      .update(updateData)
       .eq("id", chatUuid) // ✅ compare by uuid column
       .eq("user_id", userId)
       .select("*");

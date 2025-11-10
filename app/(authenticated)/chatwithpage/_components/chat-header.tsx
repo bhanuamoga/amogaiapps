@@ -76,10 +76,11 @@ export default function ThreadHeaderSticky({ chatUuid }: ThreadHeaderStickyProps
   /* ---------------------- SAVE (UPDATE) CHAT TITLE ---------------------- */
   async function saveChatTitle(newTitle: string) {
     try {
+       const chat_share_url = window.location.href;
       const res = await fetch("/api/chatwithpage/title", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chatId: chatUuid, title: newTitle }),
+        body: JSON.stringify({ chatId: chatUuid, title: newTitle,chat_share_url }),
       });
 
       if (res.ok) {

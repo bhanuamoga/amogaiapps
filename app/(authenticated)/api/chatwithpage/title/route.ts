@@ -10,6 +10,7 @@ export async function GET(req: Request) {
   if (!chatUuid) return NextResponse.json({ error: "Missing chatId" }, { status: 400 });
 
   const session = await auth();
+  console.log("🔍 SESSION DATA:", session);
   const userId = session?.user?.user_catalog_id;
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -41,15 +42,24 @@ export async function GET(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const { chatId, title } = await req.json();
-    if (!chatId) return NextResponse.json({ error: "Missing chatId" }, { status: 400 });
+    const { chatId, title, chat_share_url } = await req.json();
 
-    const result = await updateChatTitle(chatId, title || "Untitled");
+    if (!chatId)
+      return NextResponse.json({ error: "Missing chatId" }, { status: 400 });
+
+    // ✅ Try updating first
+    let result = await updateChatTitle(chatId, title || "Untitled", chat_share_url);
+
+    // ✅ If not found, create a new one
+    if (!result.success) {
+      result = await saveChatTitle(chatId, title || "Untitled", chat_share_url);
+    }
+
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error updating chat title:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to update chat title" },
+      { success: false, error: "Failed to update or save chat title" },
       { status: 500 }
     );
   }
