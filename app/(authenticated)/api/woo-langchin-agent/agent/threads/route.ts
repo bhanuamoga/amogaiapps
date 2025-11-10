@@ -13,7 +13,7 @@ export async function GET() {
   }
 
   const { data: dbThreads, error } = await postgrest
-    .from("Thread")
+    .from("Thread" as any)
     .select("*")
     .eq("user_id", session.user.user_catalog_id)
     .order("updatedAt", { ascending: false })
@@ -52,7 +52,7 @@ export async function POST() {
   }
 
   const { data: created, error } = await postgrest
-    .from("Thread")
+    .from("Thread" as any)
     .insert({ title: "New thread", user_id: session.user.user_catalog_id })
     .select()
     .single();
@@ -89,7 +89,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const { data: updated, error } = await postgrest
-      .from("Thread")
+      .from("Thread" as any)
       .update(updateData)
       .eq("id", id)
       .select()
@@ -127,7 +127,7 @@ export async function DELETE(req: NextRequest) {
 
     // First check if thread exists
     const { data: thread, error: fetchError } = await postgrest
-      .from("Thread")
+      .from("Thread" as any)
       .select("id")
       .eq("id", id)
       .single();
@@ -137,7 +137,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Delete the thread from Supabase (metadata)
-    const { error: deleteError } = await postgrest.from("Thread").delete().eq("id", id);
+    const { error: deleteError } = await postgrest.from("Thread" as any).delete().eq("id", id);
 
     if (deleteError) {
       console.error("Error deleting thread:", deleteError);

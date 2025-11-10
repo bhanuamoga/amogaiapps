@@ -42,7 +42,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!user) {
           return null;
         }
-
+        
         const userSessionDTO = getUserSessionDTO(user);
         // console.log("userSessionDTO:"+ userSessionDTO)
         const allowedPaths = await getAllowedPaths(userSessionDTO);
@@ -177,19 +177,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           randomKey: u.randomKey,
           user: u,
         };
+          console.log("🟢 [NextAuth JWT Created] Token:", JSON.stringify(token, null, 2));
       }
       return token;
     },
     session({ session, token }) {
-      return {
-        ...session,
+     return {
+  ...(session || {}), // Prevents spreading undefined
         user: {
-          ...session.user,
-          ...token.user,
-          id: token.id as string,
-          randomKey: token.randomKey,
+          ...(session?.user || {}),
+          ...(token?.user || {}),
+          id: token?.id as string,
+          randomKey: token?.randomKey,
         },
       };
+
     },
   },
 });
