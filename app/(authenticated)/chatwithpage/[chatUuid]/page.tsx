@@ -12,7 +12,7 @@ export default function ChatPage({ params }: PageProps) {
 
   return (
    <main className="flex flex-col min-h-screen ">
-  <div className="flex-1 w-full max-w-[800px] mx-auto px-4">
+  <div className="flex-1 w-full max-w-[800px] mx-auto ">
     <ChatHeader chatUuid={chatUuid} />
     <ChatBody chatUuid={chatUuid} />
   </div>

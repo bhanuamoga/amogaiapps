@@ -39,7 +39,7 @@ function SuggestionCard({
   icon: any;
 }) {
   return (
-    <Card className="p-0 border hover:shadow transition rounded-md w-full">
+    <Card className="rounded-md w-full">
       <button
         type="button"
         className="flex items-start gap-3 w-full h-full p-6 bg-transparent rounded-md text-left"
@@ -57,7 +57,7 @@ function SuggestionCard({
 // Accept chatUuid *here*
 export default function ChatBody({ chatUuid }: ChatBodyProps) {
   return (
-    <div className="px-4 py-14">
+    <div className="py-10">
       <div className="max-w-2xl mx-auto flex flex-col items-center">
         <div className="w-16 h-16 mb-7 rounded-full bg-muted flex items-center justify-center">
           <BotIcon className="w-8 h-8 text-foreground" />

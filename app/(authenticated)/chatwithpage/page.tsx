@@ -12,5 +12,5 @@ export default function ChatRootRedirect() {
     router.replace(`/chatwithpage/${newUuid}`);
   }, [router]);
 
-  return <div className="p-8 text-center text-gray-500">Redirecting...</div>;
+  return <div className="text-center text-gray-500">Redirecting...</div>;
 }
