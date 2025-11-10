@@ -31,7 +31,7 @@ export default function ThreadHeaderSticky({ chatUuid }: ThreadHeaderStickyProps
   const [title, setTitle] = useState("Analytic Assistant");
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(title);
-  const [copied, setCopied] = useState(false); // ✅ Track copy state
+  const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -119,8 +119,7 @@ export default function ThreadHeaderSticky({ chatUuid }: ThreadHeaderStickyProps
       await navigator.clipboard.writeText(currentUrl);
       setCopied(true);
       toast.success("Link copied to clipboard! 📋");
-
-      setTimeout(() => setCopied(false), 2000); // revert icon after 2s
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy link:", err);
       toast.error("Failed to copy link. Please try again.");
@@ -137,27 +136,30 @@ export default function ThreadHeaderSticky({ chatUuid }: ThreadHeaderStickyProps
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 w-full",
-        "mx-auto max-w-[800px] flex justify-between items-center px-3 py-3",
-        "backdrop-blur-md"
+        "sticky top-0 z-30 w-full ",
+        "mx-auto max-w-[800px] flex flex-wrap justify-between items-center gap-3 px-3 py-2 sm:py-3",
+        "backdrop-blur-md "
       )}
       style={{
         transform: "translateZ(0)",
         WebkitBackdropFilter: "blur(8px)",
       }}
     >
-      <div className="flex items-center min-h-[36px] flex-1">
+      {/* ---------------------- TITLE SECTION ---------------------- */}
+      <div className="flex items-center min-h-[36px] flex-1 overflow-hidden">
         {!editing ? (
           <span
-            className="font-medium text-[17px] text-foreground px-1 cursor-pointer flex items-center gap-1 group select-none truncate"
+            className="font-medium text-[16px] sm:text-[17px] text-foreground px-1 cursor-pointer flex items-center gap-1 group select-none truncate"
             onClick={startEdit}
             tabIndex={0}
-            title="Edit title"
+            title="Click to edit title"
             onKeyDown={(e) =>
               (e.key === "Enter" || e.key === " ") && startEdit()
             }
           >
-            {title}
+            <span className="truncate max-w-[140px] sm:max-w-[220px] md:max-w-[320px]">
+              {title}
+            </span>
             <Pencil className="w-4 h-4 opacity-0 group-hover:opacity-80 text-muted-foreground transition" />
           </span>
         ) : (
@@ -170,9 +172,8 @@ export default function ThreadHeaderSticky({ chatUuid }: ThreadHeaderStickyProps
                 if (e.key === "Enter") saveEdit();
                 if (e.key === "Escape") cancelEdit();
               }}
-              className="font-medium text-[17px] outline-none border-b-2 border-black bg-transparent px-2 min-w-0 flex-1 rounded transition-all duration-150"
+              className="font-medium text-[16px] sm:text-[17px] outline-none border-b-2 border-black bg-transparent px-2 min-w-0 flex-1 rounded transition-all duration-150"
               autoFocus
-              style={{ width: "100%" }}
             />
             <Button
               variant="ghost"
@@ -196,12 +197,12 @@ export default function ThreadHeaderSticky({ chatUuid }: ThreadHeaderStickyProps
         )}
       </div>
 
-      <div className="flex items-center gap-2 flex-shrink-0 pl-2">
-        {/* ✅ Copy button with tick animation */}
+      {/* ---------------------- ACTION BUTTONS ---------------------- */}
+      <div className="flex items-center justify-end gap-1 sm:gap-2 flex-shrink-0">
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 sm:h-9 sm:w-9"
           onClick={handleCopy}
           aria-label="Copy link"
         >
@@ -212,20 +213,37 @@ export default function ThreadHeaderSticky({ chatUuid }: ThreadHeaderStickyProps
           )}
         </Button>
 
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 sm:h-9 sm:w-9"
+          aria-label="Share"
+        >
           <Share2 className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 relative">
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 sm:h-9 sm:w-9 relative"
+          aria-label="Notifications"
+        >
           <Bell className="w-4 h-4" />
-          <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+          <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
         </Button>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 sm:h-9 sm:w-9"
+              aria-label="More options"
+            >
               <Menu className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="z-[9999]">
             <DropdownMenuItem onClick={handleNewChat}>New</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Prompt History</DropdownMenuItem>

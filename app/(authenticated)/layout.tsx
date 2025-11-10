@@ -39,7 +39,6 @@ export default async function AuthenticatedLayout({
               />
             }
           >
-            
             <div className="ml-auto flex items-center gap-4">
               <ThemeSwitch />
             </div>
