@@ -39,7 +39,12 @@ export default function ChatInput({ chatUuid }: ChatInputProps) {
   }, []);
 
   return (
-    <div className="w-full px-4 py-4">
+    <div
+      className={cn(
+         "w-full px-4 py-4",
+        "sticky bottom-0  z-40"
+      )}
+    >
       <div
         className={cn(
           "mx-auto w-full max-w-2xl rounded-2xl border shadow-sm bg-background p-2"

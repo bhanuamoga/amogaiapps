@@ -39,3 +39,57 @@ export async function getApis() {
     throw error;
   }
 }
+
+
+export async function saveChatTitle(chatUuid: string, title: string) {
+  const session = await auth();
+  const userId = session?.user?.user_catalog_id;
+
+  if (!userId) throw new Error("Unauthorized: No valid session or user ID found.");
+
+  try {
+    const { data, error } = await postgrest
+      .from("chat" as any)
+      .upsert([
+        {
+          id: chatUuid, // ✅ store frontend UUID here
+          title,
+          user_id: userId, // ✅ store session user ID (string)
+        },
+      ])
+      .select("*");
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error saving chat:", err);
+    return { success: false, error: (err as Error).message };
+  }
+}
+
+/* ---------------------- UPDATE CHAT TITLE ---------------------- */
+export async function updateChatTitle(chatUuid: string, title: string) {
+  const session = await auth();
+  const userId = session?.user?.user_catalog_id;
+
+  if (!userId) throw new Error("Unauthorized: No valid session or user ID found.");
+
+  try {
+    const { data, error } = await postgrest
+      .from("chat" as any)
+      .update({ title })
+      .eq("id", chatUuid) // ✅ compare by uuid column
+      .eq("user_id", userId)
+      .select("*");
+
+    if (error) throw error;
+
+    if (!data || data.length === 0)
+      return { success: false, error: "Chat not found or not owned by user." };
+
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error updating chat title:", err);
+    return { success: false, error: (err as Error).message };
+  }
+}
