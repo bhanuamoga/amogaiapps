@@ -10,7 +10,6 @@ export async function GET(req: Request) {
   if (!chatUuid) return NextResponse.json({ error: "Missing chatId" }, { status: 400 });
 
   const session = await auth();
-  console.log("🔍 SESSION DATA:", session);
   const userId = session?.user?.user_catalog_id;
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

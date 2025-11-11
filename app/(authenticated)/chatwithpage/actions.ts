@@ -44,6 +44,7 @@ export async function saveChatTitle(chatUuid: string, title: string,chat_share_u
   const userId = session?.user?.user_catalog_id;
   const userEmail = session?.user?.user_email;
   const businessname =session?.user?.business_name;
+//   console.log("hellpo chat  : "+ chat_share_url)
   try {
     const { data, error } = await postgrest
       .from("chat" as any)
@@ -75,10 +76,12 @@ export async function saveChatTitle(chatUuid: string, title: string,chat_share_u
 export async function updateChatTitle(chatUuid: string, title: string,chat_share_url?: string) {
   const session = await auth();
   const userId = session?.user?.user_catalog_id;
-
+  
   if (!userId) throw new Error("Unauthorized: No valid session or user ID found.");
     const updateData: Record<string, any> = { title };
     if (chat_share_url) updateData.chat_share_url = chat_share_url;
+
+
   try {
     const { data, error } = await postgrest
       .from("chat" as any)
