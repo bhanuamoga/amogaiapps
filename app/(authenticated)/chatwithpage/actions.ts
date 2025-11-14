@@ -101,3 +101,68 @@ export async function updateChatTitle(chatUuid: string, title: string,chat_share
     return { success: false, error: (err as Error).message };
   }
 }
+
+
+/* =======================================================
+   SAVE MESSAGE TO message TABLE  (Chat With Page)
+========================================================= */
+export async function saveChatMessage(
+  chatId: string,
+  role: "user" | "assistant" | "error",
+  messageContent: any
+) {
+  const session = await auth();
+  const userId = session?.user?.user_catalog_id;
+
+  if (!userId) throw new Error("Unauthorized");
+
+  // Prepare fields
+  let textContent: string | null = null;
+  let chartJson: any = null;
+  let tableColumnsJson: any = null;
+
+  if (typeof messageContent === "string") {
+    textContent = messageContent;
+  }
+
+  // STRUCTURED (chart/table)
+  if (typeof messageContent === "object") {
+    if (messageContent.type === "chart") {
+      chartJson = messageContent.data; // JSONB
+    }
+
+    if (messageContent.type === "table") {
+      tableColumnsJson = {
+        columns: messageContent.data.columns,
+        rows: messageContent.data.rows,
+      };
+    }
+  }
+
+  try {
+    const { data, error } = await postgrest
+      .from("message")
+      .insert([
+        {
+          chatId,                     // uuid
+          role,                       // "user" / "assistant"
+          content: textContent,       // text
+          chart: chartJson,           // jsonb
+          table_columns: tableColumnsJson, // jsonb
+          jsonData: messageContent,   // store full structure too
+          user_id: userId,            // session user
+        },
+      ])
+      .select("*");
+
+    if (error) throw error;
+
+    return { success: true, data };
+  } catch (err) {
+    console.error("Error saving message:", err);
+    return {
+      success: false,
+      error: (err as Error).message,
+    };
+  }
+}

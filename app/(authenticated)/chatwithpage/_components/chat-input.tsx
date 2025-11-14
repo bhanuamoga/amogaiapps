@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,70 +18,144 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
+import { useChat } from "@ai-sdk/react";
+
+// -------------------------
+// Types
+// -------------------------
+type AIModel = { model: string };
+type APIEntry = { site_url: string };
 
 type ChatInputProps = {
   chatUuid: string;
+  onNewMessage?: (role: "user" | "assistant", content: any) => void;
+  setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export default function ChatInput({ chatUuid }: ChatInputProps) {
-  const [value, setValue] = useState("");
-  const [aiApis, setAiApis] = useState<{ model: string }[]>([]);
-  const [apis, setApis] = useState<{ site_url: string }[]>([]);
+export default function ChatInput({
+  chatUuid,
+  onNewMessage,
+  setIsLoading,
+}: ChatInputProps) {
+  const [aiApis, setAiApis] = useState<AIModel[]>([]);
+  const [apis, setApis] = useState<APIEntry[]>([]);
+  const [selectedModelIdx, setSelectedModelIdx] = useState(0);
+  const [selectedApiIdx, setSelectedApiIdx] = useState(0);
+
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // Load available AI models and APIs
+  // -------------------------
+  // useChat
+  // -------------------------
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+  } = useChat({
+    api: "/api/chatwithpage",
+
+    body: {
+      chatId: chatUuid,
+      settings: {
+        model: aiApis[selectedModelIdx]?.model,
+        site_url: apis[selectedApiIdx]?.site_url,
+      },
+    },
+
+    // when assistant finishes response
+    onFinish(message) {
+      if (message.role === "assistant") {
+        onNewMessage?.("assistant", message.content);
+      }
+      setIsLoading?.(false);
+    },
+
+    onError(err) {
+      console.error("❌ Chat error:", err);
+      setIsLoading?.(false);
+    },
+
+    // TOOL CALLS HERE
+    onToolCall(event) {
+      const { toolName, args } = event.toolCall;
+
+      if (toolName === "createChart") {
+        onNewMessage?.("assistant", { type: "chart", data: args });
+      }
+
+      if (toolName === "createTable") {
+        onNewMessage?.("assistant", { type: "table", data: args });
+      }
+    },
+  });
+
+  // -------------------------
+  // When transcript updated
+  // -------------------------
+  useEffect(() => {
+    if (transcript) {
+      handleInputChange({
+        target: { value: transcript },
+      } as any);
+    }
+  }, [transcript]);
+
+  // -------------------------
+  // Fetch AI models + APIs
+  // -------------------------
   useEffect(() => {
     fetch("/api/chatwithpage/aiapis")
       .then((res) => res.json())
-      .then((data) => setAiApis(data || []))
+      .then((data) => setAiApis(Array.isArray(data) ? data : []))
       .catch(() => setAiApis([]));
 
     fetch("/api/chatwithpage/apis")
       .then((res) => res.json())
-      .then((data) => setApis(data || []))
+      .then((data) => setApis(Array.isArray(data) ? data : []))
       .catch(() => setApis([]));
   }, []);
 
-  // Update text when voice recognition is used
-  useEffect(() => {
-    if (transcript) setValue(transcript);
-  }, [transcript]);
+  // -------------------------
+  // Send message
+  // -------------------------
+  const sendMessage = () => {
+    if (!input.trim()) return;
 
-  // Voice toggle button
-  const handleVoiceToggle = () => {
-    if (listening) {
-      SpeechRecognition.stopListening();
-    } else {
-      resetTranscript();
-      SpeechRecognition.startListening({ continuous: true, language: "en-US" });
-    }
-  };
-
-  // Handle sending
-  const handleSend = () => {
-    if (!value.trim()) return;
-    console.log("Send:", value);
-    setValue("");
+    setIsLoading?.(true);
     resetTranscript();
+
+    onNewMessage?.("user", input);
+
+    handleSubmit(undefined, {
+      body: {
+        chatId: chatUuid,
+        settings: {
+          model: aiApis[selectedModelIdx]?.model,
+          site_url: apis[selectedApiIdx]?.site_url,
+        },
+      },
+    });
   };
 
-  // Auto-expand logic
+  // -------------------------
+  // Textarea auto-height
+  // -------------------------
   useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = "auto";
-      const newHeight = Math.min(textarea.scrollHeight, 96); // max 2 lines
-      textarea.style.height = `${newHeight}px`;
-      if (textarea.scrollHeight > 96) {
-        textarea.scrollTop = textarea.scrollHeight; // keep bottom visible
-      }
-    }
-  }, [value]);
+    const tx = textareaRef.current;
+    if (!tx) return;
+
+    tx.style.height = "auto";
+    tx.style.height = `${Math.min(tx.scrollHeight, 96)}px`;
+  }, [input]);
 
   return (
-    <div className="w-full sticky bottom-0 z-40  py-6">
+    <div className="w-full sticky bottom-0 z-40 py-6">
       <div className="mx-auto w-full max-w-2xl">
         <div
           className={cn(
@@ -88,108 +163,81 @@ export default function ChatInput({ chatUuid }: ChatInputProps) {
             "bg-background"
           )}
         >
-          {/* Textarea styled like Input */}
           <textarea
             ref={textareaRef}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
+            value={input}
+            onChange={(e) => handleInputChange(e)}
             placeholder="Ask a follow-up"
-            rows={1}
-            className={cn(
-              "flex w-full rounded-md border border-input bg-background px-3 py-3 text-base leading-relaxed",
-              "placeholder:text-muted-foreground",
-              "disabled:cursor-not-allowed disabled:opacity-50",
-              "resize-none overflow-y-auto sm:text-base text-sm",
-              "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-thumb-rounded-md"
-            )}
-            style={{
-              minHeight: "48px",
-              maxHeight: "96px",
-            }}
+            className="flex w-full rounded-md border border-input bg-background px-3 py-3 text-base leading-relaxed resize-none overflow-y-auto"
+            style={{ maxHeight: 96 }}
           />
 
-          {/* Action Row */}
           <div className="flex items-center justify-between gap-3">
-            {/* Left Section */}
+            {/* Model & API Dropdowns */}
             <div className="flex items-center gap-2">
-              {/* Model Dropdown */}
+              {/* Model */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-9 w-9 rounded-lg"
-                  >
+                  <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg">
                     <SlidersHorizontal className="w-5 h-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="start"
-                >
-                  <DropdownMenuLabel>Select AI Model</DropdownMenuLabel>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>Select Model</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {aiApis.length > 0 ? (
-                    aiApis.map(({ model }, idx) => (
-                      <DropdownMenuItem key={idx} className="truncate">
-                        {model}
-                      </DropdownMenuItem>
-                    ))
-                  ) : (
-                    <DropdownMenuItem disabled>No models found</DropdownMenuItem>
-                  )}
+                  {aiApis.map((m, i) => (
+                    <DropdownMenuItem key={i} onClick={() => setSelectedModelIdx(i)}>
+                      {m.model}
+                    </DropdownMenuItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* API Dropdown */}
+              {/* API */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
                     className="h-9 px-3 rounded-lg flex items-center gap-2"
                   >
-                    <Wrench className="w-5 h-5" />
-                    <span className="hidden sm:inline text-sm">API</span>
+                    <Wrench className="w-5 h-5" /> API
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="start"
-                >
+                <DropdownMenuContent>
                   <DropdownMenuLabel>Select API</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {apis.length > 0 ? (
-                    apis.map(({ site_url }, idx) => (
-                      <DropdownMenuItem key={idx} className="truncate">
-                        {site_url}
-                      </DropdownMenuItem>
-                    ))
-                  ) : (
-                    <DropdownMenuItem disabled>No APIs available</DropdownMenuItem>
-                  )}
+                  {apis.map((a, i) => (
+                    <DropdownMenuItem key={i} onClick={() => setSelectedApiIdx(i)}>
+                      {a.site_url}
+                    </DropdownMenuItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
 
-            {/* Right Section */}
+            {/* Voice + Send */}
             <div className="flex items-center gap-2">
               <Button
                 size="icon"
                 variant="outline"
-                onClick={handleVoiceToggle}
-                aria-label="Voice input"
-                className="rounded-lg h-9 w-9"
+                onClick={() =>
+                  listening
+                    ? SpeechRecognition.stopListening()
+                    : SpeechRecognition.startListening({ continuous: true })
+                }
+                className="h-9 w-9 rounded-lg"
               >
-                {listening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                {listening ? <MicOff /> : <Mic />}
               </Button>
 
               <Button
                 size="icon"
                 variant="default"
-                onClick={handleSend}
-                disabled={!value.trim()}
-                aria-label="Send message"
-                className="rounded-lg h-9 w-9 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!input.trim() || isLoading}
+                onClick={sendMessage}
+                className="h-9 w-9 rounded-lg"
               >
-                <ArrowUp className="w-5 h-5" />
+                <ArrowUp />
               </Button>
             </div>
           </div>

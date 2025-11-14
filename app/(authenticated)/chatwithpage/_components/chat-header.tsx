@@ -137,7 +137,7 @@ export default function ThreadHeaderSticky({ chatUuid }: ThreadHeaderStickyProps
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 w-full ",
+        "w-full ",
         "mx-auto max-w-2xl flex flex-wrap justify-between items-center gap-3  py-2 sm:py-3",
         "backdrop-blur-md "
       )}
