@@ -14,7 +14,6 @@ import {
   ArcElement,
 } from "chart.js";
 import { Bar, Line, Pie, Doughnut } from "react-chartjs-2";
-import { Card } from "@/components/ui/card";
 
 ChartJS.register(
   CategoryScale,
@@ -60,8 +59,6 @@ interface DataDisplayProps {
   title?: string;
   chartConfig?: ChartConfig;
   tableData?: TableData;
-  showChart?: boolean;
-  showTable?: boolean;
   className?: string;
 }
 
@@ -71,75 +68,91 @@ export default function DataDisplay({
   title = "Visualization",
   chartConfig,
   tableData,
-  showChart = true,
-  showTable = true,
   className = "",
 }: DataDisplayProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState<"chart" | "table">("chart");
 
+  // Reset page on table change
   useEffect(() => {
     setCurrentPage(1);
   }, [tableData]);
 
+  // Render chart safely
   const renderedChart = useMemo(() => {
-    if (!chartConfig?.data || !chartConfig.data.datasets.length) {
-      return <div className="text-muted-foreground p-4 text-center">No chart data</div>;
+    if (!chartConfig?.data || !chartConfig.data.datasets?.length) {
+      return (
+        <div className="text-muted-foreground p-4 text-center">
+          No chart data
+        </div>
+      );
     }
+
+    const { type, data, options } = chartConfig;
+      console.log("📊 Received chartConfig:", chartConfig);
 
     const colors = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6"];
 
-    const datasets = chartConfig.data.datasets.map((ds, i) => ({
-      ...ds,
-      data: ds.data.map((v) => Number(v)),
-      backgroundColor: ds.backgroundColor || colors[i % colors.length],
-      borderColor: ds.borderColor || colors[i % colors.length],
+    const datasets = data.datasets.map((d, i) => ({
+      ...d,
+      data: d.data.map((v) => Number(v) || 0),
+      backgroundColor: d.backgroundColor || colors[i % colors.length],
+      borderColor: d.borderColor || colors[i % colors.length],
       borderWidth: 2,
     }));
 
-    const chartData = {
-      labels: chartConfig.data.labels,
-      datasets,
-    };
+    const chartData = { labels: data.labels, datasets };
 
-    switch (chartConfig.type) {
+    switch (type) {
       case "bar":
-        return <Bar data={chartData} options={chartConfig.options} />;
+        return <Bar data={chartData} options={options} />;
       case "line":
-        return <Line data={chartData} options={chartConfig.options} />;
+        return <Line data={chartData} options={options} />;
       case "pie":
-        return <Pie data={chartData} options={chartConfig.options} />;
+        return <Pie data={chartData} options={options} />;
       case "doughnut":
-        return <Doughnut data={chartData} options={chartConfig.options} />;
+        return <Doughnut data={chartData} options={options} />;
       default:
-        return <Bar data={chartData} options={chartConfig.options} />;
+        return <Bar data={chartData} options={options} />;
     }
   }, [chartConfig]);
 
+  // Render table
   const renderTable = () => {
-    if (!tableData?.rows?.length || !tableData.columns?.length) {
-      return <div className="text-muted-foreground p-4 text-center">No table data</div>;
+    if (!tableData) return null;
+
+    const { columns, rows, summary } = tableData;
+
+    if (!columns?.length || !rows?.length) {
+      return (
+        <div className="text-muted-foreground p-4 text-center">
+          No table data
+        </div>
+      );
     }
 
+    const totalPages = Math.ceil(rows.length / itemsPerPage);
     const start = (currentPage - 1) * itemsPerPage;
-    const slicedRows = tableData.rows.slice(start, start + itemsPerPage);
+    const sliced = rows.slice(start, start + itemsPerPage);
 
     return (
       <>
-        <div className="overflow-x-auto border rounded-xl p-2">
+        <div className="overflow-x-auto border rounded-xl p-2 max-w-full">
           <table className="w-full border-collapse">
             <thead className="bg-muted/40 text-sm">
               <tr>
-                {tableData.columns.map((col) => (
+                {columns.map((col) => (
                   <th key={col.key} className="px-4 py-3 text-left font-medium">
                     {col.header}
                   </th>
                 ))}
               </tr>
             </thead>
+
             <tbody>
-              {slicedRows.map((row, rowIndex) => (
-                <tr key={rowIndex} className="border-t">
-                  {tableData.columns.map((col) => (
+              {sliced.map((row, idx) => (
+                <tr key={idx} className="border-t">
+                  {columns.map((col) => (
                     <td key={col.key} className="px-4 py-3 text-sm">
                       {String(row[col.key] ?? "")}
                     </td>
@@ -150,28 +163,51 @@ export default function DataDisplay({
           </table>
         </div>
 
-        {tableData.summary && (
-          <p className="text-center text-xs mt-3 italic">{tableData.summary}</p>
+        {summary && (
+          <p className="text-center text-xs mt-1 italic">{summary}</p>
         )}
       </>
     );
   };
 
   return (
-    <div className={`space-y-6 ${className}`}>
-      {showChart && chartConfig && (
-        <Card className="p-6 shadow-md">
-          <h3 className="text-lg font-semibold mb-4">{title} - Chart</h3>
-          <div className="h-[380px]">{renderedChart}</div>
-        </Card>
-      )}
+    <div className={`p-6 ${className}`}>
+      <h3 className="text-lg font-semibold mb-6">{title}</h3>
 
-      {showTable && tableData && (
-        <Card className="p-6 shadow-md">
-          <h3 className="text-lg font-semibold mb-4">{title} - Table</h3>
-          {renderTable()}
-        </Card>
-      )}
+      {/* Tabs */}
+      <div className="flex justify-center space-x-4 mb-6">
+        <button
+          onClick={() => setActiveTab("chart")}
+          className={`px-6 py-2 rounded-full font-medium transition-colors ${
+            activeTab === "chart"
+              ? "bg-black text-white"
+              : "bg-muted/20 text-muted-foreground hover:bg-muted/40"
+          }`}
+        >
+          Chart
+        </button>
+
+        <button
+          onClick={() => setActiveTab("table")}
+          className={`px-6 py-2 rounded-full font-medium transition-colors ${
+            activeTab === "table"
+              ? "bg-black text-white"
+              : "bg-muted/20 text-muted-foreground hover:bg-muted/40"
+          }`}
+        >
+          Table
+        </button>
+      </div>
+
+      {/* Tab content */}
+      <div>
+        {activeTab === "chart" && (
+          <div className="w-full" style={{ height: "400px" }}>
+            {renderedChart}
+          </div>
+        )}
+        {activeTab === "table" && <div>{renderTable()}</div>}
+      </div>
     </div>
   );
 }

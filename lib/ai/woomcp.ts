@@ -329,7 +329,7 @@ export const createWooCommerceTools = (wooAPI: any | null) => ({
         parameters: z.object({
             per_page: z.number().optional().default(20).describe("Number of products to fetch"),
             page: z.number().optional().default(1).describe("Page number for pagination"),
-            orderby: z.enum(["date", "id", "include", "title", "slug", "modified","total_sales"  ]).optional().default("date"),
+            orderby: z.enum(["date", "id", "include", "title", "slug", "modified","total_sales"]).optional().default("date"),
             order: z.enum(["asc", "desc"]).optional().default("desc"),
             status: z.enum(["any", "draft", "pending", "private", "publish"]).optional().default("publish"),
             category: z.string().optional().describe("Product category ID or slug"),
@@ -404,7 +404,7 @@ export const createWooCommerceTools = (wooAPI: any | null) => ({
         parameters: z.object({
             per_page: z.number().optional().default(20).describe("Number of orders to fetch"),
             page: z.number().optional().default(1).describe("Page number for pagination"),
-            orderby: z.enum(["date", "id", "include", "title", "slug"]).optional().default("date"),
+            orderby: z.enum(["date", "id", "include", "title", "slug","total_sales"]).optional().default("date"),
             order: z.enum(["asc", "desc"]).optional().default("desc"),
             status: z
                 .enum(["any", "pending", "processing", "on-hold", "completed", "cancelled", "refunded", "failed"])

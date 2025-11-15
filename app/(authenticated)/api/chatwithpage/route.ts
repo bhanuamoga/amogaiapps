@@ -229,9 +229,10 @@ ${wooAPI ? "WooCommerce API is configured. START FETCHING DATA AND CREATING VISU
       system: systemPrompt,
       messages: convertToCoreMessages(messages),
       tools: createWooCommerceTools(wooAPI) as any,
+      // toolChoice: "auto", 
       experimental_generateMessageId: uuidv4,
       maxSteps: 25,
-      maxRetries:1,
+      maxRetries:2,
     });
 
     // 10. Return streaming response with appropriate headers
