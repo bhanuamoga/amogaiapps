@@ -6,7 +6,7 @@ import { ThemeSwitch } from "@/components/theme-switch";
 import { auth } from "@/auth";
 import { NavUser } from "@/components/layout/nav-user";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-
+import { QueryProviderWrapper } from "./QueryProviderWrapper";
 export default async function AuthenticatedLayout({
   children,
 }: Readonly<{
@@ -16,6 +16,7 @@ export default async function AuthenticatedLayout({
 
   return (
     <div className="size-full">
+        <QueryProviderWrapper>
       <SidebarProvider>
         <AppSidebar session={session} />
         <div
@@ -48,6 +49,7 @@ export default async function AuthenticatedLayout({
           </NuqsAdapter>
         </div>
       </SidebarProvider>
+      </QueryProviderWrapper>
     </div>
   );
 }

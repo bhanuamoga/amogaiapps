@@ -249,9 +249,9 @@ export default function ThreadHeaderSticky({ chatUuid }: ThreadHeaderStickyProps
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push("/chatwithpage/prompthistory")}>Prompt History</DropdownMenuItem>
              <DropdownMenuItem onClick={() => router.push("/chatwithpage/History")}>
-    Chat History
-  </DropdownMenuItem>
-            <DropdownMenuItem>Woo Prompt List</DropdownMenuItem>
+                Chat History
+              </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/chatwithpage/woo-prompt-list")}>Store Prompt List</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
