@@ -4,8 +4,7 @@ import { updateMessageFields } from "@/app/(authenticated)/chatwithpage/actions"
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
-    const { messageId, isLike, favorite, flag } = body;
+    const { messageId, favorite, action_item, isLike } = body;
 
     if (!messageId) {
       return NextResponse.json(
@@ -14,27 +13,19 @@ export async function POST(req: Request) {
       );
     }
 
-    // Call server action (role-based validation is inside it)
     const result = await updateMessageFields({
       messageId,
-      isLike,
       favorite,
-      flag,
+      action_item,
+      isLike,
     });
 
-    if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
-    }
+    return NextResponse.json(result);
 
-    return NextResponse.json({ success: true, data: result.data });
-
-  } catch (error: any) {
-    console.error("API updateMessage error:", error);
+  } catch (err: any) {
+    console.error("❌ update-message route error:", err);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: err.message ?? "Internal server error" },
       { status: 500 }
     );
   }

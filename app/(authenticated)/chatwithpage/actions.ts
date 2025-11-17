@@ -278,16 +278,333 @@ export async function loadChat(chatId: string) {
    assistant → isLike, favorite, flag
 ======================================================= */
 
-export async function updateMessageFields({
+// export async function updateMessageFields({
+//   messageId,
+//   isLike,
+//   favorite,
+//   flag,
+// }: {
+//   messageId: string;
+//   isLike?: boolean | null;   // assistant only
+//   favorite?: boolean;        // both
+//   flag?: boolean;            // both
+// }) {
+//   const session = await auth();
+//   const userId = session?.user?.user_catalog_id;
+
+//   if (!userId) throw new Error("Unauthorized");
+
+//   try {
+//     /* -------------------------------
+//        1️⃣ Fetch message with role + chatId
+//     --------------------------------*/
+//     const { data: msg, error: msgError } = await postgrest
+//       .from("message")
+//       .select("id, role, chatId")
+//       .eq("id", messageId)
+//       .single();
+
+//     if (msgError || !msg) throw new Error("Message not found");
+
+//     /* -------------------------------
+//        2️⃣ Validate chat ownership
+//     --------------------------------*/
+//     const { data: chat, error: chatError } = await postgrest
+//       .from("chat")
+//       .select("user_id")
+//       .eq("id", msg.chatId)
+//       .single();
+
+//     if (chatError || !chat) throw new Error("Chat not found");
+
+//     if (chat.user_id !== userId) {
+//       throw new Error("Unauthorized: You do not own this chat");
+//     }
+
+//     /* -------------------------------
+//        3️⃣ ROLE-BASED PERMISSION LOGIC
+//     --------------------------------*/
+//     const updateData: Record<string, any> = {};
+
+//     if (msg.role === "assistant") {
+//       // Allowed: like, dislike, favorite, flag
+//       if (typeof isLike !== "undefined") updateData.isLike = isLike;
+//       if (typeof favorite !== "undefined") updateData.favorite = favorite;
+//       if (typeof flag !== "undefined") updateData.flag = flag;
+//     }
+
+//     else if (msg.role === "user") {
+//       // Allowed: favorite, flag only
+//       if (typeof favorite !== "undefined") updateData.favorite = favorite;
+//       if (typeof flag !== "undefined") updateData.flag = flag;
+
+//       // ❌ Not allowed for user:
+//       if (typeof isLike !== "undefined") {
+//         throw new Error("User messages cannot be liked or disliked.");
+//       }
+//     }
+
+//     if (Object.keys(updateData).length === 0) {
+//       throw new Error("No valid fields provided for this message role.");
+//     }
+
+//     /* -------------------------------
+//        4️⃣ Perform update
+//     --------------------------------*/
+//     const { data, error } = await postgrest
+//       .from("message")
+//       .update(updateData)
+//       .eq("id", messageId)
+//       .select("*")
+//       .single();
+
+//     if (error) throw error;
+
+//     return { success: true, data };
+
+//   } catch (err) {
+//     console.error("updateMessageFields error:", err);
+//     return { success: false, error: (err as Error).message };
+//   }
+// }
+
+
+const CHAT_GROUP = "Chat With Page";
+
+// -------------------------------------------------------
+// ✅ 1. Get Chat History (only for chatwithpage)
+// -------------------------------------------------------
+export async function getChatHistory() {
+  const session = await auth();
+  const userId = session?.user?.user_catalog_id;
+
+  if (!userId) return [];
+
+  try {
+    const { data, error } = await postgrest
+      .from("chat")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("chat_group", CHAT_GROUP) 
+      .order("createdAt", { ascending: false });
+
+    if (error) throw error;
+
+    return (data ?? []).map((chat) => ({
+      id: chat.id,
+      title: chat.title,
+      bookmark: chat.bookmark,
+      status: chat.status,
+
+      // Normalize timestamps
+      createdAt: chat.createdAt,
+
+      // Normalize tokens
+      promptTokens: chat.prompt_tokens ?? 0,
+      completionTokens: chat.completion_tokens ?? 0,
+      totalTokens: chat.total_tokens ?? 0,
+      cost: chat.token_cost ?? 0,
+    }));
+  } catch (error) {
+    console.error("❌ getChatHistory error:", error);
+    return [];
+  }
+}
+
+
+// -------------------------------------------------------
+// ✅ 2. Delete Chat (only delete if chat_group = chatwithpage)
+// -------------------------------------------------------
+export async function deleteChat(id: string) {
+  try {
+    const { error } = await postgrest
+      .from("chat")
+      .delete()
+      .eq("id", id)
+      .eq("chat_group", CHAT_GROUP);  // 🔥 ensure only this group is deleted
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error("❌ Error deleting chat:", error);
+    return { success: false };
+  }
+}
+
+// -------------------------------------------------------
+// ✅ 3. Toggle Bookmark (only for chatwithpage chats)
+// -------------------------------------------------------
+export async function toggleBookmark(id: string, bookmark: boolean) {
+  try {
+    const { error } = await postgrest
+      .from("chat")
+      .update({ bookmark })
+      .eq("id", id)
+      .eq("chat_group", CHAT_GROUP);  // 🔥 safe update
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error("❌ toggleBookmark error:", error);
+    return { success: false };
+  }
+}
+
+
+
+export async function saveMessageTokenUsage({
   messageId,
-  isLike,
-  favorite,
-  flag,
+  promptTokens,
+  completionTokens,
+  totalTokens,
 }: {
   messageId: string;
-  isLike?: boolean | null;   // assistant only
-  favorite?: boolean;        // both
-  flag?: boolean;            // both
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}) {
+  try {
+    const { error } = await postgrest
+      .from("message")
+      .update({
+        prompt_tokens: promptTokens,
+        completion_tokens: completionTokens,
+        total_tokens: totalTokens,
+      })
+      .eq("id", messageId);
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (err) {
+    console.error("❌ Failed to save message token usage:", err);
+    return { success: false };
+  }
+}
+
+
+
+export async function updateChatTotals({
+  chatId,
+  promptTokens,
+  completionTokens,
+  totalTokens,
+  cost,
+}: {
+  chatId: string;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  cost: number;
+}) {
+  try {
+    const { error } = await (postgrest as any).rpc(
+      "increment_chat_totals",
+      {
+        chat_id_input: chatId,
+        prompt_add: promptTokens,
+        completion_add: completionTokens,
+        total_add: totalTokens,
+        cost_add: cost,
+      }
+    );
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (err) {
+    console.error("❌ Failed to update chat totals:", err);
+    return { success: false };
+  }
+}
+
+
+
+export async function getPromptHistory() {
+  const session = await auth();
+  const userId = session?.user?.user_catalog_id;
+
+  if (!userId) return [];
+
+  try {
+    // STEP 1 — get all chat IDs from chat table (Chat With Page only)
+    const { data: chats, error: chatError } = await postgrest
+      .from("chat")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("chat_group", "Chat With Page");
+
+    if (chatError) throw chatError;
+
+    const chatIds = chats.map((c: any) => c.id);
+
+    if (chatIds.length === 0) return [];
+
+    // STEP 2 — load prompts from message table
+    const { data, error } = await postgrest
+      .from("message")
+      .select("prompt_uuid, prompt_tiitle, created_at, favorite, important, action_item, archive_status")
+      .eq("user_id", userId)
+      .eq("role", "user")
+      .in("chatId", chatIds)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    // STEP 3 — return unique prompts per uuid
+    const unique = new Map();
+
+    for (const item of data ?? []) {
+      if (!unique.has(item.prompt_uuid)) {
+        unique.set(item.prompt_uuid, {
+          promptUuid: item.prompt_uuid,
+          title: item.prompt_tiitle,
+          createdAt: item.created_at,
+          favorite: item.favorite,
+          important: item.important,
+          action_item: item.action_item,
+          archive_status: item.archive_status,
+        });
+      }
+    }
+
+    return Array.from(unique.values());
+  } catch (err) {
+    console.error("❌ getPromptHistory error:", err);
+    return [];
+  }
+}
+
+export async function deletePrompt(promptUuid: string) {
+  try {
+    const { error } = await postgrest
+      .from("message")
+      .delete()
+      .eq("prompt_uuid", promptUuid);
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (err) {
+    console.error("❌ deletePrompt error:", err);
+    return { success: false };
+  }
+}
+
+
+
+export async function updateMessageFields({
+  messageId,
+  favorite,
+  action_item,   // flag
+  isLike,        // like / dislike (assistant only)
+}: {
+  messageId: string;
+  favorite?: boolean;
+  action_item?: boolean;
+  isLike?: boolean | null;
 }) {
   const session = await auth();
   const userId = session?.user?.user_catalog_id;
@@ -295,20 +612,16 @@ export async function updateMessageFields({
   if (!userId) throw new Error("Unauthorized");
 
   try {
-    /* -------------------------------
-       1️⃣ Fetch message with role + chatId
-    --------------------------------*/
+    // 1️⃣ Fetch message to get role + chatId
     const { data: msg, error: msgError } = await postgrest
       .from("message")
-      .select("id, role, chatId")
+      .select("id, role, content, favorite, action_item, isLike, chatId")
       .eq("id", messageId)
       .single();
 
     if (msgError || !msg) throw new Error("Message not found");
 
-    /* -------------------------------
-       2️⃣ Validate chat ownership
-    --------------------------------*/
+    // 2️⃣ Ensure user owns the chat
     const { data: chat, error: chatError } = await postgrest
       .from("chat")
       .select("user_id")
@@ -316,41 +629,32 @@ export async function updateMessageFields({
       .single();
 
     if (chatError || !chat) throw new Error("Chat not found");
+    if (chat.user_id !== userId) throw new Error("Access denied");
 
-    if (chat.user_id !== userId) {
-      throw new Error("Unauthorized: You do not own this chat");
-    }
-
-    /* -------------------------------
-       3️⃣ ROLE-BASED PERMISSION LOGIC
-    --------------------------------*/
+    // 3️⃣ Role-based update rules
     const updateData: Record<string, any> = {};
 
     if (msg.role === "assistant") {
-      // Allowed: like, dislike, favorite, flag
+      // assistant can use all 3
       if (typeof isLike !== "undefined") updateData.isLike = isLike;
       if (typeof favorite !== "undefined") updateData.favorite = favorite;
-      if (typeof flag !== "undefined") updateData.flag = flag;
+      if (typeof action_item !== "undefined") updateData.action_item = action_item;
     }
 
-    else if (msg.role === "user") {
-      // Allowed: favorite, flag only
-      if (typeof favorite !== "undefined") updateData.favorite = favorite;
-      if (typeof flag !== "undefined") updateData.flag = flag;
-
-      // ❌ Not allowed for user:
+    if (msg.role === "user") {
+      // user CANNOT be liked/disliked
       if (typeof isLike !== "undefined") {
         throw new Error("User messages cannot be liked or disliked.");
       }
+      if (typeof favorite !== "undefined") updateData.favorite = favorite;
+      if (typeof action_item !== "undefined") updateData.action_item = action_item;
     }
 
     if (Object.keys(updateData).length === 0) {
-      throw new Error("No valid fields provided for this message role.");
+      throw new Error("No valid fields provided.");
     }
 
-    /* -------------------------------
-       4️⃣ Perform update
-    --------------------------------*/
+    // 4️⃣ Update DB
     const { data, error } = await postgrest
       .from("message")
       .update(updateData)

@@ -7,6 +7,11 @@ import { createWooCommerceTools, WooCommerceAPI } from "@/lib/ai/woomcp";
 import { auth } from "@/auth";
 import { postgrest } from "@/lib/postgrest";
 import { v4 as uuidv4 } from "uuid";
+import {
+  saveMessageTokenUsage,
+  updateChatTotals,
+  saveAssistantMessage,   // ✅ ADD THIS
+} from "@/app/(authenticated)/chatwithpage/actions";
 
 async function selectModel(aiSettings: any) {
   const provider = aiSettings?.provider;
@@ -59,6 +64,25 @@ async function selectModel(aiSettings: any) {
       throw new Error(`Unsupported AI provider: ${provider}`);
   }
 }
+// =====================================================
+// SIMPLE TOKEN COST CALCULATOR (GLOBAL)
+// =====================================================
+function calculateCost({
+  promptTokens,
+  completionTokens,
+}: {
+  promptTokens: number;
+  completionTokens: number;
+}) {
+  const INPUT_RATE = 0.000002;
+  const OUTPUT_RATE = 0.000004;
+
+  const cost =
+    promptTokens * INPUT_RATE +
+    completionTokens * OUTPUT_RATE;
+
+  return Number(cost.toFixed(6));
+}
 
 export async function POST(req: Request) {
   try {
@@ -68,7 +92,19 @@ export async function POST(req: Request) {
     if (!userId) return new Response("Unauthorized", { status: 401 });
 
     // 2. Parse incoming request JSON
-    const { messages }: { messages: UIMessage[] } = await req.json();
+    // const { messages }: { messages: UIMessage[] } = await req.json();
+    // 2. Parse incoming request JSON
+const { messages, chatUuid }: { messages: UIMessage[]; chatUuid: string } =
+  await req.json();
+
+if (!chatUuid) {
+  console.error("❌ Missing chatUuid in request body");
+  return new Response("Missing chatUuid", { status: 400 });
+}
+// =====================================================
+// SIMPLE TOKEN COST CALCULATOR (GLOBAL FUNCTION)
+// =====================================================
+
 
     // 3. Fetch user configurations for AI and API connections
     const { data, error } = await postgrest
@@ -139,7 +175,6 @@ export async function POST(req: Request) {
         consumerSecret: wooSettings.consumerSecret,
       });
     }
-
     // 7. Select the AI model
     const model = await selectModel(aiSettings);
 
@@ -233,6 +268,56 @@ ${wooAPI ? "WooCommerce API is configured. START FETCHING DATA AND CREATING VISU
       experimental_generateMessageId: uuidv4,
       maxSteps: 25,
       maxRetries:2,
+      onFinish: async ({ response, usage }) => {
+  try {
+    if (!chatUuid) {
+      console.error("❌ Missing chatUuid");
+      return;
+    }
+
+    // Find last assistant message
+    const lastAssistant = response.messages
+      ?.filter((m: any) => m.role === "assistant")
+      ?.at(-1);
+
+    const messageId = lastAssistant?.id ?? null;
+
+    // Extract usage tokens from AI SDK
+    const promptTokens = usage?.promptTokens ?? 0;
+    const completionTokens = usage?.completionTokens ?? 0;
+    const totalTokens =
+      usage?.totalTokens ?? promptTokens + completionTokens;
+
+    // Calculate cost
+    const cost = calculateCost({
+      promptTokens,
+      completionTokens,
+    });
+
+    // Update message token usage
+    if (messageId) {
+      await saveMessageTokenUsage({
+        messageId,
+        promptTokens,
+        completionTokens,
+        totalTokens,
+      });
+    }
+
+    // Update chat totals
+    await updateChatTotals({
+      chatId: chatUuid,
+      promptTokens,
+      completionTokens,
+      totalTokens,
+      cost,
+    });
+
+  } catch (err) {
+    console.error("❌ Token tracking failed:", err);
+  }
+},
+
     });
 
     // 10. Return streaming response with appropriate headers
