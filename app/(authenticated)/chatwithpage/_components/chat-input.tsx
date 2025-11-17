@@ -240,7 +240,7 @@ export default function ChatInput({
   }, [input]);
 
   return (
-    <div className="w-full sticky bottom-0 z-40 py-6">
+    <div className="w-full sticky bottom-0 z-40 py-1">
       <div className="mx-auto w-full max-w-2xl">
         <div
           className={cn(

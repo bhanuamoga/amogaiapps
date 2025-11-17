@@ -182,7 +182,7 @@ export default function ChatBody({
   const groups = groupMessages(messages);
 
   return (
-    <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6 bg-background">
+    <div className="flex-1 overflow-y-auto px-1 sm:px-4 py-4 sm:py-6 bg-background">
       <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
 
         {/* Suggestions */}

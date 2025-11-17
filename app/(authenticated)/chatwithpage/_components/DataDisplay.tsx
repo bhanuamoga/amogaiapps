@@ -137,7 +137,7 @@ export default function DataDisplay({
 
     return (
       <>
-        <div className="overflow-x-auto border rounded-xl p-2 max-w-full">
+        <div className="overflow-x-auto border rounded-xl  max-w-full">
           <table className="w-full border-collapse">
             <thead className="bg-muted/40 text-sm">
               <tr>
@@ -171,7 +171,7 @@ export default function DataDisplay({
   };
 
   return (
-    <div className={`p-6 ${className}`}>
+    <div className={`${className}`}>
       <h3 className="text-lg font-semibold mb-6">{title}</h3>
 
       {/* Tabs */}
@@ -202,7 +202,7 @@ export default function DataDisplay({
       {/* Tab content */}
       <div>
         {activeTab === "chart" && (
-          <div className="w-full" style={{ height: "400px" }}>
+          <div className="w-full  h-auto">
             {renderedChart}
           </div>
         )}
