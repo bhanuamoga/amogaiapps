@@ -63,7 +63,7 @@ export default function PromptHistoryPage() {
         });
 
     return (
-        <div className="flex flex-col p-6 w-full max-w-2xl mx-auto animate-fade-in">
+        <div className="flex flex-col  w-full max-w-2xl mx-auto animate-fade-in">
 
             {/* HEADER */}
             <div className="flex justify-between items-center mb-4">
