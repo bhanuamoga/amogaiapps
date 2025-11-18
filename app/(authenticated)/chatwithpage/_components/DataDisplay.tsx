@@ -202,7 +202,7 @@ export default function DataDisplay({
       {/* Tab content */}
       <div>
         {activeTab === "chart" && (
-          <div className="w-full  h-auto">
+          <div className="w-full   min-h-[320px]">
             {renderedChart}
           </div>
         )}

@@ -46,56 +46,14 @@ export default function ChatInput({
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const lastPromptUuidRef = useRef<string | null>(null);
-
-  // temp holder for assistant combined response
   const assistantBundleRef = useRef({
     chart: null as any,
     table: null as any,
     story: null as any,
   });
 
-  // Save user message to DB
-  const saveUserMessageApi = async (chatId: string, content: string) => {
-    try {
-      const res = await fetch("/api/chatwithpage/messages/saveUserMessage", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chatId, content }),
-      });
-      return await res.json();
-    } catch (err) {
-      console.error("saveUserMessageApi error:", err);
-      return null;
-    }
-  };
-
-  // Save assistant message bundle
-  const saveAssistantMessageApi = async (
-    chatId: string,
-    prompt_uuid: string | null,
-    response_json: any
-  ) => {
-    try {
-      const res = await fetch(
-        "/api/chatwithpage/messages/saveAssistantMessage",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chatId,
-            prompt_uuid,
-            ref_prompt_uuid: prompt_uuid,
-            response_json,
-          }),
-        }
-      );
-      return await res.json();
-    } catch (err) {
-      console.error("saveAssistantMessageApi error:", err);
-      return null;
-    }
-  };
+  // ❌ REMOVED - CAUSES DUPLICATE USER MESSAGES
+  // saveUserMessageApi()
 
   const {
     messages,
@@ -106,9 +64,8 @@ export default function ChatInput({
   } = useChat({
     api: "/api/chatwithpage",
 
-    // FIX: No "messages" here
     body: {
-      chatUuid, // required for token tracking
+      chatUuid,
       chatId: chatUuid,
       settings: {
         model: aiApis[selectedModelIdx]?.model,
@@ -120,11 +77,6 @@ export default function ChatInput({
       if (message.role === "assistant") {
         onNewMessage?.("assistant", message.content);
 
-        const promptUuid =
-          message.promptUuid ??
-          message.prompt_uuid ??
-          lastPromptUuidRef.current;
-
         assistantBundleRef.current.story = {
           type: "story",
           content:
@@ -132,12 +84,6 @@ export default function ChatInput({
               ? message.content
               : message.content?.text ?? "",
         };
-
-        await saveAssistantMessageApi(
-          chatUuid,
-          promptUuid,
-          assistantBundleRef.current
-        );
 
         assistantBundleRef.current = {
           chart: null,
@@ -178,45 +124,28 @@ export default function ChatInput({
     }
   }, [transcript]);
 
-  // load AI & APIs
+  // load model/API options
   useEffect(() => {
     fetch("/api/chatwithpage/aiapis")
-      .then(res => res.json())
-      .then(data => setAiApis(Array.isArray(data) ? data : []));
+      .then((res) => res.json())
+      .then((data) => setAiApis(Array.isArray(data) ? data : []));
 
     fetch("/api/chatwithpage/apis")
-      .then(res => res.json())
-      .then(data => setApis(Array.isArray(data) ? data : []));
+      .then((res) => res.json())
+      .then((data) => setApis(Array.isArray(data) ? data : []));
   }, []);
 
+  // ✔ FIXED sendMessage (NO DB INSERT HERE)
   const sendMessage = async () => {
     if (!input.trim()) return;
 
     setIsLoading?.(true);
     resetTranscript();
 
+    // UI update
     onNewMessage?.("user", input);
 
     try {
-      const saved = await saveUserMessageApi(chatUuid, input);
-      const prompt_uuid = saved?.prompt_uuid ?? null;
-
-      if (prompt_uuid) lastPromptUuidRef.current = prompt_uuid;
-
-      handleSubmit(undefined, {
-        body: {
-          chatUuid,
-          chatId: chatUuid,
-          promptUuid: prompt_uuid,
-          settings: {
-            model: aiApis[selectedModelIdx]?.model,
-            site_url: apis[selectedApiIdx]?.site_url,
-          },
-        },
-      });
-    } catch (err) {
-      console.error("Error saving user message:", err);
-
       handleSubmit(undefined, {
         body: {
           chatUuid,
@@ -228,10 +157,12 @@ export default function ChatInput({
           },
         },
       });
+    } catch (err) {
+      console.error("Error sending message:", err);
     }
   };
 
-  // auto grow textarea
+  // auto-grow textarea
   useEffect(() => {
     const tx = textareaRef.current;
     if (!tx) return;
@@ -259,7 +190,6 @@ export default function ChatInput({
 
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              {/* Model Selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg">
@@ -277,7 +207,6 @@ export default function ChatInput({
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* API Selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

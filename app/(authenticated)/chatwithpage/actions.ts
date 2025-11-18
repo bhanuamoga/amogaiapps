@@ -74,34 +74,44 @@ export async function saveChatTitle(chatUuid: string, title: string,chat_share_u
 }
 
 /* ---------------------- UPDATE CHAT TITLE ---------------------- */
-export async function updateChatTitle(chatUuid: string, title: string,chat_share_url?: string) {
+export async function updateChatTitle(chatUuid: string, title: string, chat_share_url?: string) {
   const session = await auth();
   const userId = session?.user?.user_catalog_id;
-  
-  if (!userId) throw new Error("Unauthorized: No valid session or user ID found.");
-    const updateData: Record<string, any> = { title };
-    if (chat_share_url) updateData.chat_share_url = chat_share_url;
 
+  if (!userId) throw new Error("Unauthorized");
+
+  const updateData: Record<string, any> = { title };
+  if (chat_share_url) updateData.chat_share_url = chat_share_url;
 
   try {
+    // 1️⃣ Update chat record
     const { data, error } = await postgrest
-      .from("chat" as any)
+      .from("chat")
       .update(updateData)
-      .eq("id", chatUuid) // ✅ compare by uuid column
+      .eq("id", chatUuid)
       .eq("user_id", userId)
       .select("*");
 
     if (error) throw error;
+    if (!data || !data.length) return { success: false, error: "Chat not found" };
 
-    if (!data || data.length === 0)
-      return { success: false, error: "Chat not found or not owned by user." };
+    const newTitle = data[0].title;
+
+    // 2️⃣ Update ALL child messages using ref_chat_uuid (correct column!)
+    const { error: msgErr } = await postgrest
+      .from("message")
+      .update({ ref_chat_title: newTitle })
+      .eq("ref_chat_uuid", chatUuid);    // 🔥 correct column
+
+    if (msgErr) throw msgErr;
 
     return { success: true, data };
   } catch (err) {
-    console.error("Error updating chat title:", err);
+    console.error("❌ updateChatTitle failed:", err);
     return { success: false, error: (err as Error).message };
   }
 }
+
 
 
 /* =======================================================
@@ -115,21 +125,31 @@ export async function saveUserMessage(chatId: string, content: string) {
 
   if (!userId) throw new Error("Unauthorized");
 
-  const promptUuid = uuidv4(); // unique UUID per user prompt
+  const promptUuid = uuidv4();
+
+  // 🔥 Get chat info directly (NO getChatTitle)
+  const { data: chat } = await postgrest
+    .from("chat")
+    .select("title")
+    .eq("id", chatId)
+    .single();
+
+  const chatTitle = chat?.title ?? null;
 
   const { data, error } = await postgrest
     .from("message")
     .insert([
       {
-        chatId: chatId,
+        chatId,
         ref_chat_uuid: chatId,
+        ref_chat_title: chatTitle,     // ✔ Same title used in updateChatTitle
         user_id: userId,
         role: "user",
-        content,             // USER text only
+        content,
         prompt_uuid: promptUuid,
         ref_prompt_uuid: promptUuid,
         response_json: null,
-        prompt_tiitle: content // no assistant JSON
+        prompt_tiitle: content,
       },
     ])
     .select("*")
@@ -161,14 +181,15 @@ export async function saveAssistantMessage(
     .from("message")
     .insert([
       {
-        chatId: chatId,
+        chatId,
         ref_chat_uuid: chatId,
         user_id: userId,
         role: "assistant",
-        content: null,        // assistant text NOT saved here
-        // prompt_uuid: promptUuid,
+        content: null,
         response_json: responseJson,
-        message_group: responseJson // full OpenAI result
+        message_group: responseJson,
+        createdAt: new Date().toISOString(),
+
       },
     ])
     .select("*")
@@ -176,8 +197,13 @@ export async function saveAssistantMessage(
 
   if (error) throw error;
 
-  return { success: true, data };
+  return { 
+    success: true, 
+    messageId: data.id,
+    data 
+  };
 }
+
 
 function mapDbMessageToUI(msg: any) {
   if (msg.role === "user") {
@@ -459,11 +485,13 @@ export async function saveMessageTokenUsage({
   promptTokens,
   completionTokens,
   totalTokens,
+  tokenCost,
 }: {
   messageId: string;
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
+  tokenCost: number;
 }) {
   try {
     const { error } = await postgrest
@@ -472,17 +500,19 @@ export async function saveMessageTokenUsage({
         prompt_tokens: promptTokens,
         completion_tokens: completionTokens,
         total_tokens: totalTokens,
+        token_cost: tokenCost,
       })
       .eq("id", messageId);
 
     if (error) throw error;
-
     return { success: true };
+
   } catch (err) {
     console.error("❌ Failed to save message token usage:", err);
     return { success: false };
   }
 }
+
 
 
 
@@ -520,8 +550,6 @@ export async function updateChatTotals({
   }
 }
 
-
-
 export async function getPromptHistory() {
   const session = await auth();
   const userId = session?.user?.user_catalog_id;
@@ -529,43 +557,74 @@ export async function getPromptHistory() {
   if (!userId) return [];
 
   try {
-    // STEP 1 — get all chat IDs from chat table (Chat With Page only)
+    // STEP 1 — get all chat IDs + titles
     const { data: chats, error: chatError } = await postgrest
       .from("chat")
-      .select("id")
+      .select("id, title")
       .eq("user_id", userId)
       .eq("chat_group", "Chat With Page");
 
     if (chatError) throw chatError;
 
-    const chatIds = chats.map((c: any) => c.id);
-
+    const chatIds = (chats ?? []).map((c) => c.id);
     if (chatIds.length === 0) return [];
 
-    // STEP 2 — load prompts from message table
-    const { data, error } = await postgrest
+    // Build map for fallback chat titles
+    const chatTitleMap: Record<string, string> = {};
+    for (const c of chats ?? []) {
+      chatTitleMap[c.id] = c.title ?? "Untitled Chat";
+    }
+
+    // STEP 2 — SELECT user messages including chatId (NEEDED)
+    const { data: messages, error } = await postgrest
       .from("message")
-      .select("prompt_uuid, prompt_tiitle, created_at, favorite, important, action_item, archive_status")
+      .select(`
+        chatId,
+        prompt_uuid,
+        prompt_tiitle,
+        ref_chat_title,
+        created_at,
+        favorite,
+        important,
+        action_item,
+        archive_status,
+        prompt_tokens,
+        completion_tokens,
+        total_tokens,
+        token_cost
+      `)
       .eq("user_id", userId)
-      .eq("role", "user")
+      .eq("role", "user")   // ← YOU ASKED FOR THIS (KEPT EXACTLY)
       .in("chatId", chatIds)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    // STEP 3 — return unique prompts per uuid
+    // STEP 3 — Unique by prompt UUID
     const unique = new Map();
 
-    for (const item of data ?? []) {
+    for (const item of messages ?? []) {
+      if (!item.prompt_uuid) continue;
+
       if (!unique.has(item.prompt_uuid)) {
+        const fallbackTitle =
+          item.ref_chat_title || chatTitleMap[item.chatId] || "Untitled Chat";
+
         unique.set(item.prompt_uuid, {
           promptUuid: item.prompt_uuid,
           title: item.prompt_tiitle,
+          chatTitle: fallbackTitle,
           createdAt: item.created_at,
+
           favorite: item.favorite,
           important: item.important,
           action_item: item.action_item,
           archive_status: item.archive_status,
+
+          promptTokens: item.prompt_tokens ?? 0,
+          completionTokens: item.completion_tokens ?? 0,
+          totalTokens: item.total_tokens ?? 0,
+          cost: item.token_cost ?? 0,
         });
       }
     }
@@ -576,6 +635,8 @@ export async function getPromptHistory() {
     return [];
   }
 }
+
+
 
 export async function deletePrompt(promptUuid: string) {
   try {

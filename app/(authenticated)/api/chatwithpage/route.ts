@@ -10,7 +10,8 @@ import { v4 as uuidv4 } from "uuid";
 import {
   saveMessageTokenUsage,
   updateChatTotals,
-  saveAssistantMessage,   // ✅ ADD THIS
+  saveAssistantMessage,
+  saveUserMessage    // ✅ ADD THIS
 } from "@/app/(authenticated)/chatwithpage/actions";
 
 async function selectModel(aiSettings: any) {
@@ -82,6 +83,27 @@ function calculateCost({
     completionTokens * OUTPUT_RATE;
 
   return Number(cost.toFixed(6));
+}
+function extractStoryText(content: any): string {
+  if (!content) return "";
+
+  if (typeof content === "string") return content.trim();
+
+  // message content sometimes is an array of parts (TextPart)
+  if (Array.isArray(content)) {
+    return content.map((c: any) => c?.text ?? "").join("").trim();
+  }
+
+  // or content could be object with text property
+  if (typeof content === "object" && content !== null) {
+    if (typeof content.text === "string") return content.text;
+    // some SDKs place parts under content.parts
+    if (Array.isArray((content as any).parts)) {
+      return (content as any).parts.map((p: any) => p.text ?? "").join("").trim();
+    }
+  }
+
+  return "";
 }
 
 export async function POST(req: Request) {
@@ -257,6 +279,15 @@ You are an expert WooCommerce Data Analyst. Your primary function is to interpre
 IMPORTANT NOTE ON \`fetch\`:** The \`fetch\` helper inside the interpreter returns the **FULL, RAW data object** from the API
 
 ${wooAPI ? "WooCommerce API is configured. START FETCHING DATA AND CREATING VISUALIZATIONS IMMEDIATELY." : "WooCommerce API is not configured. Briefly guide the user to the settings page."}`
+  let aiBundle: {
+      chart: any | null;
+      table: any | null;
+      story: any | null;
+    } = {
+      chart: null,
+      table: null,
+      story: null,
+    };
 
     // 9. Start streaming AI text with WooCommerce tool integration
     const result = streamText({
@@ -268,57 +299,219 @@ ${wooAPI ? "WooCommerce API is configured. START FETCHING DATA AND CREATING VISU
       experimental_generateMessageId: uuidv4,
       maxSteps: 25,
       maxRetries:2,
-      onFinish: async ({ response, usage }) => {
-  try {
-    if (!chatUuid) {
-      console.error("❌ Missing chatUuid");
-      return;
+  onStepFinish: async (step: any) => {
+  const results = step?.toolResults ?? [];
+
+  for (const t of results) {
+    const toolName = t?.toolName ?? t?.tool;
+    const res = t?.result ?? t?.toolResult ?? t;
+
+    if (!toolName || !res) continue;
+
+    // -------------------------------------------------------
+    // FIXED UNIVERSAL CHART HANDLER
+    // -------------------------------------------------------
+    if (toolName === "createChart" || toolName === "chart") {
+      let cfg = null;
+
+      if (res?.chartConfig) cfg = res.chartConfig;
+      else if (res?.data) cfg = res.data;
+      else cfg = res;
+
+      if (!cfg) continue;
+
+      // Rebuild RAW rows from chartConfig (labels + dataset)
+      let rawRows: any[] = [];
+
+      if (
+        cfg.data?.labels &&
+        Array.isArray(cfg.data.labels) &&
+        cfg.data?.datasets?.[0]?.data
+      ) {
+        rawRows = cfg.data.labels.map((label: any, i: number) => ({
+          [cfg.xAxisColumn ?? "x"]: label,
+          [cfg.yAxisColumn ?? "y"]: cfg.data.datasets[0].data[i],
+        }));
+      }
+
+      aiBundle.chart = {
+        type: "chart",
+        data: {
+          type: cfg.type ?? "bar",
+          title: cfg.title ?? "Chart",
+          chartData: rawRows,
+          xAxisColumn: cfg.xAxisColumn ?? "x",
+          yAxisColumn: cfg.yAxisColumn ?? "y",
+          datasetLabel: cfg.data?.datasets?.[0]?.label ?? "Data",
+          options: cfg.options ?? {},
+        },
+      };
     }
 
-    // Find last assistant message
-    const lastAssistant = response.messages
-      ?.filter((m: any) => m.role === "assistant")
-      ?.at(-1);
+    // -------------------------------------------------------
+    // TABLE HANDLER — RAW ALWAYS SAVED
+    // -------------------------------------------------------
+    if (toolName === "createTable" || toolName === "table") {
+      const table = res?.tableData ?? res?.data ?? res;
 
-    const messageId = lastAssistant?.id ?? null;
+      aiBundle.table = {
+        type: "table",
+        data: {
+          title: table.title ?? "Table",
+          columns: table.columns ?? [],
+          rows: table.rows ?? [],
+          summary: table.summary ?? table.title ?? "",
+        },
+      };
+    }
 
-    // Extract usage tokens from AI SDK
+    // -------------------------------------------------------
+    // STORY HANDLER
+    // -------------------------------------------------------
+    if (toolName === "createStory" || toolName === "story") {
+      const content =
+        res?.content ??
+        res?.text ??
+        (typeof res === "string" ? res : "");
+
+      aiBundle.story = {
+        type: "story",
+        content,
+      };
+    }
+  }
+},
+
+
+   // >>> REPLACE YOUR CURRENT onFinish WITH THIS ONE <<<
+
+ onFinish: async ({ response, usage }: any) => {
+  try {
     const promptTokens = usage?.promptTokens ?? 0;
     const completionTokens = usage?.completionTokens ?? 0;
     const totalTokens =
       usage?.totalTokens ?? promptTokens + completionTokens;
 
-    // Calculate cost
-    const cost = calculateCost({
-      promptTokens,
-      completionTokens,
-    });
+    // -------------------------------
+    // SAVE USER MESSAGE FIRST
+    // -------------------------------
+    const lastUserMessage = messages?.at(-1)?.content ?? null;
+    let userMessageId: any = null;
 
-    // Update message token usage
-    if (messageId) {
-      await saveMessageTokenUsage({
-        messageId,
+    if (lastUserMessage) {
+      try {
+        const savedUser = await saveUserMessage(
+          chatUuid,
+          lastUserMessage
+        );
+        userMessageId = savedUser?.data?.id ?? null;
+
+        if (userMessageId) {
+          await saveMessageTokenUsage({
+            messageId: userMessageId,
+            promptTokens,
+            completionTokens,
+            totalTokens,
+            tokenCost: calculateCost({ promptTokens, completionTokens }),
+          });
+        }
+      } catch (err) {
+        console.error("Failed to save user message:", err);
+      }
+    }
+
+    // Find last assistant message content
+    const lastAssistant = response?.messages
+      ?.filter((m: any) => m.role === "assistant")
+      ?.at(-1);
+
+    // If NO story created, extract from lastAssistant
+    if (!aiBundle.story) {
+      const fallback =
+        extractStoryText(lastAssistant?.content ?? "") ?? "";
+      aiBundle.story = {
+        type: "story",
+        content: fallback,
+      };
+    }
+
+    // ---------------------------------------
+    // FINAL OUTPUT: ALWAYS SAVE WHAT EXISTS
+    // ---------------------------------------
+    let finalOutput: any = {};
+
+    if (
+      aiBundle.chart &&
+      aiBundle.chart.data &&
+      Array.isArray(aiBundle.chart.data.chartData)
+    ) {
+      finalOutput.chart = aiBundle.chart;
+    }
+
+    if (
+      aiBundle.table &&
+      aiBundle.table.data &&
+      Array.isArray(aiBundle.table.data.rows)
+    ) {
+      finalOutput.table = aiBundle.table;
+    }
+
+    // ALWAYS SAVE STORY
+    finalOutput.story = {
+      type: "story",
+      content: aiBundle.story?.content ?? "",
+    };
+
+    // ---------------------------------------
+    // SAVE ASSISTANT MESSAGE
+    // ---------------------------------------
+    try {
+      const savedAssistant = await saveAssistantMessage(
+        chatUuid,
+        lastAssistant?.id ?? null,
+        finalOutput
+      );
+
+      const assistantMessageId =
+        savedAssistant?.messageId ??
+        savedAssistant?.data?.id ??
+        null;
+
+      if (assistantMessageId) {
+        await saveMessageTokenUsage({
+          messageId: assistantMessageId,
+          promptTokens,
+          completionTokens,
+          totalTokens,
+          tokenCost: calculateCost({ promptTokens, completionTokens }),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to save assistant message:", err);
+    }
+
+    // update chat totals
+    try {
+      await updateChatTotals({
+        chatId: chatUuid,
         promptTokens,
         completionTokens,
         totalTokens,
+        cost: calculateCost({ promptTokens, completionTokens }),
       });
+    } catch (err) {
+      console.error("Failed to update chat totals:", err);
     }
-
-    // Update chat totals
-    await updateChatTotals({
-      chatId: chatUuid,
-      promptTokens,
-      completionTokens,
-      totalTokens,
-      cost,
-    });
-
   } catch (err) {
-    console.error("❌ Token tracking failed:", err);
+    console.error("❌ onFinish failed:", err);
+  } finally {
+    aiBundle = { chart: null, table: null, story: null };
   }
-},
+}
+
 
     });
+
 
     // 10. Return streaming response with appropriate headers
   return result.toDataStreamResponse({
