@@ -21,12 +21,17 @@ import {
   FileText,
   Volume2   // ✅ ADDED
 } from "lucide-react";
+import { generatePDF } from "@/app/(authenticated)/chatwithpage/generatefiles/downloadPDF";
+import { downloadCSV } from "@/app/(authenticated)/chatwithpage/generatefiles/generateCSV";
+import { downloadDOC } from "@/app/(authenticated)/chatwithpage/generatefiles/generateDOCX";
+// import { downloadPPT } from "@/app/(authenticated)/chatwithpage/generatefiles/generatePPT";
 
 import DataDisplay, { ChartConfig, TableData } from "../_components/DataDisplay";
 import {
   DropdownMenu,
   DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { downloadExcel } from "../generatefiles/generateExcel";
 
 // ---------- Types ----------
 type VisualContent = {
@@ -53,7 +58,76 @@ const suggestions = [
   { title: "Summarize Content", description: "Extract key information quickly", icon: ClipboardList },
   { title: "Get Insights", description: "Receive smart recommendations", icon: Lightbulb },
 ];
+let pptxLoaded = false;
 
+async function loadPptxScript(): Promise<void> {
+  if (pptxLoaded) return;
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined") return reject("Not in browser");
+    if ((window as any).PptxGenJS || (window as any).pptxgen) {
+      pptxLoaded = true;
+      return resolve();
+    }
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js";
+    script.async = true;
+    script.onload = () => { pptxLoaded = true; resolve(); };
+    script.onerror = () => reject("Failed to load pptxgenjs");
+    document.body.appendChild(script);
+  });
+}
+
+export async function downloadPPT({
+  storyText,
+  headers,
+  rows,
+  chartRef,
+  fileName = "report.pptx",
+}: {
+  storyText?: string,
+  headers?: string[],
+  rows?: string[][],
+  chartRef?: HTMLCanvasElement | null,
+  fileName?: string,
+}) {
+  await loadPptxScript();
+  const pptxgen = (window as any).PptxGenJS || (window as any).pptxgen;
+  if (!pptxgen) {
+    alert("PPT generator failed to load");
+    return;
+  }
+
+  const pptx = new pptxgen();
+
+  // Slide 1: Story
+  const slide1 = pptx.addSlide();
+  slide1.addText(storyText || "No Story", {
+    x: 0.5, y: 0.5, w: 9, h: 5,
+    fontSize: 20, bold: true, color: "333333"
+  });
+
+  // Slide 2: Chart
+  if (chartRef) {
+    const img = chartRef.toDataURL("image/png");
+    const slide2 = pptx.addSlide();
+    slide2.addText("Chart", { x: 0.5, y: 0.3, fontSize: 24, bold: true });
+    slide2.addImage({ data: img, x: 0.5, y: 1, w: 9, h: 4.5 });
+  }
+
+  // Slide 3: Table
+  if (headers?.length && rows?.length) {
+    const slide3 = pptx.addSlide();
+    slide3.addText("Table", { x: 0.5, y: 0.3, fontSize: 24, bold: true });
+    slide3.addTable([headers, ...rows], {
+      x: 0.5, y: 1, w: 9,
+      fontSize: 14,
+      border: { pt: 1, color: "666666" },
+      fill: "F2F2F2",
+    });
+  }
+
+  await pptx.writeFile({ fileName });
+}
 // ---------- Group chart + table + assistant text per prompt ----------
 function groupMessages(messages: Message[]) {
   const result: Array<{
@@ -174,10 +248,21 @@ export default function ChatBody({
       setCopiedIndex(null);
     }, 3000);
   };
-
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!(window as any).PptxGenJS) {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js";
+      script.async = true;
+      script.onload = () => console.log("PPTXGenJS loaded");
+      script.onerror = () => console.error("Failed to load PPTXGenJS");
+      document.body.appendChild(script);
+    }
+  }, []);
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length, isLoading]);
+
 
   const groups = groupMessages(messages);
 
@@ -269,7 +354,7 @@ export default function ChatBody({
 
             {/* Visuals */}
             {(g.chart || g.table) && (
-              <div className="mt-1">
+              <div id={`chart-${idx}`} className="mt-1">
                 <DataDisplay
                   title={g.chart?.title || g.table?.title || "Visualization"}
                   chartConfig={g.chart}
@@ -278,6 +363,7 @@ export default function ChatBody({
                 />
               </div>
             )}
+
 
             {/* Assistant Text */}
             {g.assistantText.length > 0 && (
@@ -353,11 +439,144 @@ export default function ChatBody({
                   <DropdownMenuContent align="end" className="w-44">
                     <DropdownMenuLabel>Download</DropdownMenuLabel>
 
-                    <DropdownMenuItem><FileText size={14} className="mr-2" /> PDF</DropdownMenuItem>
-                    <DropdownMenuItem><ClipboardList size={14} className="mr-2" /> Doc</DropdownMenuItem>
-                    <DropdownMenuItem><BarChart size={14} className="mr-2" /> PPT</DropdownMenuItem>
-                    <DropdownMenuItem><FileSearch size={14} className="mr-2" /> CSV</DropdownMenuItem>
-                    <DropdownMenuItem><Lightbulb size={14} className="mr-2" /> Excel</DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        const chartRef = document
+                          .querySelector(`#chart-${idx}`)
+                          ?.querySelector("canvas") as HTMLCanvasElement | null;
+
+                        // 🔥 Convert TableData → PDF format
+                        const table = g.table;
+
+                        const normalizedTable = table
+                          ? {
+                            headers: table.columns.map((c) => c.header),
+                            rows: table.rows.map((row) =>
+                              table.columns.map((c) => String(row[c.key] ?? ""))
+                            ),
+                          }
+                          : null;
+
+
+                        generatePDF({
+                          storyText: g.assistantText.join("\n\n"),
+                          table: normalizedTable,
+                          chartRef,
+                        });
+                      }}
+                    >
+                      <FileText size={14} className="mr-2" /> PDF
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => {
+                        const table = g.table;
+                        const chartRef = document
+                          .querySelector(`#chart-${idx}`)
+                          ?.querySelector("canvas") as HTMLCanvasElement | null;
+
+                        const storyText = g.assistantText.join("\n\n");
+
+                        const headers = table?.columns?.map((c) => c.header) ?? [];
+                        const rows =
+                          table?.rows?.map((row) =>
+                            table.columns.map((c) => String(row[c.key] ?? ""))
+                          ) ?? [];
+
+                        downloadDOC({
+                          storyText,
+                          headers,
+                          rows,
+                          chartRef,
+                          fileName: "chat-report.docx",
+                        });
+                      }}
+                    >
+                      <ClipboardList size={14} className="mr-2" /> Doc
+                    </DropdownMenuItem>
+
+
+                    {/* PPT — wrapped safely so NO TS error */}
+                    {/* ---------- PPT DOWNLOAD (TS18048 FIXED) ---------- */}
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (!g || !g.table || !g.table.columns || !g.table.rows) {
+                          console.warn("No table available for PPT export");
+                          return;
+                        }
+
+                        const headers = g.table.columns.map((c) => c.header);
+
+                        const rows = g.table.rows.map((row) =>
+                          g.table!.columns.map((c) => String(row[c.key] ?? ""))
+                        );
+
+                        const chartRef = document
+                          .querySelector(`#chart-${idx}`)
+                          ?.querySelector("canvas") as HTMLCanvasElement | null;
+                        
+
+                       downloadPPT({
+                          storyText: g.assistantText.join("\n\n"),
+                          headers,
+                          rows,
+                          chartRef,
+                          fileName: "report.pptx",
+                        });
+                      }}
+                    >
+                      <BarChart size={14} className="mr-2" /> PPT
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => {
+                        const table = g.table;
+
+                        if (!table?.columns || !table?.rows) {
+                          console.warn("No table available for CSV export");
+                          return;
+                        }
+
+                        const headers = table.columns.map((c) => c.header);
+
+                        const rows = table.rows.map((row) =>
+                          table.columns.map((c) => row[c.key])
+                        );
+
+                        downloadCSV({
+                          headers,
+                          rows,
+                          fileName: "table-data.csv",
+                        });
+                      }}
+                    >
+                      <FileSearch size={14} className="mr-2" /> CSV
+                    </DropdownMenuItem>
+
+                    {/* EXCEL — wrapped safely */}
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (!g?.table?.columns || !g?.table?.rows) {
+                          console.warn("No table available for EXCEL export");
+                          return;
+                        }
+
+                        const headers = g.table.columns.map((c) => c.header);
+                        const rows = g.table.rows.map((row) =>
+                          g.table!.columns.map((c) => String(row[c.key] ?? ""))
+                        );
+
+                        downloadExcel({
+                          headers,
+                          rows,
+                          fileName: "excel-data.xlsx",
+                        });
+                      }}
+                    >
+                      <Lightbulb size={14} className="mr-2" /> Excel
+                    </DropdownMenuItem>
+
+
                   </DropdownMenuContent>
                 </DropdownMenu>
 

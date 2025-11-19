@@ -1,20 +1,32 @@
-"use client";
+export function downloadCSV({
+  headers,
+  rows,
+  fileName = "data.csv",
+}: {
+  headers: string[];
+  rows: any[][];
+  fileName?: string;
+}) {
+  // Convert to CSV string
+  let csvContent = "";
 
-export function generateCSV({ table, fileName }: any) {
-  if (!table) return;
+  // Header row
+  csvContent += headers.join(",") + "\n";
 
-  const headers = table.columns.map((c: any) => c.header).join(",");
-  const rows = table.rows
-    .map((row: any) => table.columns.map((c: any) => row[c.key]).join(","))
-    .join("\n");
+  // Data rows
+  rows.forEach((row) => {
+    const formatted = row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`);
+    csvContent += formatted.join(",") + "\n";
+  });
 
-  const csv = headers + "\n" + rows;
+  // Create blob
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-
+  // Trigger download
   const link = document.createElement("a");
-  link.href = url;
-  link.download = `${fileName}.csv`;
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute("download", fileName);
+  document.body.appendChild(link);
   link.click();
+  document.body.removeChild(link);
 }

@@ -1,100 +1,124 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
-
 import pdfMake from "pdfmake/build/pdfmake";
-// @ts-ignore
-import pdfFonts from "pdfmake/build/vfs_fonts";
+import * as pdfFonts from "pdfmake/build/vfs_fonts";
 
 pdfMake.vfs = pdfFonts.vfs;
 
-export async function downloadPDFFormatted({
+export async function generatePDF({
   storyText,
-  tableData,
-  chartCanvas,
-  fileName = "ai-chat-export",
+  table,
+  chartRef,
+  chartTitle = "Chart",
+  tableTitle = "Table",
 }: {
   storyText?: string;
-  tableData?: { rows: any[]; columns: any[] };
-  chartCanvas?: HTMLCanvasElement | null;
-  fileName?: string;
+  table?: { headers: string[]; rows: any[][] } | null;
+  chartRef?: HTMLCanvasElement | null;
+  chartTitle?: string;
+  tableTitle?: string;
 }) {
-  const pdfContent: any[] = [];
+  const content: any[] = [];
 
-  // TITLE
-  pdfContent.push({
-    text: "AI Chat Export",
-    style: "header",
-    alignment: "center",
-    margin: [0, 0, 0, 18],
-  });
-
-  // TABLE
-  if (tableData?.columns && tableData?.rows) {
-    const headers = tableData.columns.map((c) => c.header);
-    const rows = tableData.rows.map((r) =>
-      tableData.columns.map((c) => String(r[c.key] ?? ""))
-    );
-
-    pdfContent.push({
-      text: "Table",
-      style: "subheader",
-      margin: [0, 10, 0, 8],
-    });
-
-    pdfContent.push({
-      table: {
-        headerRows: 1,
-        widths: Array(headers.length).fill("*"),
-        body: [headers, ...rows],
-      },
-      layout: "lightHorizontalLines",
-      margin: [0, 0, 0, 18],
-    });
-  }
-
-  // CHART
-  if (chartCanvas && typeof chartCanvas.toDataURL === "function") {
-    const chartImg = chartCanvas.toDataURL("image/png", 1.0);
-
-    pdfContent.push({
-      text: "Chart",
-      style: "subheader",
-      margin: [0, 10, 0, 8],
-    });
-
-    pdfContent.push({
-      image: chartImg,
-      width: 450,
-      margin: [0, 0, 0, 18],
-    });
-  }
-
-  // STORY
+  // -------------------------------------------
+  // 1️⃣ STORY FIRST
+  // -------------------------------------------
   if (storyText) {
-    pdfContent.push({
-      text: "Explanation",
-      style: "subheader",
-      margin: [0, 10, 0, 8],
-    });
-
-    pdfContent.push({
+    content.push({
       text: storyText,
       style: "story",
+      margin: [0, 0, 0, 25],
     });
   }
 
+  // -------------------------------------------
+  // 2️⃣ CHART
+  // -------------------------------------------
+  if (chartRef) {
+    content.push({
+      text: chartTitle,
+      style: "sectionTitle",
+      alignment: "center",
+      margin: [0, 0, 0, 12],
+    });
+
+    const chartImage = chartRef.toDataURL("image/png");
+
+    content.push({
+      image: chartImage,
+      width: 500,
+      alignment: "center",
+      margin: [0, 0, 0, 25],
+    });
+  }
+
+  // -------------------------------------------
+  // 3️⃣ TABLE
+  // -------------------------------------------
+  if (table?.headers?.length && table?.rows?.length) {
+    content.push({
+      text: tableTitle,
+      style: "sectionTitle",
+      alignment: "center",
+      margin: [0, 0, 0, 15],
+    });
+
+    const columnWidths = table.headers.map(() => "*");
+
+    const tableBody = [
+      // Header Row
+      table.headers.map((h) => ({
+        text: h,
+        bold: true,
+        fillColor: "#eeeeee",
+        margin: [4, 3],
+      })),
+
+      // Data Rows
+      ...table.rows.map((row, i) =>
+        row.map((cell) => ({
+          text: String(cell),
+          margin: [4, 3],
+          fillColor: i % 2 === 0 ? "#ffffff" : "#fafafa",
+        }))
+      ),
+    ];
+
+    content.push({
+      width: "100%",
+      table: {
+        headerRows: 1,
+        widths: columnWidths,
+        body: tableBody,
+      },
+      layout: {
+        hLineWidth: () => 0.6,
+        vLineWidth: () => 0.3,
+        hLineColor: () => "#bbbbbb",
+        vLineColor: () => "#bbbbbb",
+      },
+      margin: [0, 0, 0, 20],
+    });
+  }
+
+  // -------------------------------------------
+  // FINAL DOCUMENT
+  // -------------------------------------------
   const docDefinition = {
-    content: pdfContent,
+    pageMargins: [20, 40, 20, 40],
+    content,
     styles: {
-      header: { fontSize: 22, bold: true },
-      subheader: { fontSize: 16, bold: true },
-      story: { fontSize: 12, lineHeight: 1.4 },
+      sectionTitle: {
+        fontSize: 18,
+        bold: true,
+      },
+      story: {
+        fontSize: 12,
+        lineHeight: 1.4,
+      },
     },
     defaultStyle: {
-      font: "Helvetica",
+      fontSize: 9,
     },
-    pageMargins: [25, 25, 25, 25],
   };
 
-  pdfMake.createPdf(docDefinition).download(`${fileName}.pdf`);
+  pdfMake.createPdf(docDefinition).download("storereport.pdf");
 }

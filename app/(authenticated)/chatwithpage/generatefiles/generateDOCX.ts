@@ -1,124 +1,162 @@
-"use client";
-
 import {
   Document,
   Packer,
   Paragraph,
-  TextRun,
-  HeadingLevel,
   Table,
-  TableRow,
   TableCell,
+  TableRow,
+  TextRun,
+  ImageRun,
   AlignmentType,
+  WidthType,
+  BorderStyle,
+  TableLayoutType,
 } from "docx";
 import { saveAs } from "file-saver";
 
-interface TableData {
-  columns: { key: string; header: string }[];
-  rows: Record<string, any>[];
-}
-
-export async function generateDOCX({
-  story,
-  table,
-  fileName = "ai-chat-export",
+export async function downloadDOC({
+  storyText,
+  headers,
+  rows,
+  chartRef,
+  fileName = "report.docx",
 }: {
-  story?: string;
-  table?: TableData;
+  storyText?: string;
+  headers?: string[];
+  rows?: string[][];
+  chartRef?: HTMLCanvasElement | null;
   fileName?: string;
 }) {
-  const children: any[] = [];
+  const docChildren: any[] = [];
 
-  // Title
-  children.push(
-    new Paragraph({
-      text: "AI Chat Export",
-      heading: HeadingLevel.TITLE,
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 300 },
-    })
-  );
+  // ------------------------------------------------
+  // 1️⃣ TABLE FIRST — FULL WIDTH & FIXED LAYOUT
+  // ------------------------------------------------
+  if (headers && rows) {
+    const columnCount = headers.length;
 
-  // Table Section
-  if (table) {
-    children.push(
+    // Title
+    docChildren.push(
       new Paragraph({
         text: "Table",
-        heading: HeadingLevel.HEADING_1,
-        spacing: { before: 300, after: 200 },
+        heading: "Heading1",
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 300 },
       })
     );
 
-    const tableRows = [
-      // Header row
+    const tableRows: TableRow[] = [];
+
+    // Header row
+    tableRows.push(
       new TableRow({
-        children: table.columns.map(
-          (c) =>
+        tableHeader: true,
+        children: headers.map(
+          (h) =>
             new TableCell({
+              width: { size: 100 / columnCount, type: WidthType.PERCENTAGE },
+              shading: { fill: "E8E8E8" },
               children: [
                 new Paragraph({
                   children: [
-                    new TextRun({
-                      text: c.header,
-                      bold: true,
-                    }),
+                    new TextRun({ text: h, bold: true }),
                   ],
                 }),
               ],
             })
         ),
-      }),
-
-      // Data rows
-      ...table.rows.map(
-        (row) =>
-          new TableRow({
-            children: table.columns.map((c) => {
-              const value = String(row[c.key] ?? "");
-
-              return new TableCell({
-                children: [new Paragraph(value)],
-              });
-            }),
-          })
-      ),
-    ];
-
-    children.push(
-      new Table({
-        rows: tableRows,
-        width: { size: 100, type: "pct" },
       })
+    );
+
+    // Data rows
+    rows.forEach((row) => {
+      tableRows.push(
+        new TableRow({
+          children: row.map(
+            (cell) =>
+              new TableCell({
+                width: { size: 100 / columnCount, type: WidthType.PERCENTAGE },
+                children: [new Paragraph(String(cell))],
+              })
+          ),
+        })
+      );
+    });
+
+    // Styled full-width table
+    docChildren.push(
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        layout: TableLayoutType.FIXED,
+        rows: tableRows,
+        borders: {
+          top: { size: 1, style: BorderStyle.SINGLE },
+          bottom: { size: 1, style: BorderStyle.SINGLE },
+          left: { size: 1, style: BorderStyle.SINGLE },
+          right: { size: 1, style: BorderStyle.SINGLE },
+          insideHorizontal: { size: 1, style: BorderStyle.SINGLE },
+          insideVertical: { size: 1, style: BorderStyle.SINGLE },
+        },
+      })
+    );
+
+    // Spacing before chart
+    docChildren.push(
+      new Paragraph({ text: "", spacing: { after: 400 } })
     );
   }
 
-  // Story Section
-  if (story) {
-    children.push(
+  // ------------------------------------------------
+  // 2️⃣ CHART SECOND
+  // ------------------------------------------------
+  if (chartRef) {
+    const imageBase64 = chartRef.toDataURL("image/png").split(",")[1];
+
+    // Title
+    docChildren.push(
       new Paragraph({
-        text: "Explanation",
-        heading: HeadingLevel.HEADING_1,
-        spacing: { before: 400, after: 200 },
+        text: "Chart",
+        heading: "Heading1",
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 200 },
       })
     );
 
-    children.push(
+    // Chart image
+    docChildren.push(
       new Paragraph({
+        alignment: AlignmentType.CENTER,
         children: [
-          new TextRun({
-            text: story,
-            size: 24,
+          new ImageRun({
+            data: Uint8Array.from(atob(imageBase64), (c) => c.charCodeAt(0)),
+            transformation: { width: 550, height: 300 },
+            type: "png",
           }),
         ],
+        spacing: { after: 400 },
       })
     );
   }
 
-  // Generate DOCX
+  // ------------------------------------------------
+  // 3️⃣ STORY LAST
+  // ------------------------------------------------
+  if (storyText) {
+    docChildren.push(
+      new Paragraph({
+        text: storyText,
+        spacing: { before: 200, after: 200 },
+      })
+    );
+  }
+
+  // ------------------------------------------------
+  // Build DOCX
+  // ------------------------------------------------
   const doc = new Document({
-    sections: [{ children }],
+    sections: [{ children: docChildren }],
   });
 
-  const blob = await Packer.toBlob(doc);
-  saveAs(blob, `${fileName}.docx`);
+  const buffer = await Packer.toBlob(doc);
+  saveAs(buffer, fileName);
 }

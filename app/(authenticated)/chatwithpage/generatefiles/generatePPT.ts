@@ -1,27 +1,101 @@
 "use client";
-import PptxGenJS from "pptxgenjs";
 
-export async function generatePPT({ story, table, fileName }: any) {
-  const ppt = new PptxGenJS();
-  const slide = ppt.addSlide();
+let pptxLoaded = false;
 
-  slide.addText("AI Chat Export", { x: 1, y: 0.3, fontSize: 28, bold: true });
+async function loadPptxScript(): Promise<void> {
+  if (pptxLoaded) return;
 
-  if (table) {
-    slide.addText("Table", { x: 0.5, y: 1, fontSize: 18 });
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined") return reject("Not in browser");
 
-    const rows = [
-      table.columns.map((c: any) => c.header),
-      ...table.rows.map((r: any) => table.columns.map((c: any) => String(r[c.key])))
-    ];
+    // If already exists
+    if ((window as any).pptxgen) {
+      pptxLoaded = true;
+      return resolve();
+    }
 
-    slide.addTable(rows, { x: 0.5, y: 1.4, w: 9 });
+    const script = document.createElement("script");
+    script.src =
+      "https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js";
+    script.async = true;
+
+    script.onload = () => {
+      pptxLoaded = true;
+      resolve();
+    };
+
+    script.onerror = () => reject("Failed to load pptxgenjs");
+    document.body.appendChild(script);
+  });
+}
+
+export async function downloadPPT({
+  storyText,
+  headers,
+  rows,
+  chartRef,
+  fileName = "report.pptx",
+}: {
+  storyText?: string;
+  headers?: string[];
+  rows?: string[][];
+  chartRef?: HTMLCanvasElement | null;
+  fileName?: string;
+}) {
+  await loadPptxScript();
+
+  const pptxgen = (window as any).pptxgen;
+
+  if (!pptxgen) {
+    alert("PPT generator failed to load.");
+    return;
   }
 
-  if (story) {
-    slide.addText("Explanation", { x: 0.5, y: 4, fontSize: 18 });
-    slide.addText(story, { x: 0.5, y: 4.5, fontSize: 14, wrap: true, w: 9 });
+  const pptx = new pptxgen();
+
+  // ---------------- Slide 1: Story ----------------
+  const slide1 = pptx.addSlide();
+  slide1.addText(storyText || "No Story", {
+    x: 0.5,
+    y: 0.5,
+    w: 9,
+    h: 5,
+    fontSize: 20,
+    bold: true,
+    color: "333333",
+  });
+
+  // ---------------- Slide 2: Chart ----------------
+  if (chartRef) {
+    const img = chartRef.toDataURL("image/png");
+    const slide2 = pptx.addSlide();
+
+    slide2.addText("Chart", { x: 0.5, y: 0.3, fontSize: 24, bold: true });
+
+    slide2.addImage({
+      data: img,
+      x: 0.5,
+      y: 1,
+      w: 9,
+      h: 4.5,
+    });
   }
 
-  ppt.writeFile(`${fileName}.pptx`);
+  // ---------------- Slide 3: Table ----------------
+  if (headers?.length && rows?.length) {
+    const slide3 = pptx.addSlide();
+
+    slide3.addText("Table", { x: 0.5, y: 0.3, fontSize: 24, bold: true });
+
+    slide3.addTable([headers, ...rows], {
+      x: 0.5,
+      y: 1,
+      w: 9,
+      fontSize: 14,
+      border: { pt: 1, color: "666666" },
+      fill: "F2F2F2",
+    });
+  }
+
+  await pptx.writeFile({ fileName });
 }
