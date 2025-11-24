@@ -111,7 +111,7 @@ export function CommandMenu() {
             </CommandGroup>
           ))}
           <CommandSeparator />
-          {/* <CommandGroup heading="Theme">
+          <CommandGroup heading="Theme">
             <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
               <Sun /> <span>Light</span>
             </CommandItem>
@@ -123,7 +123,7 @@ export function CommandMenu() {
               <Laptop />
               <span>System</span>
             </CommandItem>
-          </CommandGroup> */}
+          </CommandGroup>
         </ScrollArea>
       </CommandList>
     </CommandDialog>
