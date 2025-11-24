@@ -1,5 +1,5 @@
 "use client";
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard } from "lucide-react";
+import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, Palette } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -110,6 +110,14 @@ export function NavUser({
                   Notifications
                 </Link>
               </DropdownMenuItem>
+
+              <DropdownMenuItem asChild >
+                <Link href="/Theme">
+                  <Palette />
+                  Theme
+                </Link>
+              </DropdownMenuItem>
+
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>

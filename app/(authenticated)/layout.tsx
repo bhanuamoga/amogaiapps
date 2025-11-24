@@ -7,6 +7,9 @@ import { auth } from "@/auth";
 import { NavUser } from "@/components/layout/nav-user";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { QueryProviderWrapper } from "./QueryProviderWrapper";
+import PageTracker from "@/components/PageTracker";
+import ClickTracker from "@/components/ClickTracker";
+
 export default async function AuthenticatedLayout({
   children,
 }: Readonly<{
@@ -41,10 +44,12 @@ export default async function AuthenticatedLayout({
             }
           >
             <div className="ml-auto flex items-center gap-4">
-              <ThemeSwitch />
+              {/* <ThemeSwitch /> */}
             </div>
           </Header>
           <NuqsAdapter>
+              {/* <PageTracker /> */}
+        {/* <ClickTracker /> */}
             <div className="pr-3 pl-3 h-full overflow-auto">{children}</div>
           </NuqsAdapter>
         </div>

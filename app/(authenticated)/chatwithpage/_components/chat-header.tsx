@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { v4 as uuid } from "uuid";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ThemeSwitch } from "@/components/theme-switch";
 
 type ThreadHeaderStickyProps = {
   chatUuid: string;

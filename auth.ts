@@ -145,7 +145,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return Response.redirect(new URL("/role-menu", nextUrl.origin));
       }
 
-      const authAllowedPaths = ["/role-menu", "/settings", "/not-authorized"];
+      const authAllowedPaths = ["/role-menu", "/settings", "/not-authorized","/Theme"];
 
       const isAuthAllowedPaths = authAllowedPaths.some((path) =>
         nextUrl.pathname.startsWith(path)
