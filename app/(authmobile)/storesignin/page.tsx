@@ -57,6 +57,7 @@ export default function SignIn() {
   });
 
   useEffect(() => {
+    console.log("LOGIN STATE DEBUG →", state); 
     if (pending || !state?.status) return;
     if (state?.status === "failed") {
       toast.error("Invalid credentials!");

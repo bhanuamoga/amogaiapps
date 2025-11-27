@@ -5,14 +5,14 @@ import { tools } from "./tools";
 import { v4 as uuidv4 } from "uuid";
 
 const google = createGoogleGenerativeAI({
-  apiKey: "AIzaSyCbROdy5OR4F1pT6anpxbagyABn2vbeqHE",
+  apiKey: "AIzaSyBlbSDziL3b0MwtplsX0mrc040NyzwXYDQ",
 });
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
   const result = streamText({
-    model: google("gemini-2.5-flash-preview-04-17"),
+    model: google("gemini-2.5-flash"),
     onError: (error) => {
       console.error("Error in streaming response:", error);
     },
