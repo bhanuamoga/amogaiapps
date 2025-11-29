@@ -132,7 +132,7 @@ export default function ChatHistoryPage() {
   };
 
   return (
-    <div className="flex flex-col  w-full max-w-2xl mx-auto animate-fade-in">
+    <div className="flex flex-col  w-full max-w-[800px] mx-auto animate-fade-in">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <Button variant="default" onClick={handleNewChat} className="gap-2">

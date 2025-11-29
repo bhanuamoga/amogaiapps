@@ -112,6 +112,8 @@ export async function POST(req: Request) {
     // 1. Authenticate user
     const session = await auth();
     const userId = session?.user?.user_catalog_id;
+    const userName = session?.user?.user_name  || null;
+    console.log("✅ Authenticated user ID:", userName);
     if (!userId) return new Response("Unauthorized", { status: 401 });
 
     // 2. Parse incoming request JSON
@@ -132,14 +134,23 @@ if (!chatUuid) {
     // 3. Fetch user configurations for AI and API connections
     const { data, error } = await postgrest
       .from("user_catalog" as any)
-      .select("aiapi_connection_json, db_connection_json")
+      .select("aiapi_connection_json, db_connection_json,cdb_table_scope")
       .eq("user_catalog_id", userId)
       .single();
 
     if (error || !data) {
       return new Response("Failed to load user configuration", { status: 500 });
     }
+   const scope = data?.cdb_table_scope ?? {};
 
+// Allowed tables (default empty array)
+const allowedTables =
+  scope?.allowed_tables && Array.isArray(scope.allowed_tables)
+    ? scope.allowed_tables
+    : [];
+
+// Filter only user's own rows?
+const userDataFilter = scope?.user_data_filter === true;
     // 4. Select AI provider
     const aiList = Array.isArray(data.aiapi_connection_json)
       ? data.aiapi_connection_json
@@ -197,7 +208,14 @@ if (!dbConnectionString) {
     5. Before finishing your response, always generate 3-5 relevant follow-up questions using the generateSuggestions tool
 
     Always ensure your SQL queries:
-    - If user ask data from a table that its not in shema dont give him because he is not allowed to see it.
+    - If the user asks for data from a table that is not in the allowed list, respond ONLY with: "You do not have access to this table."
+    - Only access tables from the allowedTables list: [${allowedTables.join(", ")}]
+    - If userDataFilter is enabled, always filter data by user_name = '${userName}'
+    - Use proper SQL syntax
+    - Avoid using subqueries
+    - Limit results to a maximum of 100 rows
+    - Always use explicit column names instead of SELECT *
+    - Always order results by a relevant column when applicable
     - user may type the tables and couloumn worong so use the existing once
     - Use proper joins when needed
     - Include appropriate WHERE clauses
@@ -210,10 +228,11 @@ if (!dbConnectionString) {
     - Label both axes clearly
     - Use a variety of neon colors
     - Provide analysis of the trends or patterns shown
-    - Use the data from the executeSql tool to generate the chart config then pass it to the generateChart tool
-    - If user ask for a chart, you need to use the generateChart tool to visualize the data dont ask him again
-    - You should always quert the database first then generate the chart config and pass it to the generateChart tool
+    - Use the data from the executeSql tool to generate the chart config then pass it to the createChart tool
+    - If user ask for a chart, you need to use the createChart tool to visualize the data dont ask him again
+    - You should always quert the database first then generate the chart config and pass it to the createChart tool
     Be helpful, concise, and focus on answering the user's question with data.`
+
   let aiBundle: {
       chart: any | null;
       table: any | null;
@@ -229,15 +248,18 @@ if (!dbConnectionString) {
       model,
       system: systemPrompt,
       messages: convertToCoreMessages(messages),
-      tools: buildTools(dbConnectionString) ,
+      tools: buildTools(dbConnectionString,allowedTables,userDataFilter,userName) ,
       // toolChoice: "auto", 
       experimental_generateMessageId: uuidv4,
       maxSteps: 25,
       maxRetries:2,
      onStepFinish: async (step: any) => {
+      console.log("🟧 STEP FINISH:", JSON.stringify(step, null, 2));
   const results = step?.toolResults ?? [];
 
   for (const t of results) {
+    console.log("🔧 TOOL USED:", t.toolName);
+      console.log("📥 TOOL RESULT:", JSON.stringify(t.result, null, 2));
     const toolName = t?.toolName ?? t?.tool;
     const res = t?.result ?? t?.toolResult ?? t;
 
@@ -322,6 +344,12 @@ if (!dbConnectionString) {
    // >>> REPLACE YOUR CURRENT onFinish WITH THIS ONE <<<
 
  onFinish: async ({ response, usage }: any) => {
+   console.log("🟥 FINAL RESPONSE OBJECT:", JSON.stringify(response, null, 2));
+  console.log(
+  "🧠 LAST ASSISTANT RAW MESSAGE:",
+  response?.messages?.filter((m: { role: string; content: any }) => m.role === "assistant")?.at(-1)
+);
+
   try {
     const promptTokens = usage?.promptTokens ?? 0;
     const completionTokens = usage?.completionTokens ?? 0;
@@ -455,21 +483,15 @@ if (!dbConnectionString) {
     "Content-Type": "application/json",
     'Content-Encoding': 'none',
   },
-  getErrorMessage: (error: unknown) => {
-    if (!error) return "unknown error";
-    if (typeof error === "string") return error;
-    if (error instanceof Error) return error.message;
-    return JSON.stringify(error);
-  },
+  getErrorMessage: () => "An internal server error occurred."
+
 });
 
   } catch (err: any) {
     console.error("❌ Chat API Error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+   return new Response(JSON.stringify({ error: "An unexpected server error occurred." }), {
+  status: 500,
+});
+
   }
 }

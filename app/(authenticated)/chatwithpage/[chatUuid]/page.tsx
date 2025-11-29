@@ -92,7 +92,6 @@ export default function ChatPage() {
   // ------------------------------------------------------------------
   return (
     <main className="flex flex-col min-h-screen bg-background">
-      <div className="flex-1 w-full max-w-2xl mx-auto">
         <ChatHeader chatUuid={chatUuid} />
 
         <ChatBody
@@ -101,7 +100,6 @@ export default function ChatPage() {
           isLoading={isLoading}
           errorMessage={errorMessage}
         />
-      </div>
 
       <ChatInput
         chatUuid={chatUuid}

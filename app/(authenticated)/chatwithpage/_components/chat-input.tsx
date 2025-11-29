@@ -172,10 +172,10 @@ export default function ChatInput({
 
   return (
     <div className="w-full sticky bottom-0 z-40 py-1">
-      <div className="mx-auto w-full max-w-2xl">
+      <div className="mx-auto w-full max-w-[800px]">
         <div
           className={cn(
-            "rounded-2xl border shadow-sm p-3 sm:p-4 flex flex-col gap-3 sm:gap-4",
+            "rounded-xl border shadow-sm p-3 sm:p-4 flex flex-col gap-3 sm:gap-4",
             "bg-background"
           )}
         >
@@ -184,7 +184,7 @@ export default function ChatInput({
             value={input}
             onChange={(e) => handleInputChange(e)}
             placeholder="Ask a follow-up"
-            className="flex w-full rounded-md border border-input bg-background px-3 py-3 text-base leading-relaxed resize-none overflow-y-auto"
+            className="flex w-full rounded-sm border border-input bg-background px-3 py-3 text-base leading-relaxed resize-none overflow-y-auto"
             style={{ maxHeight: 96 }}
           />
 

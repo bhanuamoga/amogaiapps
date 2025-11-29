@@ -31,12 +31,15 @@ type ChatInputProps = {
   chatUuid: string;
   onNewMessage?: (role: "user" | "assistant", content: any) => void;
   setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
+  setErrorMessage?: React.Dispatch<React.SetStateAction<string | null>>;
+
 };
 
 export default function ChatInput({
   chatUuid,
   onNewMessage,
   setIsLoading,
+  setErrorMessage,
 }: ChatInputProps) {
   const [aiApis, setAiApis] = useState<AIModel[]>([]);
   const [apis, setApis] = useState<APIEntry[]>([]);
@@ -96,9 +99,31 @@ export default function ChatInput({
     },
 
     onError(err) {
-      console.error("❌ Chat error:", err);
-      setIsLoading?.(false);
-    },
+  console.error("❌ Chat error:", err);
+
+  let msg = "Something went wrong. Please try again.";
+
+  // If error is a string
+  if (typeof err === "string") {
+    msg = err;
+  }
+  // If error is a standard Error object
+  else if (err instanceof Error) {
+    msg = err.message;
+  }
+  // If it's some unknown object with "message"
+  else if (typeof (err as any)?.message === "string") {
+    msg = (err as any).message;
+  }
+  // If it's some unknown object with "error"
+  else if (typeof (err as any)?.error === "string") {
+    msg = (err as any).error;
+  }
+
+  setErrorMessage?.(msg);
+  setIsLoading?.(false);
+},
+
 
     onToolCall: async (event: any) => {
       const { toolName, args } = event.toolCall;
@@ -172,7 +197,7 @@ export default function ChatInput({
 
   return (
     <div className="w-full sticky bottom-0 z-40 py-1">
-      <div className="mx-auto w-full max-w-2xl">
+      <div className="mx-auto w-full max-w-[800px]">
         <div
           className={cn(
             "rounded-2xl border shadow-sm p-3 sm:p-4 flex flex-col gap-3 sm:gap-4",

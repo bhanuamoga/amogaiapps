@@ -164,11 +164,11 @@ function groupMessages(messages: Message[]) {
               type: data.type ?? "bar",
               title: data.title ?? "Chart",
               data: {
-                labels: data.chartData.map((r: any) => r[data.xAxisColumn]),
+                labels: (data.chartData??[]).map((r: any) => r[data.xAxisColumn]),
                 datasets: [
                   {
                     label: data.datasetLabel ?? "Data",
-                    data: data.chartData.map((r: any) => Number(r[data.yAxisColumn])),
+                    data: (data.chartData??[]).map((r: any) => Number(r[data.yAxisColumn])),
                   },
                 ],
               },
@@ -268,7 +268,7 @@ export default function ChatBody({
 
   return (
     <div className="flex-1 overflow-y-auto px-1 sm:px-4 py-4 sm:py-6 bg-background">
-      <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
+      <div className="max-w-[800px] mx-auto space-y-4 sm:space-y-6">
 
         {/* Suggestions */}
         {!errorMessage && groups.length === 0 && !isLoading && (

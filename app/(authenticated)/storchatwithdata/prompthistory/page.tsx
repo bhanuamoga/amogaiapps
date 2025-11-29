@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import {
   getPromptHistory,
   deletePrompt,
-} from "@/app/(authenticated)/chatwithpage/actions";
+} from "@/app/(authenticated)/storchatwithdata/actions";
 
 export default function PromptHistoryPage() {
   const [search, setSearch] = useState("");
@@ -62,7 +62,7 @@ export default function PromptHistoryPage() {
     });
 
   return (
-    <div className="flex flex-col w-full max-w-2xl mx-auto px-2 md:px-0 animate-fade-in">
+    <div className="flex flex-col w-full max-w-[800px] mx-auto  md:px-0 animate-fade-in">
 
       {/* HEADER */}
       <div className="flex justify-between items-center mb-5">

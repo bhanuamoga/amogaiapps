@@ -268,7 +268,7 @@ export default function ChatBody({
 
   return (
     <div className="flex-1 overflow-y-auto px-1 sm:px-4 py-4 sm:py-6 bg-background">
-      <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
+      <div className="max-w-[800px] mx-auto space-y-4 sm:space-y-6">
 
         {/* Suggestions */}
         {!errorMessage && groups.length === 0 && !isLoading && (
@@ -318,7 +318,7 @@ export default function ChatBody({
 
             {/* User bubble */}
             <div className="flex justify-end">
-              <div className="bg-primary text-primary-foreground rounded-2xl px-3 py-2 sm:px-4 sm:py-2 max-w-[85%] text-sm whitespace-pre-wrap">
+              <div className="bg-primary text-primary-foreground rounded-2xl px-2 py-2 sm:px-4 sm:py-2 max-w-[85%] text-sm whitespace-pre-wrap">
                 {g.userText}
               </div>
             </div>
