@@ -23,7 +23,7 @@
       "@/*": ["./*"]
     }, "typeRoots": ["./types", "./node_modules/@types"]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "otel/otel.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "otel/otel.js", "next.config.js"],
   "exclude": ["node_modules"]
 }
 
