@@ -7,9 +7,6 @@ import { auth } from "@/auth";
 import { NavUser } from "@/components/layout/nav-user";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { QueryProviderWrapper } from "./QueryProviderWrapper";
-import PageTracker from "@/components/otel/PageTracker";
-import ClickTracker from "@/components/otel/ClickTracker";
-import ErrorTracker from "@/components/otel/ErrorTracker";
 
 export default async function AuthenticatedLayout({
   children,
@@ -49,9 +46,9 @@ export default async function AuthenticatedLayout({
             </div>
           </Header>
           <NuqsAdapter>
-             <PageTracker />
+             {/* <PageTracker />
     <ClickTracker />
-    <ErrorTracker />
+    <ErrorTracker /> */}
             <div className="pr-3 pl-3 h-full overflow-auto">{children}</div>
           </NuqsAdapter>
         </div>

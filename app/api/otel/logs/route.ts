@@ -1,48 +1,48 @@
-import { NextResponse } from "next/server";
-import { logsDB } from "../supabase-logs";
+// import { NextResponse } from "next/server";
+// import { logsDB } from "../supabase-logs";
 
-import { auth } from "@/auth";
+// import { auth } from "@/auth";
 
-export async function POST(req: Request) {
-  try {
-    const json = await req.json();
-    
-    const session = await auth();
-    const user = session?.user;
+// export async function POST(req: Request) {
+//   try {
+//     const json = await req.json();
 
-    for (const rl of json.resourceLogs ?? []) {
-      for (const scope of rl.scopeLogs ?? []) {
-        for (const log of scope.logRecords ?? []) {
-          const { error } = await logsDB.from("logs").insert({
-            app_id: process.env.APP_ID,
-            app_code: process.env.APP_CODE,
+//     const session = await auth();
+//     const user = session?.user;
 
-            session_id: log.attributes?.session_id?.stringValue ?? null,
-            page: log.attributes?.page?.stringValue ?? null,
+//     for (const rl of json.resourceLogs ?? []) {
+//       for (const scope of rl.scopeLogs ?? []) {
+//         for (const log of scope.logRecords ?? []) {
+//           const { error } = await logsDB.from("logs").insert({
+//             app_id: process.env.APP_ID,
+//             app_code: process.env.APP_CODE,
 
-            user_id: user?.user_catalog_id ?? null,
-            user_name: user?.user_name ?? null,
+//             session_id: log.attributes?.session_id?.stringValue ?? null,
+//             page: log.attributes?.page?.stringValue ?? null,
 
-            severity: log.severityText,
-            message: log.body?.stringValue ?? "",
-            code: log.attributes?.code?.stringValue ?? null,
-            attributes: log.attributes ?? {},
+//             user_id: user?.user_catalog_id ?? null,
+//             user_name: user?.user_name ?? null,
 
-            trace_id: log.traceId ?? null,
-            span_id: log.spanId ?? null,
+//             severity: log.severityText,
+//             message: log.body?.stringValue ?? "",
+//             code: log.attributes?.code?.stringValue ?? null,
+//             attributes: log.attributes ?? {},
 
-            timestamp: new Date(Number(log.timeUnixNano) / 1e6)
-          });
+//             trace_id: log.traceId ?? null,
+//             span_id: log.spanId ?? null,
 
-          if (error) console.error("Insert error:", error);
-        }
-      }
-    }
+//             timestamp: new Date(Number(log.timeUnixNano) / 1e6)
+//           });
 
-    return NextResponse.json({ ok: true });
+//           if (error) console.error("Insert error:", error);
+//         }
+//       }
+//     }
 
-  } catch (e) {
-    console.error("OTEL Logs Error:", e);
-    return NextResponse.json({ ok: false }, { status: 500 });
-  }
-}
+//     return NextResponse.json({ ok: true });
+
+//   } catch (e) {
+//     console.error("OTEL Logs Error:", e);
+//     return NextResponse.json({ ok: false }, { status: 500 });
+//   }
+// }
