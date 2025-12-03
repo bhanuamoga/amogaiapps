@@ -1,22 +1,18 @@
-// "use client";
+"use client";
 
-// import { useEffect } from "react";
-// import { otelInfo } from "@/lib/otel/otel-logger";
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
-// export default function PageTracker() {
-//   useEffect(() => {
-//     otelInfo("PAGE_VIEW", {
-//       page: window.location.pathname,
-//       session_id: getSessionId(),
-//     });
-//   }, []);
+export default function PageViewTracker() {
+  const pathname = usePathname();
 
-//   return null;
-// }
+  useEffect(() => {
+    fetch("/api/otel/log", {
+      method: "POST",
+      credentials: "include", 
+      body: JSON.stringify({ event: "page_load", pathname }),
+    });
+  }, [pathname]);
 
-// function getSessionId() {
-//   if (!sessionStorage.getItem("sid")) {
-//     sessionStorage.setItem("sid", crypto.randomUUID());
-//   }
-//   return sessionStorage.getItem("sid")!;
-// }
+  return null;
+}
