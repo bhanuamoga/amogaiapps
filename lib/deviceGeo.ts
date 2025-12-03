@@ -1,13 +1,40 @@
 import { UAParser } from "ua-parser-js";
 
-/** Server Action safe public IP lookup */
-export async function extractIP() {
+/** Server Action safe public IP lookup - Uses PASSED headers only */
+export async function extractIP(headersList?: Headers) {
   try {
+    // REQUIRED: Must pass headersList from Server Action
+    if (!headersList) {
+      return "0.0.0.0"; // No headers = no IP
+    }
+    
+    // Vercel/Cloudflare real client IP headers (priority order)
+    const forwardedFor = headersList.get("x-forwarded-for");
+    const cfConnectingIP = headersList.get("cf-connecting-ip");
+    const realIP = headersList.get("x-real-ip");
+    const trueIP = headersList.get("x-true-ip");
+
+    // Extract FIRST IP from forwarded-for chain (real client)
+    let clientIP = forwardedFor?.split(",")[0]?.trim() ||
+                   cfConnectingIP ||
+                   realIP ||
+                   trueIP;
+
+    // Validate IP (not loopback/private)
+    if (clientIP && 
+        !clientIP.includes("127.0.0.1") && 
+        !clientIP.includes("::1") && 
+        !clientIP.startsWith("10.") && 
+        !clientIP.startsWith("172.") && 
+        !clientIP.startsWith("192.168.")) {
+      return clientIP;
+    }
+
+    // FINAL FALLBACK: External API
     const res = await fetch("https://api.ipify.org?format=json", {
       cache: "no-store",
     });
-    const json = await res.json();
-    return json.ip;
+    return (await res.json()).ip || "0.0.0.0";
   } catch {
     return "0.0.0.0";
   }

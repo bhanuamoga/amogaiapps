@@ -72,12 +72,12 @@ export const login = async (
     });
 
     // ------------------------
-    // SERVER ONLY: Get request headers
+    // SERVER ONLY: Get request headers - ✅ FIXED WITH AWAIT
     // ------------------------
-    const headersList = await headers(); // ← This is the correct way in App Router
+    const headersList = await headers();  // ✅ AWAIT fixes TypeScript
     const userAgent = headersList.get("user-agent") || "Unknown";
 
-    const ip = await extractIP();
+    const ip = await extractIP(headersList);  // ✅ Pass awaited headers
     const geo = await extractGeo(ip);
     const device = extractDevice(userAgent);
 
@@ -101,7 +101,7 @@ export const login = async (
 
         // Network
         user_ip_address: ip,
-        host_header: headersList.get("host"),
+        host_header: headersList.get("host") || "unknown",  // ✅ Now works
         user_agent: userAgent,
 
         // Device
