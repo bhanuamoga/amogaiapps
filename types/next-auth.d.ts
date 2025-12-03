@@ -32,5 +32,6 @@ export interface appSessionUser {
   sessionType?: string | null;
   loged_in_business_number?: string | null;
   roles_json?: string[] | null;
+  full_name?: string | null;
   allowedPaths?: string[] | null;
 }

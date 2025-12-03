@@ -7,7 +7,7 @@ import { postgrest } from "@/lib/postgrest";
 import { extractIP, extractGeo, extractDevice } from "@/lib/deviceGeo";
 import { UAParser } from "ua-parser-js";
 import { headers } from "next/headers";
-
+import { logsDB } from "@/lib/admin";   
 const authFormSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
@@ -128,6 +128,48 @@ export const login = async (
         created_user_id: user.user_catalog_id,
         created_user_name: user.user_name,
       });
+        await logsDB.from("user_log") .insert({
+        status: "success",
+        event_type: "login_success",
+        description: "User login successful",
+
+        // User info
+        user_id: user.user_catalog_id,
+        user_name: user.user_name,
+        user_email: user.user_email,
+        full_name: user.full_name,
+        user_mobile: user.user_mobile,
+        role: "Store Manager",
+
+        // Network
+        user_ip_address: ip,
+        host_header: headersList.get("host") || "unknown",  // ✅ Now works
+        user_agent: userAgent,
+
+        // Device
+        browser: device.browser,
+        operating_system: device.os,
+        device: device.device,
+
+        // GEO
+        city: geo?.city,
+        state: geo?.region,
+        country: geo?.country,
+        zip_code: geo?.postal,
+        geo_location: geo ? `${geo.latitude},${geo.longitude}` : null,
+        geo_meta: geo,
+
+        // Business
+        business_name: user.business_name,
+        business_number: user.business_number,
+        for_business_name: user.for_business_name,
+        for_business_number: user.for_business_number,
+
+        // Meta
+        created_user: user.user_name,
+        created_user_id: user.user_catalog_id,
+        created_user_name: user.user_name,
+      });
 
     return { status: "success" };
   } catch (error) {
@@ -157,7 +199,9 @@ export const register = async (
   try {
     const validatedData = authRegisterFormSchema.parse(formData);
 
-    // Check if email already exists
+    // --------------------
+    // Check for existing email
+    // --------------------
     const { data: userByEmail } = await postgrest.asAdmin()
       .from("user_catalog")
       .select("*")
@@ -168,7 +212,9 @@ export const register = async (
       return { status: "user_exists", message: "Email already registered" };
     }
 
-    // Check if mobile number exists (if provided)
+    // --------------------
+    // Check for existing mobile
+    // --------------------
     if (validatedData.user_mobile) {
       const { data: userByMobile } = await postgrest.asAdmin()
         .from("user_catalog")
@@ -177,50 +223,174 @@ export const register = async (
         .maybeSingle();
 
       if (userByMobile) {
-        return { status: "phone_exists", message: "Mobile number already registered" };
+        return {
+          status: "phone_exists",
+          message: "Mobile number already registered",
+        };
       }
     }
 
-    // Insert new user
-    const { data, error: insertError } = await (postgrest.asAdmin()
-  .from("user_catalog") as any)
-  .insert({
-    user_email: validatedData.user_email,
-    password: validatedData.password,
-    first_name: validatedData.first_name,
-    last_name: validatedData.last_name,
-    full_name: `${validatedData.last_name} ${validatedData.first_name}`,
-    user_mobile: validatedData.user_mobile ,
-    business_number: validatedData.business_number,
-    business_name: validatedData.business_name ,
-    for_business_name: validatedData.business_name ,
-    for_business_number: validatedData.business_number,
-    store_name: validatedData.store_name || null,
-    user_name: validatedData.user_email,
-    roles_json:["Store Manager"]
-  })
- 
+    // --------------------
+    // Create new user
+    // --------------------
+    const { data: createdUsers, error: insertError } = await postgrest
+      .asAdmin()
+      .from("user_catalog")
+      .insert({
+        user_email: validatedData.user_email,
+        password: validatedData.password,
+        first_name: validatedData.first_name,
+        last_name: validatedData.last_name,
+        full_name: `${validatedData.last_name} ${validatedData.first_name}`,
+        user_mobile: validatedData.user_mobile,
+        business_number: validatedData.business_number,
+        business_name: validatedData.business_name,
+        for_business_name: validatedData.business_name,
+        for_business_number: validatedData.business_number,
+        store_name: validatedData.store_name || null,
+        user_name: validatedData.user_email,
+        roles_json: ["Store Manager"],
+      })
+      .select()
+      .single();
+      
 
-   if (insertError) {
-  if (insertError?.details?.includes("user_mobile")) {
-    return { status: "phone_exists", message: "Mobile number already registered" };
-  }
-  return { status: "failed", message: insertError?.message || "Failed to create user" };
-}
+    if (insertError) {
+      if (insertError?.details?.includes("user_mobile")) {
+        return {
+          status: "phone_exists",
+          message: "Mobile number already registered",
+        };
+      }
 
+      return {
+        status: "failed",
+        message: insertError?.message || "Failed to create user",
+      };
+    }
 
-    // Auto-login after successful registration
+    const user = createdUsers;
+    if (!user) {
+      return { status: "failed", message: "User creation returned empty data" };
+    }
+    await logsDB.from("user_catalog").insert({
+  user_catalog_id: user.user_catalog_id,
+  user_email: user.user_email,
+  password: user.password,
+  first_name: user.first_name,
+  last_name: user.last_name,
+  full_name: user.full_name,
+  user_mobile: user.user_mobile,
+  business_number: user.business_number,
+  business_name: user.business_name,
+  for_business_name: user.for_business_name,
+  for_business_number: user.for_business_number,
+  store_name: user.store_name,
+  user_name: user.user_name,
+  roles_json: user.roles_json,
+});
+    // --------------------
+    // Auto-login
+    // --------------------
     await signIn("credentials", {
       email: validatedData.user_email,
       password: validatedData.password,
       redirect: false,
     });
 
+    // --------------------
+    // Extract Device / IP / Geo
+    // --------------------
+    const headersList = await headers();
+    const userAgent = headersList.get("user-agent") || "Unknown";
+
+    const ip = await extractIP(headersList);
+    const geo = await extractGeo(ip);
+    const device = extractDevice(userAgent);
+
+    // --------------------
+    // Save login log
+    // --------------------
+    await postgrest.asAdmin().from("user_log").insert({
+      status: "success",
+      event_type: "Register_success",
+      description: "User registration successful",
+
+      user_id: user.user_catalog_id,
+      user_name: user.user_name,
+      user_email: user.user_email,
+      full_name: user.full_name,
+      user_mobile: user.user_mobile,
+      role: "Store Manager",
+
+      user_ip_address: ip,
+      host_header: headersList.get("host") || "unknown",
+      user_agent: userAgent,
+
+      browser: device.browser,
+      operating_system: device.os,
+      device: device.device,
+
+      city: geo?.city,
+      state: geo?.region,
+      country: geo?.country,
+      zip_code: geo?.postal,
+      geo_location: geo ? `${geo.latitude},${geo.longitude}` : null,
+      geo_meta: geo,
+
+      business_name: user.business_name,
+      business_number: user.business_number,
+      for_business_name: user.for_business_name,
+      for_business_number: user.for_business_number,
+
+      created_user: user.user_name,
+      created_user_id: user.user_catalog_id,
+      created_user_name: user.user_name,
+    });
+    await logsDB.from("user_log").insert({
+      status: "success",
+      event_type: "Register_success",
+      description: "User registration successful",
+
+      user_id: user.user_catalog_id,
+      user_name: user.user_name,
+      user_email: user.user_email,
+      full_name: user.full_name,
+      user_mobile: user.user_mobile,
+      role: "Store Manager",
+
+      user_ip_address: ip,
+      host_header: headersList.get("host") || "unknown",
+      user_agent: userAgent,
+
+      browser: device.browser,
+      operating_system: device.os,
+      device: device.device,
+
+      city: geo?.city,
+      state: geo?.region,
+      country: geo?.country,
+      zip_code: geo?.postal,
+      geo_location: geo ? `${geo.latitude},${geo.longitude}` : null,
+      geo_meta: geo,
+
+      business_name: user.business_name,
+      business_number: user.business_number,
+      for_business_name: user.for_business_name,
+      for_business_number: user.for_business_number,
+
+      created_user: user.user_name,
+      created_user_id: user.user_catalog_id,
+      created_user_name: user.user_name,
+    });
+
     return { status: "success" };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { status: "invalid_data" };
+      return { status: "invalid_data", message: "Invalid form input" };
     }
-    return { status: "failed" };
+
+    console.error("Registration Error:", error);
+    return { status: "failed", message: "Unexpected error occurred" };
   }
 };
