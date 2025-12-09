@@ -10603,6 +10603,60 @@ export type Database = {
         }
         Relationships: []
       };
+      Thread: {
+        Row: {
+          archived: boolean | null
+          bookmarked: boolean | null
+          business_number: string | null
+          created_user_id: string | null
+          created_user_name: string | null
+          createdAt: string | null
+          for_business_number: string | null
+          id: string
+          intid: number
+          is_public: boolean | null
+          metadata: Json | null
+          title: string
+          token_usage: Json | null
+          updatedAt: string | null
+          user_id: number | null
+        }
+        Insert: {
+          archived?: boolean | null
+          bookmarked?: boolean | null
+          business_number?: string | null
+          created_user_id?: string | null
+          created_user_name?: string | null
+          createdAt?: string | null
+          for_business_number?: string | null
+          id?: string
+          intid?: never
+          is_public?: boolean | null
+          metadata?: Json | null
+          title: string
+          token_usage?: Json | null
+          updatedAt?: string | null
+          user_id?: number | null
+        }
+        Update: {
+          archived?: boolean | null
+          bookmarked?: boolean | null
+          business_number?: string | null
+          created_user_id?: string | null
+          created_user_name?: string | null
+          createdAt?: string | null
+          for_business_number?: string | null
+          id?: string
+          intid?: never
+          is_public?: boolean | null
+          metadata?: Json | null
+          title?: string
+          token_usage?: Json | null
+          updatedAt?: string | null
+          user_id?: number | null
+        }
+        Relationships: []
+      };
         TokenUsageLog: {
         Row: {
           api_id: string | null

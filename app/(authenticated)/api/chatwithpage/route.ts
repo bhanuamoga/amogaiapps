@@ -27,7 +27,7 @@ async function selectModel(aiSettings: any) {
     case "google":
     case "gemini": {
       const google = createGoogleGenerativeAI({ apiKey: providerKey });
-      return google(modelId || "gemini-2.5-flash");
+      return google(modelId || "gemini-2.0-flash");
     }
     case "openai": {
       const openai = createOpenAI({ apiKey: providerKey });

@@ -40,11 +40,16 @@ export async function streamResponse(params: {
     tools: opts?.tools,
     approveAllTools: opts?.approveAllTools,
     wooCommerceCredentials: opts?.wooCommerceCredentials,
+    userId: userId ?? 0,
   });
 
   const iterable = await agent.stream(inputs, {
     streamMode: ["updates"],
-    configurable: { thread_id: threadId },
+    configurable: { 
+  thread_id: threadId,
+  user_id: userId ?? "anonymous",   // ⭐ This fixes "tenant or user not found"
+},
+
     metadata: {
       user_id: 13,
       bookmarked: false,
