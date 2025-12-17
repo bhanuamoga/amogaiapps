@@ -15,7 +15,7 @@ export default function SocialAuthLayout({
   const activeTab = pathname.includes("signup") ? "signup" : "signin";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted px-4">
+    <div className="flex min-h-screen items-center justify-center bg-muted px-4 py-3">
       <Card className="w-full max-w-xl p-6 shadow-xl">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold">Welcome</h1>

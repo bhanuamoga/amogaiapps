@@ -19,70 +19,106 @@ import { FcGoogle } from "react-icons/fc";
 import { Github } from "lucide-react";
 import Link from "next/link";
 import { FaFacebook, FaLinkedin } from "react-icons/fa";
+import { login, LoginActionState } from "../actions";
+import { startTransition, useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-const schema = z.object({
-  email: z.string().email("Enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+
+const formSchema = z.object({
+  email: z
+    .string()
+    .min(1, { message: "Please enter your email" })
+    .email({ message: "Invalid email address" }),
+  password: z
+    .string()
+    .min(1, {
+      message: "Please enter your password",
+    })
+    .min(7, {
+      message: "Password must be at least 7 characters long",
+    }),
 });
 
+
 export default function SignInPage() {
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const [isLoading] = useState(false);
+    const router = useRouter();
+
+  const [state, formAction, pending] = useActionState<
+      LoginActionState,
+      { email: string; password: string }
+    >(login, {
+      status: "idle",
+    });
+  
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
+   useEffect(() => {
+    if (pending || !state?.status) return;
+    if (state?.status === "failed") {
+      toast.error("Invalid credentials!");
+    } else if (state?.status === "invalid_data") {
+      toast.error("Failed validating your submission!");
+    } else if (state?.status === "success") {
+      router.refresh();
+      toast.success("Logged in successfully!");
+    }
+  }, [state, pending, router]);
+
   return (
     <>
       {/* FORM */}
-      <Form {...form}>
-        <form className="space-y-4">
-          {/* EMAIL */}
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="you@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <Form {...form}>
+  <form
+    className="space-y-4"
+    onSubmit={form.handleSubmit((v) =>
+      startTransition(() => formAction(v))
+    )}
+  >
+    {/* EMAIL */}
+    <FormField
+      control={form.control}
+      name="email"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Email</FormLabel>
+          <FormControl>
+            <Input placeholder="you@example.com" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
 
-          {/* PASSWORD + FORGOT */}
-          <FormField
-            control={form.control}
-            name="password"
-            
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Password</FormLabel>
-                  <Link
-                    href="/forgot-password"
-                    className="text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-                <FormControl>
-                  <PasswordInput {...field}   placeholder="••••••••"/>
-                  
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    {/* PASSWORD */}
+    <FormField
+      control={form.control}
+      name="password"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Password</FormLabel>
+          <FormControl>
+            <PasswordInput placeholder="••••••••" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
 
-          {/* SUBMIT */}
-          <Button className="w-full">Sign In</Button>
-        </form>
-      </Form>
+    {/* SUBMIT */}
+    <Button className="w-full" disabled={pending}>
+      {pending ? "Signing in..." : "Sign In"}
+    </Button>
+  </form>
+</Form>
+
 
       {/* DIVIDER */}
       <div className="relative my-6">
