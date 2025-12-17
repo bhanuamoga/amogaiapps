@@ -109,7 +109,8 @@ export default function SignUpPage() {
         last_name: "",
         user_email: "",
         password: "",
-        user_mobile: ""
+        user_mobile: "",
+        confirmPassword: "",
       },
     });
 
@@ -126,7 +127,7 @@ export default function SignUpPage() {
     toast.error("Invalid form data");
   } else if (state.status === "success") {
     toast.success("Account created successfully");
-    router.push("/onboarding");
+    router.push("/role-menu");
   }
 }, [state, pending, router]);
 
