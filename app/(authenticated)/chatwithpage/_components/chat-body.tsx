@@ -593,13 +593,16 @@ export default function ChatBody({
               Thinking...
             </div>
           </div>
-        ) : errorMessage ? (
-          <div className="flex justify-start">
-            <div className="bg-destructive/10 text-destructive rounded-2xl px-3 py-2 max-w-[85%] text-sm">
-              {errorMessage || "Something went wrong"}
-            </div>
-          </div>
-        ) : null}
+        )  : errorMessage ? (
+  <div className="flex justify-start">
+    <div className="bg-destructive/10 text-destructive border border-destructive/40 rounded-2xl px-3 py-2 max-w-[85%] text-sm whitespace-pre-wrap break-words">
+      Error:
+      <br />
+      {errorMessage}
+    </div>
+  </div>
+) : null}
+
 
         <div ref={bottomRef} />
       </div>

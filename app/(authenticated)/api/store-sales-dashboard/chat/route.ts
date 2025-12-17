@@ -144,7 +144,8 @@ export async function POST(req: Request) {
     jsonResponse.chartData ??= null;
     jsonResponse.chartOptions ??= null;
 
-    return Response.json({ text: jsonResponse, usage });
+   return Response.json({ ...jsonResponse, usage });
+
   } catch (error) {
     console.error("AI generation error:", error);
     return Response.json(

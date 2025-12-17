@@ -89,7 +89,7 @@ export const login = async (
       .insert({
         status: "success",
         event_type: "login_success",
-        description: "User login successful",
+        description: "Login successful",
 
         // User info
         user_id: user.user_catalog_id,
@@ -98,7 +98,7 @@ export const login = async (
         full_name: user.full_name,
         user_mobile: user.user_mobile,
         role: "Store Manager",
-
+        
         // Network
         user_ip_address: ip,
         host_header: headersList.get("host") || "unknown",  // ✅ Now works
@@ -131,7 +131,7 @@ export const login = async (
         await logsDB.from("user_log") .insert({
         status: "success",
         event_type: "login_success",
-        description: "User login successful",
+        description: "Login successful",
 
         // User info
         user_id: user.user_catalog_id,
@@ -140,7 +140,7 @@ export const login = async (
         full_name: user.full_name,
         user_mobile: user.user_mobile,
         role: "Store Manager",
-
+        app_name:"amogaaiapps",
         // Network
         user_ip_address: ip,
         host_header: headersList.get("host") || "unknown",  // ✅ Now works
@@ -173,6 +173,66 @@ export const login = async (
 
     return { status: "success" };
   } catch (error) {
+
+    try {
+    const headersList = await headers();
+    const userAgent = headersList.get("user-agent") || "Unknown";
+    const ip = await extractIP(headersList);
+    const geo = await extractGeo(ip);
+    const device = extractDevice(userAgent);
+
+    await postgrest.asAdmin().from("user_log").insert({
+      status: "failed",
+      event_type: "Login_failed",
+      
+      description: "Invalid Credentials",
+      app_name:"amogaaiapps",
+      user_email: formData.email,
+      role: "Unknown",
+      
+      user_ip_address: ip,
+      host_header: headersList.get("host") || "unknown",
+      user_agent: userAgent,
+
+      browser: device.browser,
+      operating_system: device.os,
+      device: device.device,
+
+      city: geo?.city,
+      state: geo?.region,
+      country: geo?.country,
+      zip_code: geo?.postal,
+      geo_location: geo ? `${geo.latitude},${geo.longitude}` : null,
+      geo_meta: geo,
+    });
+
+    await logsDB.from("user_log").insert({
+      status: "failed",
+      event_type: "login_failed",
+      description: "Invalid Credentials",
+      
+      user_email: formData.email,
+      role: "Unknown",
+
+      user_ip_address: ip,
+      host_header: headersList.get("host") || "unknown",
+      user_agent: userAgent,
+
+      browser: device.browser,
+      operating_system: device.os,
+      device: device.device,
+      app_name:"amogaaiapps",
+      city: geo?.city,
+      state: geo?.region,
+      country: geo?.country,
+      zip_code: geo?.postal,
+      geo_location: geo ? `${geo.latitude},${geo.longitude}` : null,
+      geo_meta: geo,
+    });
+  } catch (logError) {
+    console.error("Failed to log login error:", logError);
+  }
+
     if (error instanceof z.ZodError) {
       return { status: "invalid_data" };
     }
@@ -249,6 +309,7 @@ export const register = async (
         for_business_number: validatedData.business_number,
         store_name: validatedData.store_name || null,
         user_name: validatedData.user_email,
+        app_name:"amogaaiapps",
         roles_json: ["Store Manager"],
       })
       .select()
@@ -288,6 +349,7 @@ export const register = async (
   store_name: user.store_name,
   user_name: user.user_name,
   roles_json: user.roles_json,
+  app_name:"amogaaiapps",
 });
     // --------------------
     // Auto-login
@@ -314,7 +376,7 @@ export const register = async (
     await postgrest.asAdmin().from("user_log").insert({
       status: "success",
       event_type: "Register_success",
-      description: "User registration successful",
+      description: "Registration successful",
 
       user_id: user.user_catalog_id,
       user_name: user.user_name,
@@ -322,7 +384,7 @@ export const register = async (
       full_name: user.full_name,
       user_mobile: user.user_mobile,
       role: "Store Manager",
-
+      app_name:"amogaaiapps",
       user_ip_address: ip,
       host_header: headersList.get("host") || "unknown",
       user_agent: userAgent,
@@ -350,7 +412,7 @@ export const register = async (
     await logsDB.from("user_log").insert({
       status: "success",
       event_type: "Register_success",
-      description: "User registration successful",
+      description: "Registration successful",
 
       user_id: user.user_catalog_id,
       user_name: user.user_name,
@@ -386,6 +448,9 @@ export const register = async (
 
     return { status: "success" };
   } catch (error) {
+
+    
+
     if (error instanceof z.ZodError) {
       return { status: "invalid_data", message: "Invalid form input" };
     }

@@ -129,7 +129,7 @@ export default function AiChatTheme() {
   // UI
   //--------------------------------------------------
   return (
-    <div className="w-full max-w-2xl mx-auto mt-6 space-y-6  sm:px-0">
+    <div className="w-full max-w-[800px] mx-auto mt-6 space-y-6  sm:px-0">
       <div className="flex justify-end mb-2">
         <Button
           variant="default"

@@ -5,6 +5,7 @@ import { postgrest } from "@/lib/postgrest";
 
 export async function getRoles() {
   const session = await auth();
+  console.log("Session in getRoles:", session);
   const { data, error } = await postgrest
     .from("role_list")
     .select("*")

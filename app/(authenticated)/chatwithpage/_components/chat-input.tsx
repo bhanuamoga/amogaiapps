@@ -31,12 +31,15 @@ type ChatInputProps = {
   chatUuid: string;
   onNewMessage?: (role: "user" | "assistant", content: any) => void;
   setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
+  setErrorMessage: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 export default function ChatInput({
   chatUuid,
   onNewMessage,
   setIsLoading,
+  setErrorMessage,
+  
 }: ChatInputProps) {
   const [aiApis, setAiApis] = useState<AIModel[]>([]);
   const [apis, setApis] = useState<APIEntry[]>([]);
@@ -97,6 +100,7 @@ export default function ChatInput({
 
     onError(err) {
       console.error("❌ Chat error:", err);
+      setErrorMessage(err?.message || "Something went wrong.");
       setIsLoading?.(false);
     },
 

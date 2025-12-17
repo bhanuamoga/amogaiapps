@@ -105,6 +105,7 @@ export default function ChatPage() {
         chatUuid={chatUuid}
         onNewMessage={handleNewMessage}
         setIsLoading={setIsLoading}
+         setErrorMessage={setErrorMessage}
       />
     </main>
   );

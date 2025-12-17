@@ -3,13 +3,24 @@ import Credentials from "next-auth/providers/credentials";
 import { postgrest } from "./lib/postgrest";
 import { getUserSessionDTO } from "./lib/dto";
 import { getAllowedPaths } from "./lib/server-utils";
+import GitHub from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" },
+  
   pages: {
-    signIn: "/storesignin",
+    signIn: "/signin",
   },
   providers: [
+     Google({
+    clientId: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+  }),
+     GitHub({
+    clientId: process.env.GITHUB_CLIENT_ID!,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+  }),
     Credentials({
       name: "Sign in",
       id: "credentials",  
@@ -82,6 +93,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return { ...userSessionDTO, allowedPaths: allowedPaths };
       },
     }),
+    
+
   ],
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
@@ -119,7 +132,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       const isLoggedIn = !!auth?.user;
-      const publicPaths = ["/sign-in", "/sign-up", "/storesignin", "/storesignup"];
+      const publicPaths = ["/sign-in", "/sign-up", "/storesignin", "/storesignup","/signin","/(socialAuth)","/signup",];
 
       const isPublic = publicPaths.some((path) =>
         nextUrl.pathname.startsWith(path)
@@ -127,7 +140,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       if (!isLoggedIn) {
         if (!isPublic) {
-          const redirectUrl = new URL("/storesignin", nextUrl.origin);
+          const redirectUrl = new URL("/signin", nextUrl.origin);
           redirectUrl.searchParams.append("callbackUrl", nextUrl.href);
           return Response.redirect(redirectUrl);
         } else {
@@ -137,7 +150,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       if (
         isLoggedIn &&
-        ["/sign-in", "/sign-up", "/storesignin", "/storesignup"].some((path) =>
+        ["/sign-in", "/sign-up", "/storesignin", "/storesignup", "/signin","/signup",].some((path) =>
 
           nextUrl.pathname.startsWith(path)
         )
@@ -168,19 +181,66 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       return true;
     },
-    jwt: ({ token, user }) => {
-      if (user) {
-        const u = user as unknown as any;
-        return {
-          ...token,
-          id: u.id,
-          randomKey: u.randomKey,
-          user: u,
-        };
-          console.log("🟢 [NextAuth JWT Created] Token:", JSON.stringify(token, null, 2));
-      }
-      return token;
-    },
+ async signIn({ user, account }) {
+  const provider = account?.provider;
+
+  // Allow credentials login
+  if (provider === "credentials") return true;
+
+  // Only Google & GitHub reach here
+  if (!user.email) return false;
+
+  const { data: dbUser } = await postgrest
+    .asAdmin()
+    .from("user_catalog")
+    .select("*")
+    .eq("user_email", user.email)
+    .maybeSingle();
+
+  // ❌ Block if user not registered
+  if (!dbUser) return false;
+
+  // 🔐 Role enforcement
+  const roles = Array.isArray(dbUser.roles_json)
+    ? dbUser.roles_json
+    : JSON.parse(dbUser.roles_json || "[]");
+
+  if (!roles.includes("Store Manager")) return false;
+
+  // ✅ Attach DB user for jwt()
+  (user as any).__dbUser = dbUser;
+
+  return true;
+}
+
+,
+
+   jwt: async ({ token, user }) => {
+  if (user) {
+    const u = user as any;
+
+    // ✅ GitHub login
+    if (u.__dbUser) {
+      const userSessionDTO = getUserSessionDTO(u.__dbUser);
+      const allowedPaths = await getAllowedPaths(userSessionDTO);
+
+      token.user = {
+        ...userSessionDTO,
+        allowedPaths,
+      };
+    }
+    // ✅ Credentials login (unchanged)
+    else {
+      token.user = u;
+    }
+
+    token.id = token.user?.id;
+    token.randomKey = token.user?.randomKey;
+  }
+
+  return token;
+},
+
     session({ session, token }) {
      return {
   ...(session || {}), // Prevents spreading undefined
@@ -189,6 +249,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           ...(token?.user || {}),
           id: token?.id as string,
           randomKey: token?.randomKey,
+          
         },
       };
 

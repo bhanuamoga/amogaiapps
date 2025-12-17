@@ -288,13 +288,25 @@ ${wooAPI ? "WooCommerce API is configured. START FETCHING DATA AND CREATING VISU
       table: null,
       story: null,
     };
-
+    let streamError: string | null = null;
     // 9. Start streaming AI text with WooCommerce tool integration
     const result = streamText({
       model,
       system: systemPrompt,
       messages: convertToCoreMessages(messages),
       tools: createWooCommerceTools(wooAPI) as any,
+       onError: (err: any) => {
+
+    const msg =
+      err?.data?.error?.message ??
+      err?.message ??
+      "Unknown stream error";
+
+    console.error("🔥 Gemini Error:", msg);
+
+    // store message instead of throwing
+    streamError = msg;
+  },
       // toolChoice: "auto", 
       experimental_generateMessageId: uuidv4,
       maxSteps: 25,
@@ -512,7 +524,15 @@ ${wooAPI ? "WooCommerce API is configured. START FETCHING DATA AND CREATING VISU
 
     });
 
-
+   if (streamError) {
+  return new Response(
+    JSON.stringify({ error: streamError }),
+    {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+}
     // 10. Return streaming response with appropriate headers
   return result.toDataStreamResponse({
   headers: {

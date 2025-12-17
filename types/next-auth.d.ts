@@ -1,4 +1,13 @@
 import NextAuth, { DefaultSession } from "next-auth";
+import { JWT } from "next-auth/jwt";
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id?: string | number;
+    randomKey?: string;
+    user?: appSessionUser;
+  }
+}
 
 declare module "next-auth" {
   /**
@@ -13,6 +22,8 @@ declare module "next-auth" {
 }
 
 export interface appSessionUser {
+  id?: string | number;         
+  randomKey?: string; 
   user_catalog_id: number | null;
   first_name?: string | null;
   last_name?: string | null;

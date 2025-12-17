@@ -48,7 +48,7 @@ export const customFetch = (
   return async (input, init) => {
     const headers = new HeadersConstructor(init?.headers);
     const session = (await getSession()) ?? "";
-
+    
     if (!headers.has("business_number")) {
       headers.set("user_role", "regular");
       headers.set("business_number", session?.business_number);
