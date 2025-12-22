@@ -56,7 +56,7 @@ export async function saveChatTitle(chatUuid: string, title: string,chat_share_u
           user_id: userId,
           user_email: userEmail,
           business_name:businessname,
-          chat_group: "Chat With Page",
+          chat_group: "Chat With Woodata",
           status:"active",
           visibility:"yes",
           bookmark:"false",
@@ -268,7 +268,7 @@ export async function loadChat(chatId: string) {
     .select("*")
     .eq("id", chatId)
     .eq("user_id", userId)
-    .eq("chat_group", "Chat With Page")
+    .eq("chat_group", "Chat With Woodata")
     .single();
 
   if (chatError || !chat) throw new Error("Chat not found or unauthorized.");
@@ -395,7 +395,7 @@ export async function loadChat(chatId: string) {
 // }
 
 
-const CHAT_GROUP = "Chat With Page";
+const CHAT_GROUP = "Chat With Woodata";
 
 // -------------------------------------------------------
 // ✅ 1. Get Chat History (only for chatwithpage)
@@ -562,7 +562,7 @@ export async function getPromptHistory() {
       .from("chat")
       .select("id, title")
       .eq("user_id", userId)
-      .eq("chat_group", "Chat With Page");
+      .eq("chat_group", "Chat With Woodata");
 
     if (chatError) throw chatError;
 
