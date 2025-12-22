@@ -21,12 +21,12 @@ import {
   FileText,
   Volume2   // ✅ ADDED
 } from "lucide-react";
-import { generatePDF } from "@/app/(authenticated)/chatwithpage/generatefiles/downloadPDF";
-import { downloadCSV } from "@/app/(authenticated)/chatwithpage/generatefiles/generateCSV";
-import { downloadDOC } from "@/app/(authenticated)/chatwithpage/generatefiles/generateDOCX";
-// import { downloadPPT } from "@/app/(authenticated)/chatwithpage/generatefiles/generatePPT";
+import { generatePDF } from "@/app/(authenticated)/chatwithwoodata/generatefiles/downloadPDF";
+import { downloadCSV } from "@/app/(authenticated)/chatwithwoodata/generatefiles/generateCSV";
+import { downloadDOC } from "@/app/(authenticated)/chatwithwoodata/generatefiles/generateDOCX";
+// import { downloadPPT } from "@/app/(authenticated)/chatwithwoodata/generatefiles/generatePPT";
 
-import DataDisplay, { ChartConfig, TableData } from "../_components/DataDisplay";
+import DataDisplay, { ChartConfig, TableData } from "./DataDisplay";
 import {
   DropdownMenu,
   DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger

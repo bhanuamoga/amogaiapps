@@ -499,3 +499,58 @@ export const deepSeekModels = {
     description: "DeepSeek Chat model (128k context)",
   }
 } as const satisfies Record<string, ModelInfo>;
+
+// ================================
+// OpenRouter (Qwen) Models
+// ================================
+
+export type OpenRouterModelId = keyof typeof openRouterModels;
+
+export const openRouterDefaultModelId: OpenRouterModelId =
+  "qwen/qwen3-235b-a22b-thinking-2507";
+
+export const openRouterModels = {
+  "qwen/qwen3-235b-a22b-thinking-2507": {
+    maxTokens: 32_768,              // practical output cap
+    contextWindow: 200_000,         // OpenRouter advertised window
+    supportsImages: false,
+    supportsPromptCache: false,     // OpenRouter does not expose cache
+    inputPrice: 0,                  // pricing varies / often bundled
+    outputPrice: 0,
+    description:
+      "Qwen 3 235B Thinking model via OpenRouter. Best for deep reasoning. Not tool-safe.",
+    thinkingConfig: {
+      maxBudget: 32_768,            // thinking tokens
+    },
+  },
+    "qwen/qwen-2.5-vl-7b-instruct": {
+    maxTokens: 8_192,
+    contextWindow: 32_768,
+    supportsImages: true,
+    supportsPromptCache: false,
+    inputPrice: 0,
+    outputPrice: 0,
+    description:
+      "Qwen 2.5 VL 7B via OpenRouter. Vision-capable, instruction-following. No structured output.",
+  },
+  "qwen/qwen3-235b-a22b": {
+    maxTokens: 32_768,
+    contextWindow: 200_000,
+    supportsImages: false,
+    supportsPromptCache: false,
+    inputPrice: 0,
+    outputPrice: 0,
+    description:
+      "Qwen 3 235B model via OpenRouter. Best for deep reasoning. Not tool-safe.",
+  },
+  "qwen/qwen-vl-max": {
+    maxTokens: 8_192,
+    contextWindow: 32_768,
+    supportsImages: true,
+    supportsPromptCache: false,
+    inputPrice: 0,
+    outputPrice: 0,
+    description:
+      "Qwen 2.5 VL 7B via OpenRouter. Vision-capable, instruction-following. No structured output.",
+  },
+} as const satisfies Record<string, ModelInfo>;

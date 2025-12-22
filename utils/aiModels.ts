@@ -10,8 +10,9 @@ import {
   deepSeekDefaultModelId,
   deepSeekModels,
   groqDefaultModelId,
-  groqModels
-
+  groqModels,
+  openRouterDefaultModelId,
+  openRouterModels
 } from "@/data/models";
 
 export const PROVIDER_MODELS: Record<
@@ -24,4 +25,5 @@ export const PROVIDER_MODELS: Record<
   mistral: { models: mistralModels, default: mistralDefaultModelId },
   deepseek: { models: deepSeekModels, default: deepSeekDefaultModelId },
   grok: { models: groqModels, default: groqDefaultModelId },
+  openrouter: { models: openRouterModels, default: openRouterDefaultModelId },
 };

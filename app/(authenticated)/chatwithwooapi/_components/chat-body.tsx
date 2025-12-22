@@ -26,7 +26,7 @@ import { downloadCSV } from "@/app/(authenticated)/chatwithpage/generatefiles/ge
 import { downloadDOC } from "@/app/(authenticated)/chatwithpage/generatefiles/generateDOCX";
 // import { downloadPPT } from "@/app/(authenticated)/chatwithpage/generatefiles/generatePPT";
 
-import DataDisplay, { ChartConfig, TableData } from "../_components/DataDisplay";
+import DataDisplay, { ChartConfig, TableData } from "./DataDisplay";
 import {
   DropdownMenu,
   DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger

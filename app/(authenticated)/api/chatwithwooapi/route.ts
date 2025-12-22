@@ -12,7 +12,7 @@ import {
   updateChatTotals,
   saveAssistantMessage,
   saveUserMessage    // ✅ ADD THIS
-} from "@/app/(authenticated)/chatwithpage/actions";
+} from "@/app/(authenticated)/chatwithwooapi/actions";
 
 async function selectModel(aiSettings: any) {
   const provider = aiSettings?.provider;

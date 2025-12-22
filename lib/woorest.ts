@@ -59,6 +59,7 @@ const woorest = async (
     woo_consumer_secret: woocommerceConfig.consumer_secret,
     authorization: btoa(
       woocommerceConfig.consumer_key + ":" + woocommerceConfig.consumer_secret
+      
     ),
   };
 

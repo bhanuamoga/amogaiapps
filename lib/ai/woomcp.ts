@@ -571,7 +571,7 @@ export const createWooCommerceTools = (wooAPI: any | null) => ({
             }
         },
     }),
-
+    
     getStoreOverview: createInjectedAndLoggedTool({
         name: "getStoreOverview",
         description: `Provides a comprehensive overview of the store's performance for a given period. Use this for general questions like "how is my store doing?" or "give me a summary".`,
