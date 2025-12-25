@@ -23,6 +23,8 @@ import SpeechRecognition, {
 } from "react-speech-recognition";
 
 import { useChat } from "@ai-sdk/react";
+import { ca } from "date-fns/locale";
+import { Card } from "@/components/ui/card";
 
 type AIModel = { model: string };
 type APIEntry = { site_url: string };
@@ -52,7 +54,10 @@ export default function ChatInput({
   const assistantBundleRef = useRef({
     chart: null as any,
     table: null as any,
+    card:null as any,
+    map: null as any,
     story: null as any,
+
   });
 
   // ❌ REMOVED - CAUSES DUPLICATE USER MESSAGES
@@ -91,6 +96,8 @@ export default function ChatInput({
         assistantBundleRef.current = {
           chart: null,
           table: null,
+          card: null,
+          map: null,
           story: null,
         };
       }
@@ -118,6 +125,23 @@ export default function ChatInput({
         assistantBundleRef.current.table = msg;
         onNewMessage?.("assistant", msg);
       }
+      if (toolName === "createCard") {
+  const msg = { type: "card", data: args };
+  assistantBundleRef.current.card = msg;
+  onNewMessage?.("assistant", msg);
+}
+if (toolName === "createMap") {
+  const msg = {
+    type: "map",
+    data: {
+      title: args.title,
+      points: args.points,
+    },
+  };
+
+  onNewMessage?.("assistant", msg);
+}
+
     },
   });
 

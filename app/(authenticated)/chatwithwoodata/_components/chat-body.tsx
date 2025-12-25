@@ -32,10 +32,15 @@ import {
   DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { downloadExcel } from "../generatefiles/generateExcel";
+import dynamic from "next/dynamic";
+
+const MapView = dynamic(() => import("./MapView"), {
+  ssr: false,
+});
 
 // ---------- Types ----------
 type VisualContent = {
-  type: "chart" | "table";
+  type: "chart" | "table" | "card"|"map";
   data: any;
 };
 
@@ -128,12 +133,25 @@ export async function downloadPPT({
 
   await pptx.writeFile({ fileName });
 }
-// ---------- Group chart + table + assistant text per prompt ----------
+
+
+
 function groupMessages(messages: Message[]) {
   const result: Array<{
     userText: string;
     chart?: ChartConfig;
     table?: TableData;
+    map?: {
+    title?: string;
+    points: any[];
+  };
+    card?: {
+      title: string;
+      value: string | number;
+      prefix?: string;
+      suffix?: string;
+      description?: string;
+    };
     assistantText: string[];
   }> = [];
 
@@ -141,12 +159,43 @@ function groupMessages(messages: Message[]) {
 
   while (i < messages.length) {
     const msg = messages[i];
+    // 🔥 HANDLE STANDALONE ASSISTANT (RELOAD SAFE)
+    if (
+      msg.role === "assistant" &&
+      typeof msg.content === "object" &&
+      msg.content !== null
+    ) {
+      const content: any = msg.content;
+
+      const hasCard = content.card?.data || (content.type === "card" && content.data);
+      const hasStory = content.story?.content || content.type === "story";
+      const hasMap = content.map?.data || content.type === "map";
+      if (hasCard || hasStory) {
+        result.push({
+          userText: "",
+          card: content.card?.data || content.data,
+          chart: undefined,
+          table: undefined,
+           map: content.map?.data,
+          assistantText: content.story?.content
+            ? [content.story.content]
+            : content.content
+              ? [content.content]
+              : [],
+        });
+
+        i++;
+        continue;
+      }
+    }
 
     if (msg.role === "user") {
       const group = {
         userText: typeof msg.content === "string" ? msg.content : "",
         chart: undefined as ChartConfig | undefined,
         table: undefined as TableData | undefined,
+        card: undefined as any,
+        map: undefined as { title?: string; points: any[] } | undefined,
         assistantText: [] as string[],
       };
 
@@ -154,33 +203,82 @@ function groupMessages(messages: Message[]) {
 
       while (j < messages.length) {
         const next = messages[j];
-
         if (next.role === "user") break;
 
+        // ==============================
+        // ASSISTANT OBJECT (LIVE + SAVED)
+        // ==============================
         if (next.role === "assistant" && typeof next.content === "object" && next.content !== null) {
-          if (next.content.type === "chart" && !group.chart) {
-            const data = next.content.data;
-            group.chart = {
-              type: data.type ?? "bar",
-              title: data.title ?? "Chart",
-              data: {
-                labels: data.chartData.map((r: any) => r[data.xAxisColumn]),
-                datasets: [
-                  {
-                    label: data.datasetLabel ?? "Data",
-                    data: data.chartData.map((r: any) => Number(r[data.yAxisColumn])),
-                  },
-                ],
-              },
-              options: data.options ?? {},
-            };
+          const content: any = next.content;
+           // ---------- MAP ----------
+if (!group.map) {
+  if (content.type === "map" && content.data) {
+    group.map = content.data;
+  }
+
+  // reload-safe (if wrapped)
+  if (content.map?.data) {
+    group.map = content.map.data;
+  }
+}
+
+          // ---------- CARD ----------
+          // ---------- CARD (LIVE + RELOAD SAFE) ----------
+          if (!group.card) {
+            // case 1: live stream
+            if (content.type === "card" && content.data) {
+              group.card = content.data;
+            }
+
+            // case 2: persisted / reloaded
+            if (content.card?.data) {
+              group.card = content.card.data;
+            }
           }
 
-          if (next.content.type === "table" && !group.table) {
-            group.table = next.content.data.tableData ?? next.content.data;
+          // ---------- CHART ----------
+          if (!group.chart) {
+            const chart = content.type === "chart" ? content : content.chart;
+            if (chart?.data) {
+              const d = chart.data;
+              group.chart = {
+                type: d.type ?? "bar",
+                title: d.title ?? "Chart",
+                data: {
+                  labels: d.chartData.map((r: any) => r[d.xAxisColumn]),
+                  datasets: [
+                    {
+                      label: d.datasetLabel ?? "Data",
+                      data: d.chartData.map((r: any) =>
+                        Number(r[d.yAxisColumn])
+                      ),
+                    },
+                  ],
+                },
+                options: d.options ?? {},
+              };
+            }
+          }
+
+          // ---------- TABLE ----------
+          if (!group.table) {
+            const table = content.type === "table" ? content : content.table;
+            if (table?.data) {
+              group.table = table.data.tableData ?? table.data;
+            }
+          }
+
+          // ---------- STORY ----------
+          if (content.type === "story" && typeof content.content === "string") {
+            group.assistantText.push(content.content);
+          }
+
+          if (content.story?.content) {
+            group.assistantText.push(content.story.content);
           }
         }
 
+        // ---------- STRING TEXT ----------
         if (next.role === "assistant" && typeof next.content === "string") {
           group.assistantText.push(next.content);
         }
@@ -351,6 +449,25 @@ export default function ChatBody({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            {g.card && (
+              <div className="mt-2">
+                <Card className="w-[200px] p-4 flex flex-col gap-1">
+                  <span className="text-sm text-muted-foreground">
+                    {g.card.title}
+                  </span>
+
+                  <span className="text-2xl font-bold">
+                    {g.card.prefix}{g.card.value}{g.card.suffix}
+                  </span>
+
+                  {g.card.description && (
+                    <span className="text-xs text-muted-foreground">
+                      {g.card.description}
+                    </span>
+                  )}
+                </Card>
+              </div>
+            )}
 
             {/* Visuals */}
             {(g.chart || g.table) && (
@@ -360,6 +477,17 @@ export default function ChatBody({
                   chartConfig={g.chart}
                   tableData={g.table}
                   className="w-full"
+                />
+              </div>
+            )}
+
+             {/* Map */}
+              {g.map && (
+              <div className="mt-2">
+                <MapView
+                  key={`chat-map-${idx}`} // ✅ REQUIRED
+                  title={g.map.title}
+                  points={g.map.points}
                 />
               </div>
             )}
@@ -514,9 +642,9 @@ export default function ChatBody({
                         const chartRef = document
                           .querySelector(`#chart-${idx}`)
                           ?.querySelector("canvas") as HTMLCanvasElement | null;
-                        
 
-                       downloadPPT({
+
+                        downloadPPT({
                           storyText: g.assistantText.join("\n\n"),
                           headers,
                           rows,
@@ -593,15 +721,15 @@ export default function ChatBody({
               Thinking...
             </div>
           </div>
-        )  : errorMessage ? (
-  <div className="flex justify-start">
-    <div className="bg-destructive/10 text-destructive border border-destructive/40 rounded-2xl px-3 py-2 max-w-[85%] text-sm whitespace-pre-wrap break-words">
-      {/* Error: */}
-      <br />
-      {errorMessage}
-    </div>
-  </div>
-) : null}
+        ) : errorMessage ? (
+          <div className="flex justify-start">
+            <div className="bg-destructive/10 text-destructive border border-destructive/40 rounded-2xl px-3 py-2 max-w-[85%] text-sm whitespace-pre-wrap break-words">
+              {/* Error: */}
+              <br />
+              {errorMessage}
+            </div>
+          </div>
+        ) : null}
 
 
         <div ref={bottomRef} />

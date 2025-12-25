@@ -8,13 +8,8 @@ import ChatInput from "@/app/(authenticated)/chatwithwoodata/_components/chat-in
 
 // ✅ Unified Message type (text, chart, table)
 type Message = {
-  role: "user" | "assistant";
-  content:
-    | string
-    | {
-        type: "chart" | "table";
-        data: any;
-      };
+  role: "user" | "assistant" | "error";
+  content:any;
 };
 
 export default function ChatPage() {
@@ -45,7 +40,14 @@ export default function ChatPage() {
         }
 
         const data = await res.json();
-
+        console.log(
+  "MESSAGES FROM DB:",
+  data.messages.map((m: any) => ({
+    role: m.role,
+    type: typeof m.content,
+    content: m.content,
+  }))
+);
         // Expected from your backend:
         // data.messages: Message[]
 
@@ -64,10 +66,10 @@ export default function ChatPage() {
   // ------------------------------------------------------------------
   // ✅ Append new incoming messages (streaming + visuals)
   // ------------------------------------------------------------------
-  const handleNewMessage = (
-    role: "user" | "assistant",
-    content: string | { type: "chart" | "table"; data: any }
-  ) => {
+const handleNewMessage = (
+  role: "user" | "assistant",
+  content: any
+) =>  {
     setMessages((prev) => {
       const lastMsg = prev[prev.length - 1];
 
@@ -82,7 +84,7 @@ export default function ChatPage() {
         updated[updated.length - 1].content = content;
         return updated;
       }
-
+      
       return [...prev, { role, content }];
     });
   };

@@ -205,7 +205,62 @@ export async function saveAssistantMessage(
 }
 
 
+// function mapDbMessageToUI(msg: any) {
+//   if (msg.role === "user") {
+//     return {
+//       role: "user",
+//       content: msg.content || "",
+//     };
+//   }
+
+//   if (msg.role === "assistant") {
+//     const r = msg.response_json;
+//     if (!r) return null;
+
+//     const results: any[] = [];
+
+//     // 1️⃣ Assistant chart
+//     if (r.chart) {
+//       results.push({
+//         role: "assistant",
+//         content: {
+//           type: "chart",
+//           data: r.chart.data,
+//         },
+//       });
+//     }
+
+//     // 2️⃣ Assistant table
+//     if (r.table) {
+//       results.push({
+//         role: "assistant",
+//         content: {
+//           type: "table",
+//           data: r.table.data,
+//         },
+//       });
+//     }
+
+//     // 3️⃣ Assistant story / explanation text
+//     if (r.story && typeof r.story.content === "string") {
+//       results.push({
+//         role: "assistant",
+//         content: r.story.content,
+//       });
+//     }
+
+//     // If nothing matched
+//     if (results.length === 0) return null;
+
+//     return results; // IMPORTANT: return ARRAY because 1 assistant message can contain chart + table + story
+//   }
+
+//   return null;
+// }
 function mapDbMessageToUI(msg: any) {
+  // --------------------
+  // USER MESSAGE
+  // --------------------
   if (msg.role === "user") {
     return {
       role: "user",
@@ -213,14 +268,28 @@ function mapDbMessageToUI(msg: any) {
     };
   }
 
+  // --------------------
+  // ASSISTANT MESSAGE
+  // --------------------
   if (msg.role === "assistant") {
     const r = msg.response_json;
     if (!r) return null;
 
     const results: any[] = [];
 
-    // 1️⃣ Assistant chart
-    if (r.chart) {
+    // 1️⃣ CARD (🔥 MISSING BEFORE — THIS FIXES IT)
+    if (r.card?.data) {
+      results.push({
+        role: "assistant",
+        content: {
+          type: "card",
+          data: r.card.data,
+        },
+      });
+    }
+
+    // 2️⃣ CHART
+    if (r.chart?.data) {
       results.push({
         role: "assistant",
         content: {
@@ -230,8 +299,8 @@ function mapDbMessageToUI(msg: any) {
       });
     }
 
-    // 2️⃣ Assistant table
-    if (r.table) {
+    // 3️⃣ TABLE
+    if (r.table?.data) {
       results.push({
         role: "assistant",
         content: {
@@ -240,8 +309,18 @@ function mapDbMessageToUI(msg: any) {
         },
       });
     }
+    // 3.5️⃣ MAP
+     if (r.map?.data) {
+      results.push({
+        role: "assistant",
+        content: {
+          type: "map",
+          data: r.map.data,
+        },
+      });
+    }
 
-    // 3️⃣ Assistant story / explanation text
+    // 4️⃣ STORY / TEXT
     if (r.story && typeof r.story.content === "string") {
       results.push({
         role: "assistant",
@@ -249,10 +328,11 @@ function mapDbMessageToUI(msg: any) {
       });
     }
 
-    // If nothing matched
+    // Nothing usable
     if (results.length === 0) return null;
 
-    return results; // IMPORTANT: return ARRAY because 1 assistant message can contain chart + table + story
+    // IMPORTANT: keep returning ARRAY
+    return results;
   }
 
   return null;

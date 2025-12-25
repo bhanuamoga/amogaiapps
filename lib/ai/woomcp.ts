@@ -641,6 +641,31 @@ export const createWooCommerceTools = (wooAPI: any | null) => ({
             }
         },
     }),
+    createCard: createInjectedAndLoggedTool({
+  name: "createCard",
+  description: "Creates a KPI card for displaying a single value such as total revenue, total orders, or total customers.",
+  parameters: z.object({
+    title: z.string().describe("The label/header of the card (e.g. 'Total Revenue', 'Total Orders')."),
+    value: z.string().describe("The main value to display."),
+    prefix: z.string().optional().describe("Optional prefix like '$'."),
+    suffix: z.string().optional().describe("Optional suffix like 'orders', 'customers'."),
+    description: z.string().optional().describe("Optional context like 'This month' or 'Last 30 days'."),
+  }),
+  execute: async ({ title, value, prefix, suffix, description }) => {
+    return {
+      success: true,
+      displayType: "card",
+      visualizationCreated: true,
+      cardData: {
+        title,
+        value, // already string
+        prefix,
+        suffix,
+        description,
+      },
+    };
+  },
+    }),
 
     createChart: createInjectedAndLoggedTool({
         name: "createChart",
@@ -807,4 +832,88 @@ The code MUST return a final result, which will be sent back to you.`,
             }
         },
     }),
+    createMap: createInjectedAndLoggedTool({
+  name: "createMap",
+  description: `
+Creates a map visualization grouped by location.
+Orders/customers with the SAME latitude and longitude
+are automatically grouped into ONE marker.
+
+Use when the user asks:
+- "map of orders"
+- "orders by zip"
+- "show orders on map"
+- "customer orders location"
+`,
+  parameters: z.object({
+    title: z.string().optional().describe("Map title"),
+    entityType: z.enum(["orders", "customers"]).describe(
+      "What is being shown on the map"
+    ),
+    points: z.array(
+      z.object({
+        label: z.string().describe("ZIP code or city label"),
+        lat: z.number().describe("Latitude"),
+        lng: z.number().describe("Longitude"),
+        ids: z.array(z.number()).describe(
+          "Order IDs or Customer IDs for this location"
+        ),
+      })
+    ).describe("Raw location points (may contain duplicates)"),
+  }),
+
+  execute: async ({ title, entityType, points }) => {
+    // 🔥 GROUP BY LAT + LNG (CRITICAL)
+    const grouped: Record<
+      string,
+      {
+        label: string;
+        lat: number;
+        lng: number;
+        ids: number[];
+      }
+    > = {};
+
+    for (const p of points) {
+      const key = `${p.lat},${p.lng}`;
+
+      if (!grouped[key]) {
+        grouped[key] = {
+          label: p.label,
+          lat: p.lat,
+          lng: p.lng,
+          ids: [],
+        };
+      }
+
+      grouped[key].ids.push(...p.ids);
+    }
+
+    // 🔥 NORMALIZE FOR UI
+    const normalizedPoints = Object.values(grouped).map((p) => ({
+      label: p.label,
+      lat: p.lat,
+      lng: p.lng,
+      value: p.ids.length, // marker size
+      orderIds: entityType === "orders" ? p.ids : undefined,
+      customerIds: entityType === "customers" ? p.ids : undefined,
+    }));
+
+    return {
+      success: true,
+      visualizationCreated: true,
+      displayType: "map",
+      mapData: {
+        title:
+          title ||
+          (entityType === "orders"
+            ? "Orders by Location"
+            : "Customers by Location"),
+        entityType,
+        points: normalizedPoints,
+      },
+    };
+  },
+}),
+
 })

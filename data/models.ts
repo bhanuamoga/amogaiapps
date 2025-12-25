@@ -553,4 +553,14 @@ export const openRouterModels = {
     description:
       "Qwen 2.5 VL 7B via OpenRouter. Vision-capable, instruction-following. No structured output.",
   },
+  "qwen/qwen2.5-14b-instruct": {
+    maxTokens: 8_192,
+    contextWindow: 67_768,
+    supportsImages: true,
+    supportsPromptCache: false,
+    inputPrice: 0,
+    outputPrice: 0,
+    description:
+      "Qwen2.5-14B-Instruct via OpenRouter. Vision-capable, instruction-following. No structured output.",
+  },
 } as const satisfies Record<string, ModelInfo>;
