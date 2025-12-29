@@ -563,4 +563,15 @@ export const openRouterModels = {
     description:
       "Qwen2.5-14B-Instruct via OpenRouter. Vision-capable, instruction-following. No structured output.",
   },
+  "google/gemini-2.5-flash": {
+  maxTokens: 8_192,
+  contextWindow: 1_000_000,
+  supportsImages: true,
+  supportsPromptCache: false,
+  inputPrice: 0,
+  outputPrice: 0,
+  description:
+    "Gemini 2.5 Flash Preview (09-2025) via OpenRouter. Ultra-long context (1M tokens), fast, multimodal. Preview/free tier limits apply.",
+},
+
 } as const satisfies Record<string, ModelInfo>;

@@ -25,21 +25,28 @@ export async function getApiKey() {
 
 export async function getApis() {
   const session = await auth();
+
   try {
     const { data, error } = await postgrest
       .from("user_catalog" as any)
-      .select("api_connection_json")
-      .eq("user_catalog_id", session?.user?.user_catalog_id);
+      .select("db_connection_json")
+      .eq("user_catalog_id", session?.user?.user_catalog_id)
+      .single();
+
     if (error) throw error;
 
-    // Return only 'site_url' from each API entry within the JSON
-    return data?.[0]?.api_connection_json.map((item: any) => ({
-      site_url: item.site_url,
-    })) || [];
+    return (
+      data?.db_connection_json
+        ?.filter((item: any) => item.status=== "active")
+        .map((item: any) => ({
+          db_name: item.db_name,
+        })) || []
+    );
   } catch (error) {
     throw error;
   }
-} 
+}
+
 export async function saveChatTitle(chatUuid: string, title: string,chat_share_url?: string) {
   const session = await auth();
   const userId = session?.user?.user_catalog_id;

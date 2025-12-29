@@ -289,6 +289,36 @@ Blocked: INSERT, UPDATE, DELETE, DROP, ALTER, TRUNCATE, CREATE
       }
     },
   }),
+  createStory: createInjectedAndLoggedTool({
+  name: "createStory",
+  description: "Creates a qualitative interpretation of the visualization (2–3 sentences, no data)",
+  parameters: z.object({
+    text: z
+      .string()
+      .min(50, "Story must be at least 2 sentences")
+      .max(600, "Story must be concise"),
+  }),
+  execute: async ({ text }) => {
+    // Hard guardrails (optional but recommended)
+     // block standalone quantities, not years or labels
+const hasForbiddenNumber =
+  /\b\d+\b/.test(text) && !/\b(19|20)\d{2}\b/.test(text)
+
+if (hasForbiddenNumber) {
+  throw new Error("Story must not contain quantitative numbers")
+}
+
+  
+
+    return {
+      success: true,
+      displayType: "story",
+      storyData: {
+        text,
+      },
+    }
+  },
+}),
 
   /* =========================================================
      5. ADVANCED CODE INTERPRETER

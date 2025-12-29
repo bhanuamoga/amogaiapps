@@ -223,8 +223,8 @@ export default function ApiSettingsPage() {
   const isActionInProgress = isTesting || isSaving;
 
   return (
-    <div className="container mx-auto py-10">
-      <Card className="max-w-2xl mx-auto">
+    <div className="container  mx-auto py-10">
+      <Card className="w-[800px] mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">{t("title")}</CardTitle>
           <CardDescription>

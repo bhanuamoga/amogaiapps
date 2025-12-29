@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowUp,
   SlidersHorizontal,
-  Wrench,
+  Database,
   Mic,
   MicOff,
 } from "lucide-react";
@@ -27,7 +27,8 @@ import { ca } from "date-fns/locale";
 import { Card } from "@/components/ui/card";
 
 type AIModel = { model: string };
-type APIEntry = { site_url: string };
+type APIEntry = { db_name: string };
+
 
 type ChatInputProps = {
   chatUuid: string;
@@ -77,7 +78,7 @@ export default function ChatInput({
       chatId: chatUuid,
       settings: {
         model: aiApis[selectedModelIdx]?.model,
-        site_url: apis[selectedApiIdx]?.site_url,
+        db_name: apis[selectedApiIdx]?.db_name,
       },
     },
 
@@ -160,7 +161,11 @@ if (toolName === "createMap") {
 
     fetch("/api/chatwithDBdata/apis")
       .then((res) => res.json())
-      .then((data) => setApis(Array.isArray(data) ? data : []));
+      
+ .then((data) => {
+      console.log("🔥 APIs response:", data);
+      setApis(Array.isArray(data) ? data : []);
+    });      
   }, []);
 
   // ✔ FIXED sendMessage (NO DB INSERT HERE)
@@ -181,7 +186,7 @@ if (toolName === "createMap") {
           promptUuid: null,
           settings: {
             model: aiApis[selectedModelIdx]?.model,
-            site_url: apis[selectedApiIdx]?.site_url,
+            db_name: apis[selectedApiIdx]?.db_name,
           },
         },
       });
@@ -241,15 +246,15 @@ if (toolName === "createMap") {
                     variant="outline"
                     className="h-9 px-3 rounded-lg flex items-center gap-2"
                   >
-                    <Wrench className="w-5 h-5" /> API
+                    <Database className="w-5 h-5" /> DB
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuLabel>Select API</DropdownMenuLabel>
+                  <DropdownMenuLabel>Select DB</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {apis.map((a, i) => (
                     <DropdownMenuItem key={i} onClick={() => setSelectedApiIdx(i)}>
-                      {a.site_url}
+                      {a.db_name}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
