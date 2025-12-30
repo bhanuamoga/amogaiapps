@@ -52,13 +52,22 @@ export function createInjectedAndLoggedTool(
 export class PostgresAPI {
   private pool: Pool
 
-  constructor(connectionUrl: string) {
+  private userScopeEnabled = false;
+  private userEmail?: string;
+  constructor(connectionUrl: string,
+    scope?: {
+      userScopeEnabled?: boolean;
+      userEmail?: string;
+    }) {
     this.pool = new Pool({
       connectionString: connectionUrl,
       ssl: connectionUrl.includes("sslmode=require")
         ? { rejectUnauthorized: false }
         : undefined,
     })
+
+    this.userScopeEnabled = scope?.userScopeEnabled ?? false;
+  this.userEmail = scope?.userEmail;
   }
 
   async testConnection() {
@@ -70,14 +79,38 @@ export class PostgresAPI {
       client.release()
     }
   }
+async runScopedQuery<T = any>(sql: string, params: any[] = []) {
+  let finalSql = sql.trim().replace(/;+\s*$/, "");
+  const finalParams = [...params];
+
+  if (this.userScopeEnabled) {
+    if (!this.userEmail) {
+      throw new Error("User email required for scoped queries");
+    }
+
+    const hasWhere = /\bwhere\b/i.test(finalSql);
+
+    finalSql += `
+      ${hasWhere ? "AND" : "WHERE"}
+      user_email = $${finalParams.length + 1}
+    `;
+
+    finalParams.push(this.userEmail);
+  }
+
+  return this.query<T>(finalSql, finalParams);
+}
+
 
   async query<T = any>(sql: string, params: any[] = []) {
-    const result = await this.pool.query(sql, params)
-    return {
-      rows: result.rows as T[],
-      rowCount: result.rowCount ?? 0,
-    }
+  const result = await this.pool.query(sql, params)
+
+  return {
+    rows: result.rows as T[],
+    rowCount: result.rowCount ?? 0,
   }
+}
+
 
   async listTables() {
     return this.query(`
@@ -100,6 +133,7 @@ export class PostgresAPI {
       [table]
     )
   }
+
 }
 
 /* =========================================================
@@ -160,7 +194,7 @@ export const createPostgresTools = (db: PostgresAPI | null) => ({
 
   /* ---------- SAFE SQL ---------- */
 
-  runQuery: createInjectedAndLoggedTool(
+runQuery: createInjectedAndLoggedTool(
   {
     name: "runQuery",
     description: `
@@ -173,24 +207,27 @@ Blocked: INSERT, UPDATE, DELETE, DROP, ALTER, TRUNCATE, CREATE
       params: z.array(z.unknown()).default([]),
     }),
     execute: async ({ sql, params }, db: PostgresAPI) => {
-      if (!db) throw new Error("Database not configured")
+      if (!db) throw new Error("Database not configured");
 
       const forbidden =
-         /\b(insert|update|delete|drop|alter|truncate|create|grant|revoke)\b/i
+        /\b(insert|update|delete|drop|alter|truncate|create|grant|revoke)\b/i;
       if (forbidden.test(sql)) {
-        throw new Error("Only SELECT queries are allowed")
+        throw new Error("Only SELECT queries are allowed");
       }
 
-      const result = await db.query(sql, params)
+      // 🔐 USER SCOPE ENFORCED HERE
+      const result = await db.runScopedQuery(sql, params);
+
       return {
         success: true,
         rows: result.rows,
         rowCount: result.rowCount,
-      }
+      };
     },
   },
   db
 ),
+
 
 
   /* =========================================================

@@ -112,7 +112,19 @@ export async function POST(req: Request) {
   try {
     // 1. Authenticate user
     const session = await auth();
-    const userId = session?.user?.user_catalog_id;
+    const userEmail = session?.user?.user_email ?? undefined;
+
+    const rawUserId = session?.user?.user_catalog_id;
+
+if (!rawUserId) {
+  return new Response("Unauthorized", { status: 401 });
+}
+
+// number → Supabase / PostgREST
+const userCatalogId = rawUserId;
+
+// string → SQL / PostgresAPI scope
+const userId = String(rawUserId);
     if (!userId) return new Response("Unauthorized", { status: 401 });
 
     // 2. Parse incoming request JSON
@@ -128,12 +140,17 @@ if (!chatUuid) {
 // =====================================================
 // SIMPLE TOKEN COST CALCULATOR (GLOBAL FUNCTION)
 // =====================================================
+console.log({
+  userCatalogId, // number
+  userId,        // string
+  userEmail,
+});
 
 
   const { data, error } = await postgrest
   .from("user_catalog" as any)
   .select("aiapi_connection_json,db_connection_json")
-  .eq("user_catalog_id", userId)
+  .eq("user_catalog_id", userCatalogId)
   .single();
 
 // ✅ ADD THIS CHECK HERE
@@ -149,6 +166,7 @@ interface DBSettings {
   status?: string;
   default?: boolean;
   db_connection_string?: string;
+  user_scope?: boolean;
 }
 
 let dbSettings: DBSettings | null = null;
@@ -168,7 +186,14 @@ if (Array.isArray(data.db_connection_json)) {
 let dbAPI: PostgresAPI | null = null;
 
 if (dbSettings?.db_connection_string) {
-  dbAPI = new PostgresAPI(dbSettings.db_connection_string);
+  dbAPI = new PostgresAPI(
+  dbSettings.db_connection_string,
+  {
+    userScopeEnabled: dbSettings.user_scope === true,
+    userEmail,
+  }
+);
+
 }
 
     // 4. Select AI provider
@@ -326,7 +351,14 @@ If ANY response contains:
 - Missing suggestActions
 - Incorrect tool order
 
-→ THE RESPONSE IS INVALID.`
+→ THE RESPONSE IS INVALID.
+
+DATABASE NAMING RULES (STRICT)
+- Never pluralize table names.
+- Always use exact table names returned by listTables.
+- If a table name is a reserved keyword (e.g., order), it MUST be double-quoted.
+- Always prefer schema-qualified names: public."order"
+`
 let aiBundle: {
       chart: any | null;
       table: any | null;
