@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   FileSearch,
   BarChart,
@@ -40,7 +41,7 @@ const MapView = dynamic(() => import("./MapView"), {
 
 // ---------- Types ----------
 type VisualContent = {
-  type: "chart" | "table" | "card"|"map";
+  type: "chart" | "table" | "card"|"map"|"story"|"actions";
   data: any;
 };
 
@@ -54,6 +55,8 @@ type ChatBodyProps = {
   messages: Message[];
   isLoading?: boolean;
   errorMessage?: string | null;
+  onSuggestionClick: (text: string) => void;
+  
 };
 
 // ---------- Suggestions ----------
@@ -153,6 +156,7 @@ function groupMessages(messages: Message[]) {
       description?: string;
     };
     assistantText: string[];
+    actions?: { label: string; action: string }[]; 
   }> = [];
 
   let i = 0;
@@ -176,7 +180,7 @@ function groupMessages(messages: Message[]) {
           card: content.card?.data || content.data,
           chart: undefined,
           table: undefined,
-           map: content.map?.data,
+          map: content.map?.data,
           assistantText: content.story?.content
             ? [content.story.content]
             : content.content
@@ -197,8 +201,9 @@ function groupMessages(messages: Message[]) {
         card: undefined as any,
         map: undefined as { title?: string; points: any[] } | undefined,
         assistantText: [] as string[],
+        actions: undefined as { label: string; action: string }[] | undefined,
       };
-
+       
       let j = i + 1;
 
       while (j < messages.length) {
@@ -209,7 +214,13 @@ function groupMessages(messages: Message[]) {
         // ASSISTANT OBJECT (LIVE + SAVED)
         // ==============================
         if (next.role === "assistant" && typeof next.content === "object" && next.content !== null) {
+
+
           const content: any = next.content;
+
+          // ---------- ACTIONS ----------
+
+
            // ---------- MAP ----------
 if (!group.map) {
   if (content.type === "map" && content.data) {
@@ -276,6 +287,17 @@ if (!group.map) {
           if (content.story?.content) {
             group.assistantText.push(content.story.content);
           }
+          if (!group.actions) {
+  if (content.type === "actions" && Array.isArray(content.data)) {
+    group.actions = content.data;
+  }
+
+  // reload-safe (persisted)
+  if (content.actions?.data) {
+    group.actions = content.actions.data;
+  }
+}
+          
         }
 
         // ---------- STRING TEXT ----------
@@ -291,6 +313,7 @@ if (!group.map) {
     } else {
       i++;
     }
+    
   }
 
   return result;
@@ -334,6 +357,7 @@ export default function ChatBody({
   messages,
   isLoading = false,
   errorMessage = null,
+   onSuggestionClick,
 }: ChatBodyProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [copiedIndex, setCopiedIndex] = React.useState<number | null>(null);
@@ -501,6 +525,28 @@ export default function ChatBody({
                 </div>
               </div>
             )}
+                        {/* ASSISTANT SUGGESTED ACTIONS */}
+         {g.assistantText.length > 0 && g.actions && g.actions.length > 0 && (
+  <div className="flex flex-wrap gap-2 mt-2  items-start max-w-full">
+    {g.actions.map((a, i) => (
+      <Button
+        key={i}
+        variant="outline"
+        size="sm"
+        className="max-w-full rounded-xl whitespace-normal break-words text-left"
+        onClick={() => onSuggestionClick(a.label)}
+
+      >
+        {a.label}
+      </Button>
+    ))}
+  </div>
+)}
+
+
+
+
+
 
             {/* ASSISTANT ACTIONS */}
             {g.assistantText.length > 0 && (
@@ -710,6 +756,7 @@ export default function ChatBody({
 
               </div>
             )}
+
 
           </React.Fragment>
         ))}

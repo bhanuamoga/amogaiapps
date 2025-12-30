@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import { useParams } from "next/navigation";
 import ChatHeader from "@/app/(authenticated)/chatwithDBdata/_components/chat-header";
 import ChatBody from "@/app/(authenticated)/chatwithDBdata/_components/chat-body";
@@ -15,6 +15,7 @@ type Message = {
 export default function ChatPage() {
   const params = useParams();
   const chatUuid = params.chatUuid as string;
+const chatInputSetRef = useRef<((text: string) => void) | null>(null);
 
   // Chat states
   const [messages, setMessages] = useState<Message[]>([]);
@@ -101,14 +102,21 @@ const handleNewMessage = (
           messages={messages}
           isLoading={isLoading}
           errorMessage={errorMessage}
-        />
+          onSuggestionClick={(text) => {
+    chatInputSetRef.current?.(text);
+  }}
+  />
 
       <ChatInput
-        chatUuid={chatUuid}
-        onNewMessage={handleNewMessage}
-        setIsLoading={setIsLoading}
-         setErrorMessage={setErrorMessage}
-      />
+  chatUuid={chatUuid}
+  onNewMessage={handleNewMessage}
+  setIsLoading={setIsLoading}
+  setErrorMessage={setErrorMessage}
+  onSetInput={(setter) => {
+    chatInputSetRef.current = setter;
+  }}
+/>
+
     </main>
   );
 }

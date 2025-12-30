@@ -205,7 +205,7 @@ Blocked: INSERT, UPDATE, DELETE, DROP, ALTER, TRUNCATE, CREATE
       value: z.string(),
       prefix: z.string().optional(),
       suffix: z.string().optional(),
-      description: z.string().optional(),
+       description: z.string().min(3),
     }),
     execute: async (args) => ({
       success: true,
@@ -319,6 +319,24 @@ if (hasForbiddenNumber) {
     }
   },
 }),
+suggestActions: createInjectedAndLoggedTool({
+  name: "suggestActions",
+  description: "Suggests next analytical actions as UI buttons",
+  parameters: z.object({
+    actions: z.array(
+      z.object({
+        label: z.string(),
+        action: z.string().optional(), // ✅ FIX
+      })
+    ),
+  }),
+  execute: async ({ actions }) => ({
+    success: true,
+    displayType: "actions",
+    actions,
+  }),
+}),
+
 
   /* =========================================================
      5. ADVANCED CODE INTERPRETER

@@ -35,6 +35,8 @@ type ChatInputProps = {
   onNewMessage?: (role: "user" | "assistant", content: any) => void;
   setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   setErrorMessage: React.Dispatch<React.SetStateAction<string | null>>;
+  onSetInput?: (setter: (text: string) => void) => void;
+
 };
 
 export default function ChatInput({
@@ -42,7 +44,7 @@ export default function ChatInput({
   onNewMessage,
   setIsLoading,
   setErrorMessage,
-  
+   onSetInput,
 }: ChatInputProps) {
   const [aiApis, setAiApis] = useState<AIModel[]>([]);
   const [apis, setApis] = useState<APIEntry[]>([]);
@@ -58,7 +60,7 @@ export default function ChatInput({
     card:null as any,
     map: null as any,
     story: null as any,
-
+    actions: null as any,
   });
 
   // ❌ REMOVED - CAUSES DUPLICATE USER MESSAGES
@@ -81,7 +83,7 @@ export default function ChatInput({
         db_name: apis[selectedApiIdx]?.db_name,
       },
     },
-
+     
     onFinish: async (message: any) => {
       if (message.role === "assistant") {
         onNewMessage?.("assistant", message.content);
@@ -100,6 +102,7 @@ export default function ChatInput({
           card: null,
           map: null,
           story: null,
+          actions: null,
         };
       }
 
@@ -112,42 +115,61 @@ export default function ChatInput({
       setIsLoading?.(false);
     },
 
-    onToolCall: async (event: any) => {
-      const { toolName, args } = event.toolCall;
+   onToolCall: async (event: any) => {
+  const { toolName, args } = event.toolCall;
 
-      if (toolName === "createChart") {
-        const msg = { type: "chart", data: args };
-        assistantBundleRef.current.chart = msg;
-        onNewMessage?.("assistant", msg);
-      }
+  if (toolName === "createChart") {
+    onNewMessage?.("assistant", {
+      type: "chart",
+      data: args,
+    });
+  }
 
-      if (toolName === "createTable") {
-        const msg = { type: "table", data: args };
-        assistantBundleRef.current.table = msg;
-        onNewMessage?.("assistant", msg);
-      }
-      if (toolName === "createCard") {
-  const msg = { type: "card", data: args };
-  assistantBundleRef.current.card = msg;
-  onNewMessage?.("assistant", msg);
+  if (toolName === "createTable") {
+    onNewMessage?.("assistant", {
+      type: "table",
+      data: args,
+    });
+  }
+
+  if (toolName === "createCard") {
+    onNewMessage?.("assistant", {
+      type: "card",
+      data: args,
+    });
+  }
+
+  if (toolName === "createMap") {
+    onNewMessage?.("assistant", {
+      type: "map",
+      data: {
+        title: args.title,
+        points: args.points,
+      },
+    });
+  }
+
+  // ✅ THIS IS WHAT YOU KEEP BREAKING
+  if (toolName === "suggestActions") {
+    onNewMessage?.("assistant", {
+      type: "actions",
+      data: args.actions,
+    });
+  }
 }
-if (toolName === "createMap") {
-  const msg = {
-    type: "map",
-    data: {
-      title: args.title,
-      points: args.points,
-    },
-  };
-
-  onNewMessage?.("assistant", msg);
-}
-
-    },
   });
+// ✅ expose input setter to parent (ONCE)
+useEffect(() => {
+  if (!onSetInput) return;
+
+  onSetInput((text: string) => {
+    handleInputChange({ target: { value: text } } as any);
+  });
+}, [onSetInput, handleInputChange]);
 
   // mic input support
   useEffect(() => {
+    
     if (transcript) {
       handleInputChange({ target: { value: transcript } } as any);
     }

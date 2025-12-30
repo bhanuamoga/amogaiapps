@@ -334,6 +334,16 @@ function mapDbMessageToUI(msg: any) {
         content: r.story.content,
       });
     }
+    // 4️⃣ ACTIONS (✅ ADD THIS)
+if (r.actions?.data && Array.isArray(r.actions.data)) {
+  results.push({
+    role: "assistant",
+    content: {
+      type: "actions",
+      data: r.actions.data,
+    },
+  });
+}
 
     // Nothing usable
     if (results.length === 0) return null;
