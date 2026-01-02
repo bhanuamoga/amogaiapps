@@ -62,3 +62,47 @@ export async function log(
 
   await sendOTLP(payload);
 }
+export async function chatwithdbdata({
+  chatId,
+  userPrompt,
+  aiResponse,
+  promptTokens,
+  completionTokens,
+  totalTokens,
+  tokenCost,
+  latencyMs,
+  pathname,
+}: {
+  chatId: string;
+  userPrompt: string;
+  aiResponse: any;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  tokenCost: number;
+  latencyMs: number;
+  pathname?: string;
+}) {
+  return log("INFO", "chat.completed", {
+    pathname,
+
+    // 🔑 routing key (collector uses this)
+    "log.type": "chatwithdb",
+
+    // chat identity
+    "chat.id": chatId,
+
+    // content
+    "chat.user_prompt": userPrompt,
+    "chat.ai_response": aiResponse,
+
+    // usage
+    "tokens.prompt": promptTokens,
+    "tokens.completion": completionTokens,
+    "tokens.total": totalTokens,
+    "tokens.cost": tokenCost,
+
+    // performance
+    "latency.ms": latencyMs,
+  });
+}

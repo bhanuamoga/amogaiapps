@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { NotificationManager } from "@/components/notification-manager";
 import { ExpoNotificationManagerWrapper } from "@/components/ExpoNotificationManagerWrapper";
 import { DialogModel } from "@/components/modal/global-model";
+import Script from "next/script";
+import { GA4Tracker } from "@/components/ga4";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,10 +41,27 @@ export default async function RootLayout({
   const messages = await getMessages();
   return (
     <html lang={locale || "en"}  suppressHydrationWarning>
-      
+      <head>
+         {/* ===== Google Analytics (GA4) ===== */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-62YDHV6JTL"
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-62YDHV6JTL', {
+              page_path: window.location.pathname,
+            });
+          `}
+        </Script>
+      </head>
       <body
         className={cn(geistSans.variable, geistMono.variable, "antialiased")}
       >
+        <GA4Tracker /> 
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"
