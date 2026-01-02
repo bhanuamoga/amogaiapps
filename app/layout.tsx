@@ -11,9 +11,7 @@ import { cn } from "@/lib/utils";
 import { NotificationManager } from "@/components/notification-manager";
 import { ExpoNotificationManagerWrapper } from "@/components/ExpoNotificationManagerWrapper";
 import { DialogModel } from "@/components/modal/global-model";
-import Script from "next/script";
-import { GA4Tracker } from "@/components/ga4";
-
+import { OpenPanelComponent } from '@openpanel/nextjs';
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -41,27 +39,18 @@ export default async function RootLayout({
   const messages = await getMessages();
   return (
     <html lang={locale || "en"}  suppressHydrationWarning>
-      <head>
-         {/* ===== Google Analytics (GA4) ===== */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-62YDHV6JTL"
-          strategy="afterInteractive"
-        />
-        <Script id="ga4-init" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-62YDHV6JTL', {
-              page_path: window.location.pathname,
-            });
-          `}
-        </Script>
-      </head>
+      
       <body
         className={cn(geistSans.variable, geistMono.variable, "antialiased")}
       >
-        <GA4Tracker /> 
+        <OpenPanelComponent
+                    clientId="dc6621e0-a491-4950-be0a-8756e9172a5f"
+                    trackScreenViews={true}
+                    trackAttributes={true}
+                    trackOutgoingLinks={true}
+                    // If you have a user id, you can pass it here to identify the user
+                    // profileId={'123'}
+                  />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"
@@ -75,6 +64,7 @@ export default async function RootLayout({
               <SessionProvider>
                 <NotificationManager />
                 <ExpoNotificationManagerWrapper />
+                 
                 {children}
               </SessionProvider>
             </SearchProvider>
