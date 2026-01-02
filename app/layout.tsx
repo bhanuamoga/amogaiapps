@@ -12,6 +12,7 @@ import { NotificationManager } from "@/components/notification-manager";
 import { ExpoNotificationManagerWrapper } from "@/components/ExpoNotificationManagerWrapper";
 import { DialogModel } from "@/components/modal/global-model";
 import { OpenPanelComponent } from '@openpanel/nextjs';
+import { OpenPanelIdentify } from "@/components/openpanel-identify";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -62,6 +63,7 @@ export default async function RootLayout({
           >
             <SearchProvider>
               <SessionProvider>
+                 <OpenPanelIdentify />
                 <NotificationManager />
                 <ExpoNotificationManagerWrapper />
                  
