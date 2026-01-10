@@ -199,11 +199,11 @@ if (toolName === "createMap") {
   }, [input]);
 
   return (
-    <div className="w-full sticky bottom-0 z-40 py-1">
+    <div className="w-full sticky bottom-0 z-40 py-0.5">
       <div className="mx-auto w-full max-w-[800px]">
         <div
           className={cn(
-            "rounded-xl border shadow-sm p-3 sm:p-4 flex flex-col gap-3 sm:gap-4",
+            "rounded-xl border shadow-sm p-4 sm:p-4 flex flex-col gap-3 sm:gap-4",
             "bg-background"
           )}
         >
@@ -211,8 +211,8 @@ if (toolName === "createMap") {
             ref={textareaRef}
             value={input}
             onChange={(e) => handleInputChange(e)}
-            placeholder="Ask a follow-up"
-            className="flex w-full rounded-sm border border-input bg-background px-3 py-3 text-base leading-relaxed resize-none overflow-y-auto"
+            placeholder="Ask a question about your data..."
+            className="flex w-full rounded-sm border border-input bg-background px-2  py-3 text-base leading-relaxed resize-none overflow-y-auto"
             style={{ maxHeight: 96 }}
           />
 
@@ -224,7 +224,7 @@ if (toolName === "createMap") {
                     <SlidersHorizontal className="w-5 h-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent  className="ml-2">
                   <DropdownMenuLabel>Select Model</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {aiApis.map((m, i) => (
@@ -244,7 +244,7 @@ if (toolName === "createMap") {
                     <Wrench className="w-5 h-5" /> API
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent  className="ml-2">
                   <DropdownMenuLabel>Select API</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {apis.map((a, i) => (

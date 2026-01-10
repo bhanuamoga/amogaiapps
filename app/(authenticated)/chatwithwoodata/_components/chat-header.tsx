@@ -137,11 +137,12 @@ export default function ThreadHeaderSticky({ chatUuid }: ThreadHeaderStickyProps
   /* ---------------------- RENDER ---------------------- */
   return (
     <header
-      className={cn(
-        "w-full ",
-        "mx-auto max-w-[800px] flex flex-wrap justify-between items-center gap-3  py-2 sm:py-3",
-        "backdrop-blur-md "
-      )}
+  className={cn(
+    "w-full sticky top-0 z-50",
+    "mx-auto max-w-[800px] flex flex-wrap justify-between items-center gap-3 py-2 sm:py-3",
+    "bg-background/80 backdrop-blur-md "
+  )}
+
       style={{
         transform: "translateZ(0)",
         WebkitBackdropFilter: "blur(8px)",

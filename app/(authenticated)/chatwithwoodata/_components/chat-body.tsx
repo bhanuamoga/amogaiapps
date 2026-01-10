@@ -365,7 +365,7 @@ export default function ChatBody({
   const groups = groupMessages(messages);
 
   return (
-    <div className="flex-1 overflow-y-auto px-1 sm:px-4 py-4 sm:py-6 bg-background">
+    <div className="flex-1 overflow-y-auto px-1 sm:px-1 py-4 sm:py-6 bg-background">
       <div className="max-w-[800px] mx-auto space-y-4 sm:space-y-6">
 
         {/* Suggestions */}
@@ -416,7 +416,7 @@ export default function ChatBody({
 
             {/* User bubble */}
             <div className="flex justify-end">
-              <div className="bg-primary text-primary-foreground rounded-2xl px-2 py-2 sm:px-4 sm:py-2 max-w-[85%] text-sm whitespace-pre-wrap">
+              <div className="bg-primary text-primary-foreground rounded-2xl px-2 py-2 sm:px-2 sm:py-2 max-w-[85%] text-sm whitespace-pre-wrap">
                 {g.userText}
               </div>
             </div>
@@ -496,7 +496,7 @@ export default function ChatBody({
             {/* Assistant Text */}
             {g.assistantText.length > 0 && (
               <div className="flex justify-start mt-2">
-                <div className="bg-muted rounded-2xl px-3 py-2 sm:px-4 sm:py-2 max-w-[85%] text-sm whitespace-pre-wrap">
+                <div className="bg-muted rounded-2xl px-2 py-2 sm:px-4 sm:py-2 max-w-[90%] text-sm whitespace-pre-wrap">
                   {g.assistantText.join("\n\n")}
                 </div>
               </div>
@@ -717,13 +717,13 @@ export default function ChatBody({
         {/* Loading */}
         {isLoading ? (
           <div className="flex justify-start">
-            <div className="bg-muted px-3 py-2 rounded-2xl max-w-[85%] text-sm animate-pulse">
+            <div className="bg-muted px-2 py-2 rounded-2xl max-w-[85%] text-sm animate-pulse">
               Thinking...
             </div>
           </div>
         ) : errorMessage ? (
           <div className="flex justify-start">
-            <div className="bg-destructive/10 text-destructive border border-destructive/40 rounded-2xl px-3 py-2 max-w-[85%] text-sm whitespace-pre-wrap break-words">
+            <div className="bg-destructive/10 text-destructive border border-destructive/40 rounded-2xl px-2 py-2 max-w-[85%] text-sm whitespace-pre-wrap break-words">
               {/* Error: */}
               <br />
               {errorMessage}

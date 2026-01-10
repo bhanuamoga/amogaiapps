@@ -73,7 +73,6 @@ export default function DataDisplay({
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<"chart" | "table">("chart");
 
-  // Reset page on table change
   useEffect(() => {
     setCurrentPage(1);
   }, [tableData]);
@@ -89,7 +88,6 @@ export default function DataDisplay({
     }
 
     const { type, data, options } = chartConfig;
-      console.log("📊 Received chartConfig:", chartConfig);
 
     const colors = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6"];
 
@@ -119,11 +117,13 @@ export default function DataDisplay({
 
   // Render table
   const renderTable = () => {
-    if (!tableData) return null;
+    const isEmpty =
+      !tableData?.columns ||
+      !tableData?.rows ||
+      !tableData.columns.length ||
+      !tableData.rows.length;
 
-    const { columns, rows, summary } = tableData;
-
-    if (!columns?.length || !rows?.length) {
+    if (isEmpty) {
       return (
         <div className="text-muted-foreground p-4 text-center">
           No table data
@@ -131,13 +131,15 @@ export default function DataDisplay({
       );
     }
 
+    const { columns, rows, summary } = tableData;
+
     const totalPages = Math.ceil(rows.length / itemsPerPage);
     const start = (currentPage - 1) * itemsPerPage;
     const sliced = rows.slice(start, start + itemsPerPage);
 
     return (
       <>
-        <div className="overflow-x-auto border rounded-xl  max-w-full">
+        <div className="w-full overflow-x-auto border rounded-xl">
           <table className="w-full border-collapse">
             <thead className="bg-muted/40 text-sm">
               <tr>
@@ -171,7 +173,7 @@ export default function DataDisplay({
   };
 
   return (
-    <div className={`${className}`}>
+    <div className={className}>
       <h3 className="text-lg font-semibold mb-6">{title}</h3>
 
       {/* Tabs */}
@@ -202,11 +204,16 @@ export default function DataDisplay({
       {/* Tab content */}
       <div>
         {activeTab === "chart" && (
-          <div className="w-full   min-h-[320px]">
+          <div className="w-full min-h-[300px]">
             {renderedChart}
           </div>
         )}
-        {activeTab === "table" && <div>{renderTable()}</div>}
+
+        {activeTab === "table" && (
+          <div className="w-full min-h-[300px]">
+            {renderTable()}
+          </div>
+        )}
       </div>
     </div>
   );
