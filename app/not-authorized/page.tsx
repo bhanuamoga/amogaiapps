@@ -10,7 +10,7 @@ export default function NotAuthorizedPage() {
       <p className="mb-8 text-lg text-gray-700">
         You do not have permission to access this page.
       </p>
-      <Link href="/role-menu" passHref>
+      <Link href="/chatwithwoodata" passHref>
         <Button variant="default" className="bg-primary">Go back to menu</Button>
       </Link>
     </div>

@@ -158,7 +158,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return Response.redirect(new URL("/chatwithwoodata", nextUrl.origin));
       }
 
-      const authAllowedPaths = ["/chatwithwoodata", "/settings", "/not-authorized","/Theme"];
+      const authAllowedPaths = ["/role-menu", "/settings", "/not-authorized","/Theme"];
 
       const isAuthAllowedPaths = authAllowedPaths.some((path) =>
         nextUrl.pathname.startsWith(path)
