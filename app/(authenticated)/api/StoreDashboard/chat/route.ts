@@ -70,53 +70,79 @@ export async function POST(req: Request) {
     }
 
     // 🧩 LangChain prompt template — returns text, chart, and table
-                const prompt = ChatPromptTemplate.fromTemplate(`
-            You are an AI assistant. Answer user queries strictly using ONLY the provided contextData (JSON array).
+            const prompt = ChatPromptTemplate.fromTemplate(`
+You are an AI data analyst assistant.
 
-            If the answer cannot be found in the contextData, reply with:
-            {{"error": "Insufficient data to answer the query."}}
+Your task:
+- Answer the user query using ONLY the provided contextData.
+- You MAY perform calculations, sorting, filtering, grouping, and aggregation.
+- Do NOT use any external knowledge.
 
-            ALWAYS use this output schema for all answers:
-            {{
-            "text": "<human-readable summary>",
-            "chartType": "<bar|line|pie|null>",
-            "chartData": <valid Chart.js data or null>,
-            "chartOptions": <valid Chart.js options or null>,
-            "table": <table object with columns and data arrays or null>
-            }}
+IMPORTANT:
+- contextData may contain multiple datasets.
+- Each dataset may include identifiers such as id, title, columns, rows, or data.
+- FIRST, determine which dataset is most relevant to the user query.
+- THEN compute the answer from that dataset.
 
-            Instructions:
-            1. For simple queries like totals, output only "text".
-            2. For "top N" queries (like top 5 products or customers):
-                - Locate the right leaderboard in contextData by id.
-                - Sort descending by relevant numeric metric.
-                - Output top N items (default 5).
-                - Return:
-                    - "text" summary,
-                    - "chartType" = "bar",
-                    - valid "chartData" for Chart.js,
-                    - "chartOptions" with title,
-                    - "table" (with columns & data for top N).
-            3. Don't hallucinate or use data not in contextData.
+If the answer CANNOT be determined from contextData, return EXACTLY this JSON:
+{{
+  "text": "Insufficient data to answer the query.",
+  "chartType": null,
+  "chartData": null,
+  "chartOptions": null,
+  "table": null
+}}
 
-            Example chartData:
-            {{
-            "labels": ["A", "B"],
-            "datasets": [{{ "label": "Net Sales", "data": [1000, 800] }}]
-            }}
+You MUST ALWAYS return a VALID JSON object using this schema:
+{{
+  "text": string,
+  "chartType": "bar" | "line" | "pie" | null,
+  "chartData": object | null,
+  "chartOptions": object | null,
+  "table": {{
+    "columns": string[],
+    "data": any[][]
+  }} | null
+}}
 
-            Example table:
-            {{
-            "columns": ["Name", "Net Sales"],
-            "data": [["A", 1000], ["B", 800]]
-            }}
+Rules:
+1. For simple numeric or summary questions:
+   - Fill ONLY "text"
+   - Set chartType, chartData, chartOptions, table to null
 
-            User question:
-            {queryData}
+2. For "top N" or ranking questions:
+   - Sort descending by the relevant numeric metric
+   - Default N = 5 if not specified
+   - Return:
+     - "text" summary
+     - "chartType": "bar"
+     - valid Chart.js "chartData"
+     - "chartOptions" with a title
+     - a "table" with columns and data
 
-            Context data:
-            {contextData}
-        `);
+3. NEVER invent or hallucinate data.
+4. NEVER return explanations, markdown, or comments — JSON ONLY.
+
+Example chartData:
+{{
+  "labels": ["A", "B"],
+  "datasets": [
+    {{ "label": "Net Sales", "data": [1000, 800] }}
+  ]
+}}
+
+Example table:
+{{
+  "columns": ["Name", "Net Sales"],
+  "data": [["A", 1000], ["B", 800]]
+}}
+
+User question:
+{queryData}
+
+Context data (JSON):
+{contextData}
+`);
 
     // 🧩 JSON output parser
     const parser = new JsonOutputParser();
